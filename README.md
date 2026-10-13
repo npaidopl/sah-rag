@@ -54,7 +54,7 @@ SAH-RAG organises knowledge in **three levels**:
    32-token overlap, enforcing that child boundaries never cross parent
    boundaries. This preserves document identity during retrieval.
 3. **Hybrid representations** — each child is embedded with BGE-M3 to produce
-   *dense* (1024-dim, FP16, ℓ2-normalised) and *learned-sparse* vectors in a
+   *dense* (1024-dim, FP16, β„“2-normalised) and *learned-sparse* vectors in a
    single forward pass.
 
 Retrieval fuses the two rankings with Reciprocal Rank Fusion (RRF, k = 60)
@@ -73,62 +73,62 @@ inputs produce byte-identical artifacts.
 
 ```
 sah-rag/
-├── README.md                      # This file
-├── LICENSE                        # MIT
-├── CITATION.cff                   # Citation metadata
-├── pyproject.toml                 # Project metadata + dependencies
-├── .gitignore
-│
-├── src/rag_system/                # Main source package
-│   ├── canonical/                 # Canonical data model
-│   ├── parsing/                   # Deterministic structural parser
-│   ├── chunking/                  # Hierarchical child chunker
-│   ├── embedding/                 # BGE-M3 dense + sparse embedder
-│   ├── storage/                   # Qdrant hybrid collections
-│   ├── retrieval/                 # Hybrid RRF + aggregation
-│   ├── evaluation/                # Metric computation
-│   ├── artifacts/                 # Manifest writers & checksums
-│   ├── generation/                # (dry-run only; not part of evaluation)
-│   ├── orchestration/             # Pipeline planner
-│   └── baselines/                 # LongRAG & Metadata-RAG comparators
-│
-├── baseline_audit/                # Frozen contracts & audit artifacts
-│   ├── common_*.yaml
-│   ├── dataset_*.yaml
-│   ├── fair_benchmark_*.yaml
-│   ├── longrag_*.yaml
-│   ├── metadata_rag_*.yaml
-│   ├── my_rag_*.yaml              # historical name; see Naming Note
-│   └── reports/                   # Comparison reports (JSON / MD)
-│
-├── docs/                          # Documentation
-│   ├── README.md                  # Documentation hub
-│   ├── architecture_specification.md
-│   ├── fair_benchmark_methodology.md
-│   ├── reports/                   # Written reports (LaTeX sources)
-│   │   ├── sah_rag_implementation.tex
-│   │   ├── sah_rag_optimization.tex
-│   │   ├── datasets.tex
-│   │   ├── pipelines_status.tex
-│   │   ├── longrag_full_track_report.tex
-│   │   ├── longrag_vs_sah_rag.tex
-│   │   ├── metadata_rag_full_track_report.tex
-│   │   ├── three_way_comparison.tex
-│   │   └── archived/              # Reports on non-executed architectures
-│   ├── pilot/                     # Infrastructure pilot design docs
-│   └── data/                      # Project PDF
-│       └── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
-│
-├── scripts/                       # Execution & validation entry points
-│   ├── run_sah_rag_*.py
-│   ├── run_longrag_*.py
-│   ├── run_metadata_rag_*.py
-│   └── compare_*.py
-│
-└── tests/                         # Unit, integration, and synthetic tests
-    ├── unit/
-    ├── integration/
-    └── fixtures/
+β”β”€β”€ README.md                      # This file
+β”β”€β”€ LICENSE                        # MIT
+β”β”€β”€ CITATION.cff                   # Citation metadata
+β”β”€β”€ pyproject.toml                 # Project metadata + dependencies
+β”β”€β”€ .gitignore
+β”‚
+β”β”€β”€ src/rag_system/                # Main source package
+β”‚   β”β”€β”€ canonical/                 # Canonical data model
+β”‚   β”β”€β”€ parsing/                   # Deterministic structural parser
+β”‚   β”β”€β”€ chunking/                  # Hierarchical child chunker
+β”‚   β”β”€β”€ embedding/                 # BGE-M3 dense + sparse embedder
+β”‚   β”β”€β”€ storage/                   # Qdrant hybrid collections
+β”‚   β”β”€β”€ retrieval/                 # Hybrid RRF + aggregation
+β”‚   β”β”€β”€ evaluation/                # Metric computation
+β”‚   β”β”€β”€ artifacts/                 # Manifest writers & checksums
+β”‚   β”β”€β”€ generation/                # (dry-run only; not part of evaluation)
+β”‚   β”β”€β”€ orchestration/             # Pipeline planner
+β”‚   β””β”€β”€ baselines/                 # LongRAG & Metadata-RAG comparators
+β”‚
+β”β”€β”€ baseline_audit/                # Frozen contracts & audit artifacts
+β”‚   β”β”€β”€ common_*.yaml
+β”‚   β”β”€β”€ dataset_*.yaml
+β”‚   β”β”€β”€ fair_benchmark_*.yaml
+β”‚   β”β”€β”€ longrag_*.yaml
+β”‚   β”β”€β”€ metadata_rag_*.yaml
+β”‚   β”β”€β”€ my_rag_*.yaml              # historical name; see Naming Note
+β”‚   β””β”€β”€ reports/                   # Comparison reports (JSON / MD)
+β”‚
+β”β”€β”€ docs/                          # Documentation
+β”‚   β”β”€β”€ README.md                  # Documentation hub
+β”‚   β”β”€β”€ architecture_specification.md
+β”‚   β”β”€β”€ fair_benchmark_methodology.md
+β”‚   β”β”€β”€ reports/                   # Written reports (LaTeX sources)
+β”‚   β”‚   β”β”€β”€ sah_rag_implementation.tex
+β”‚   β”‚   β”β”€β”€ sah_rag_optimization.tex
+β”‚   β”‚   β”β”€β”€ datasets.tex
+β”‚   β”‚   β”β”€β”€ pipelines_status.tex
+β”‚   β”‚   β”β”€β”€ longrag_full_track_report.tex
+β”‚   β”‚   β”β”€β”€ longrag_vs_sah_rag.tex
+β”‚   β”‚   β”β”€β”€ metadata_rag_full_track_report.tex
+β”‚   β”‚   β”β”€β”€ three_way_comparison.tex
+β”‚   β”‚   β””β”€β”€ archived/              # Reports on non-executed architectures
+β”‚   β”β”€β”€ pilot/                     # Infrastructure pilot design docs
+β”‚   β””β”€β”€ data/                      # Project PDF
+β”‚       β””β”€β”€ REPORT_NIKOLAOS_PAIDOPOULOS.pdf
+β”‚
+β”β”€β”€ scripts/                       # Execution & validation entry points
+β”‚   β”β”€β”€ run_sah_rag_*.py
+β”‚   β”β”€β”€ run_longrag_*.py
+β”‚   β”β”€β”€ run_metadata_rag_*.py
+β”‚   β””β”€β”€ compare_*.py
+β”‚
+β””β”€β”€ tests/                         # Unit, integration, and synthetic tests
+    β”β”€β”€ unit/
+    β”β”€β”€ integration/
+    β””β”€β”€ fixtures/
 ```
 
 ---
@@ -163,7 +163,7 @@ export SAH_RAG_CANONICAL_ROOT=/path/to/canonical-datasets
 ### Running the pipeline
 
 ```bash
-# Full pipeline for SAH-RAG (parsing → chunking → embedding → retrieval → eval)
+# Full pipeline for SAH-RAG (parsing β†’ chunking β†’ embedding β†’ retrieval β†’ eval)
 python scripts/run_sah_rag_m0_full_evaluation.py
 
 # Comparator: LongRAG
