@@ -328,7 +328,7 @@ export SAH_RAG_CANONICAL_ROOT=/path/to/canonical-datasets
 
 ```bash
 
-# Full pipeline for SAH-RAG (parsing β†’ chunking β†’ embedding β†’ retrieval β†’ eval)
+# Full pipeline for SAH-RAG (parsing → chunking → embedding → retrieval → eval)
 
 python scripts/run_sah_rag_m0_full_evaluation.py
 
