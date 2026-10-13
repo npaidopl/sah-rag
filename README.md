@@ -4,8 +4,9 @@
 
 SAH-RAG is a deterministic, structure-aware, hierarchical, hybrid retrieval
 architecture for Retrieval-Augmented Generation (RAG) in long-context
-scenarios. It is the focus of this repository and of the accompanying
-Diploma Thesis.
+scenarios. This repository contains its reference implementation, the frozen
+experimental contracts used in the accompanying evaluation, and the written
+reports of the project.
 
 The architecture is evaluated under a shared fair-comparison protocol against
 two external retrieval architectures — **LongRAG** (controlled adaptation)
