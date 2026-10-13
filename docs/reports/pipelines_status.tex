@@ -1,0 +1,399 @@
+% =====================================================================
+% RAG Architecture Portfolio — Completion Status Report
+% Compile: pdflatex portfolio_status.tex  (twice for references)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.1cm]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.3em,itemsep=1.5pt,topsep=1.5pt}
+\setlist[enumerate]{leftmargin=1.5em,itemsep=1.5pt,topsep=1.5pt}
+
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{notebox}{
+  colback=gray!6, colframe=gray!55!black,
+  boxrule=0.4pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+
+\usepackage{ragged2e}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small RAG Architecture Portfolio --- Completion Status}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={RAG Architecture Portfolio Completion Status},
+  pdfauthor={Project Owner},
+  bookmarksnumbered=true
+}
+
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.0em}{0.35em}
+\titlespacing*{\subsection}{0pt}{0.7em}{0.25em}
+
+\usepackage{makecell}
+\renewcommand\theadfont{\bfseries\small}
+\renewcommand\cellalign{tl}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+% Table macros for tight cells
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+
+% =====================================================================
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries RAG Architecture Portfolio}\\[4pt]
+{\large Completion Status Report}\\[6pt]
+\rule{\linewidth}{0.4pt}
+\end{center}
+
+\vspace{-0.4em}
+
+\begin{notebox}
+\textbf{Scope.} This report records the terminal status of the eleven
+retrieval architectures audited under the present program. It
+describes, for each architecture, what was feasible, what was
+completed, and where the work stopped. No empirical retrieval result
+is reported here. All statuses reflect work completed at the time of
+writing.
+\end{notebox}
+
+% =====================================================================
+\section{Overview}
+
+Eleven retrieval architectures were considered. Each was audited for
+retrieval-only execution under three binding constraints: academic
+correctness, comparative fairness, and architectural integrity.
+Two hard resource constraints also applied: no hosted LLM API and no
+persistent GPU.
+
+Of the eleven architectures:
+
+\begin{itemize}
+  \item \textbf{Two} reached full completion and are ready for
+    dataset-level execution.
+  \item \textbf{One} reached partial execution and is retained with a
+    declared structural limitation.
+  \item \textbf{Eight} stopped at a well-defined blocker and are
+    recorded as deferred or excluded with stated reasons.
+\end{itemize}
+
+The following two sections summarise each architecture and then
+tabulate the terminal status, the reason for stopping, and whether
+the vendor's original architecture or the paper's architecture was
+altered in any way.
+
+% =====================================================================
+\section{Per-Architecture Status}
+
+\subsection*{\code{my\_rag} (Project-Owned Reference)}
+
+Fully implemented and validated in the infrastructure pilot. The
+pipeline covers canonical input, structural parsing, hierarchical
+child chunking, dense and sparse embedding with BGE-M3, Qdrant
+persistence, hybrid RRF retrieval, parent aggregation, and common
+evaluation. No LLM is used at any stage. \textbf{Status: complete.
+Not yet executed on any real dataset.}
+
+\subsection*{\code{longrag} (Controlled Adaptation)}
+
+Long-unit construction, dense embedding, exact reference index,
+Qdrant storage, retrieval, canonical expansion, and evaluation-case
+construction all passed synthetic acceptance. Storage equivalence
+against an exact reference index was validated with top-$k$ overlap
+of $1.0$ at all cutoffs. Embeddings have been generated in a Colab
+T4 session. \textbf{Status: complete.}
+
+\subsection*{\code{pathrag} (Paper-Derived Comparator)}
+
+The foreign repository is unlicensed, so only a paper-derived
+clean-room comparator is executable. The comparator implements graph
+construction, bounded simple-path enumeration, resource propagation,
+path scoring, path ranking, neutral textualisation, and canonical
+document expansion. The comparator operates without embedding
+augmentation. An attempt to augment the comparator with BGE-M3
+embeddings failed due to a combination of licensing and interface
+constraints; this is documented in a separate failure report.
+\textbf{Status: partial. Retained as a structural comparator with a
+declared limitation.}
+
+\subsection*{\code{raptor} (Controlled Adaptation)}
+
+Leaf chunking, tree serialisation, and ranked-node retrieval were
+implemented. The architecture-defining summarisation stage requires
+an LLM at index time. A frozen Qwen2.5-7B-Instruct request bundle was
+prepared for a Colab T4 pilot. The full summarisation stage was not
+executed because the number of LLM calls required for a long-context
+dataset is not sustainable without hosted infrastructure.
+\textbf{Status: stopped at the summarisation stage.}
+
+\subsection*{\code{hipporag2} (Controlled Adaptation)}
+
+Graph construction, personalised PageRank, passage ranking, and
+canonical mapping were implemented. The architecture-defining OpenIE
+stage requires an LLM at index time. Graph construction for a single
+long-context dataset requires on the order of $10^{7}$ LLM tokens.
+This is not sustainable without hosted infrastructure.
+\textbf{Status: stopped at the OpenIE stage.}
+
+\subsection*{\code{lightrag} (Controlled Adaptation)}
+
+Chunking, graph construction, and dual-level retrieval were
+implemented. The architecture-defining entity and relation extraction
+stage requires an LLM at index time. Of the three graph-based systems
+considered, LightRAG has the highest graph-construction cost,
+exceeding $10^{7}$ LLM tokens per dataset. This is not sustainable
+without hosted infrastructure. \textbf{Status: stopped at the
+extraction stage.}
+
+\subsection*{\code{disretrieval} (Deferred)}
+
+The paper and repository were audited statically. The repository
+carries no software license. The architecture-defining neural RST
+parser and its bundled checkpoint cannot be executed, imported,
+modified, or redistributed under default copyright. Substituting the
+parser with a heuristic or a generic constituency parser would
+materially alter the architecture. The architecture is therefore
+closed as deferred with reason.
+\textbf{Status: deferred. Blocked on license.}
+
+\subsection*{\code{memorag} (Excluded)}
+
+The repository is Apache-2.0 licensed, but the architecture requires
+a GPU with 16--24~GB VRAM at both index time and query time, and
+requires an LLM at both stages. Neither requirement is available on
+the current host. \textbf{Status: excluded on hardware grounds.}
+
+\subsection*{\code{kag} (Excluded)}
+
+The repository is Apache-2.0 licensed, but the architecture requires
+a multi-service environment (OpenSPG, Neo4j) together with hosted LLM
+access. The infrastructure is not reproducible within the scope of
+the study. \textbf{Status: excluded on infrastructure grounds.}
+
+\subsection*{\code{metadata\_rag} (Paper-Derived, Planned)}
+
+No foreign repository exists. The paper is a preprint under revision.
+A project-owned clean-room implementation is feasible and would
+require approximately three weeks of part-time work. Query metadata
+inference can be implemented with rules rather than an LLM.
+\textbf{Status: planned, not started.}
+
+\subsection*{\code{hikey} (Excluded)}
+
+The architecture requires multimodal inputs (PDF, tables, images,
+layout) and a GPU. No public repository is available. The canonical
+envelope used across the program is text-only.
+\textbf{Status: excluded on input-contract grounds.}
+
+% =====================================================================
+\section{Terminal Status Table}
+
+Table~\ref{tab:status} records the terminal status of each
+architecture, the reason for stopping where applicable, and whether
+the vendor's original code or the paper's architecture was altered.
+
+\begin{center}
+\small
+\begin{longtable}{@{}L{2.5cm} L{1.9cm} L{3.5cm} L{3.1cm} L{3.1cm}@{}}
+\caption{Terminal status of the eleven audited architectures.}
+\label{tab:status}\\
+\toprule
+\thead{Architecture} & \thead{Status} & \thead{Reason for stop} &
+\thead{Vendor architecture alteration} &
+\thead{Paper architecture alteration} \\
+\midrule
+\endfirsthead
+\toprule
+\thead{Architecture} & \thead{Status} & \thead{Reason for stop} &
+\thead{Vendor architecture alteration} &
+\thead{Paper architecture alteration} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+\code{my\_rag} &
+Complete &
+--- &
+None (project-owned). &
+None. \\
+\addlinespace
+
+\code{longrag} &
+Complete &
+--- &
+Controlled adaptation. Foreign code not executed; clean-room adapter only. &
+Architecture-defining logic preserved. Embedder replaced with BGE-M3 (labelled). \\
+\addlinespace
+
+\code{pathrag} &
+Partial &
+Embedding augmentation failed. Comparator kept without embeddings. &
+Foreign code not executed (unlicensed). Clean-room comparator only. &
+Algorithmic logic preserved. Embedding stage absent by design. \\
+\addlinespace
+
+\code{raptor} &
+Stopped &
+Index-time LLM summarisation cost not sustainable. &
+Not executed. Adapter contracts only. &
+Architecture preserved in contracts. Summarisation stage not run. \\
+\addlinespace
+
+\code{hipporag2} &
+Stopped &
+Index-time LLM OpenIE cost not sustainable. &
+Not executed. Adapter contracts only. &
+Architecture preserved in contracts. OpenIE stage not run. \\
+\addlinespace
+
+\code{lightrag} &
+Stopped &
+Index-time LLM extraction cost not sustainable. &
+Not executed. Adapter contracts only. &
+Architecture preserved in contracts. Extraction stage not run. \\
+\addlinespace
+
+\code{disretrieval} &
+Deferred &
+Architecture-defining RST parser has no license. &
+Not executed. No code touched. &
+Not altered. Deferred rather than substituted. \\
+\addlinespace
+
+\code{memorag} &
+Excluded &
+Requires 16--24~GB VRAM GPU and LLM at index and query time. &
+Not executed. &
+Not altered. Out of scope. \\
+\addlinespace
+
+\code{kag} &
+Excluded &
+Requires OpenSPG and Neo4j service environment and hosted LLM. &
+Not executed. &
+Not altered. Out of scope. \\
+\addlinespace
+
+\code{metadata\_rag} &
+Planned &
+No repository. Clean-room implementation not started. &
+Not applicable (no vendor code). &
+Not altered. Implementation not started. \\
+\addlinespace
+
+\code{hikey} &
+Excluded &
+Requires multimodal input contract and GPU. No public repository. &
+Not executed. &
+Not altered. Out of scope. \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\section{Preservation Summary Table}
+
+Table~\ref{tab:preservation} summarises, in a compact form, which
+architectures were executed, which were adapted, and which were
+preserved without alteration. This view supports the fairness claim
+of the comparison.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3.0cm} C{1.6cm} C{1.6cm} C{1.6cm} L{4.5cm}@{}}
+\caption{Execution and preservation status.}
+\label{tab:preservation}\\
+\toprule
+\thead{Architecture} &
+\thead{Executed} &
+\thead{Adapted} &
+\thead{Vendor\ arch.\ intact} &
+\thead{Note} \\
+\midrule
+\endfirsthead
+\toprule
+\thead{Architecture} &
+\thead{Executed} &
+\thead{Adapted} &
+\thead{Vendor\ arch.\ intact} &
+\thead{Note} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+\code{my\_rag}       & Yes & No  & N/A & Project-owned reference. \\
+\code{longrag}       & Yes & Yes & Yes & Controlled adaptation, embedder labelled. \\
+\code{pathrag}       & Yes & Yes & Yes & Paper-derived comparator, no embeddings. \\
+\code{raptor}        & No  & No  & Yes & Contracts frozen; summarisation not run. \\
+\code{hipporag2}     & No  & No  & Yes & Contracts frozen; OpenIE not run. \\
+\code{lightrag}      & No  & No  & Yes & Contracts frozen; extraction not run. \\
+\code{disretrieval}  & No  & No  & Yes & Deferred on license. \\
+\code{memorag}       & No  & No  & Yes & Excluded on hardware. \\
+\code{kag}           & No  & No  & Yes & Excluded on infrastructure. \\
+\code{metadata\_rag} & No  & No  & N/A & Planned. \\
+\code{hikey}         & No  & No  & Yes & Excluded on input contract. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\section{Notes on Interpretation}
+
+\begin{itemize}
+  \item \textbf{Preservation.} No architecture was executed with an
+    unlabelled substitution of an architecture-defining component.
+    Where a controlled substitution was performed, it is recorded as
+    such. Where no substitution was possible, the architecture was
+    stopped or deferred rather than approximated.
+  \item \textbf{Vendor code.} No foreign repository was executed,
+    imported, or modified. All executable adapters are project-owned.
+  \item \textbf{Paper architecture.} The architecture-defining logic
+    described in each paper is preserved in the corresponding
+    contracts. Where the logic was not executed, the reason is
+    recorded.
+  \item \textbf{LLM cost.} The three LLM-heavy graph and tree
+    architectures (RAPTOR, HippoRAG2, LightRAG) require hosted LLM
+    calls at index time. Their aggregate cost, estimated in the range
+    of $10^{7}$ tokens per dataset, is not sustainable within the
+    study's resource envelope.
+  \item \textbf{Fairness.} The remaining comparison set consists of
+    architectures that can be executed under identical conditions:
+    same canonical envelope, same embedder, same queries, same
+    evaluation contract.
+\end{itemize}
+
+% =====================================================================
+\section{Conclusion}
+
+Two architectures reached full completion. One architecture is
+retained with a declared structural limitation. Eight architectures
+stopped at a well-defined blocker, each with an explicit reason. No
+architecture-defining component was substituted without a label, and
+no foreign code was executed, imported, or modified. The comparison
+set is therefore internally clean, reproducible, and defensible under
+academic review.
+
+\end{document}

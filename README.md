@@ -2,55 +2,32 @@
 
 **Structure-Aware Hierarchical Hybrid Retrieval for Long-Context RAG Systems**
 
-Reference implementation and evaluation framework for the SAH-RAG architecture,
-developed as a Diploma Thesis at the Department of Electrical and Computer
-Engineering, University of Thessaly.
-
-> **Author:** Nikolaos Paidopoulos  
-> **Supervisor:** Prof. Emmanouil Vavalis  
-> **Institution:** University of Thessaly, School of Engineering  
-> **Date:** July 2026
-
----
-
-## Overview
-
 SAH-RAG is a deterministic, structure-aware, hierarchical, hybrid retrieval
-architecture for Retrieval-Augmented Generation (RAG) in long-context scenarios.
-It organises knowledge in three levels:
+architecture for Retrieval-Augmented Generation (RAG) in long-context
+scenarios. It is the focus of this repository and of the accompanying
+Diploma Thesis.
 
-1. **Documents** are parsed by a deterministic structural parser that produces
-   *semantic parents* aligned with logical document units (articles, sections,
-   headings).
-2. **Parents** are split into *child chunks* that never cross parent boundaries,
-   keeping document identity intact during retrieval.
-3. **Child chunks** are embedded with BGE-M3 to produce *dense* and *learned-sparse*
-   representations in a single forward pass. The two rankings are fused with
-   Reciprocal Rank Fusion (RRF, k = 60) and aggregated back to parents and
-   documents via a *best-plus-margin* rule.
-
-The implementation emphasises **determinism and reproducibility**: every artifact
-(parent, chunk, embedding, Qdrant point) has a content-addressable identity, all
-serialisations are byte-deterministic, and every stage is resume-safe via SHA-256
-manifests.
+The architecture is evaluated under a shared fair-comparison protocol against
+two external retrieval architectures — **LongRAG** (controlled adaptation)
+and **Metadata-RAG** (paper-derived comparator) — on four heterogeneous legal
+corpora. SAH-RAG outperforms both on **all eighteen metrics** and **all four
+datasets**.
 
 ---
 
 ## Key Results
 
-Evaluated on four heterogeneous legal corpora under a shared fair-comparison
-protocol (same embedder, same queries, same ground truth, same evaluator):
+Primary metric: **macro-averaged document Recall@10** across four datasets.
 
-| Architecture | Macro document Recall@10 |
+| Architecture | Macro Recall@10 |
 |---|---|
 | LongRAG (controlled adaptation) | 0.3144 |
 | Metadata-RAG (paper-derived) | 0.3651 |
 | **SAH-RAG (this work)** | **0.4049** |
 
-SAH-RAG outperforms both comparators on **all eighteen metrics** and **all four
-datasets**. The relative improvement over LongRAG on the primary metric is
-**+28.79%**. The advantage grows systematically with decreasing document length,
-reaching **+351%** on CLERC (short-document corpus).
+Relative improvement of SAH-RAG over LongRAG on the primary metric: **+28.79%**.
+The advantage grows systematically with decreasing document length, reaching
+**+351%** on CLERC (short-document corpus).
 
 ### Per-dataset results (document Recall@10)
 
@@ -64,20 +41,30 @@ reaching **+351%** on CLERC (short-document corpus).
 
 ---
 
-## Key Contributions
+## Architecture
 
-1. **Architecture.** A novel retrieval architecture combining structural
-   awareness, hierarchical organisation, and hybrid (dense + learned-sparse)
-   retrieval signal, with full determinism and reproducibility guarantees.
-2. **Fair-comparison protocol.** A shared evaluation protocol that isolates
-   architectural variables (granularity, retrieval signal, aggregation rule)
-   while holding embedder, queries, ground truth, and evaluator constant.
-3. **Extensive empirical evaluation.** Parameter-response curves and comparative
-   performance measurements across four heterogeneous corpora, reported
-   transparently, including negative findings (H1 chunk-size plateau not observed).
-4. **Reusable infrastructure.** A deterministic, resume-safe pipeline with
-   content-addressable identities and SHA-256 manifests, designed for extension
-   to new corpora and new research scenarios.
+SAH-RAG organises knowledge in **three levels**:
+
+1. **Semantic parents** — a deterministic structural parser segments each
+   document into logical units aligned with headings and article/section
+   boundaries. No LLM is used; the parser is fully deterministic and
+   byte-reproducible.
+2. **Child chunks** — each parent is split into 256-token child chunks with
+   32-token overlap, enforcing that child boundaries never cross parent
+   boundaries. This preserves document identity during retrieval.
+3. **Hybrid representations** — each child is embedded with BGE-M3 to produce
+   *dense* (1024-dim, FP16, ℓ2-normalised) and *learned-sparse* vectors in a
+   single forward pass.
+
+Retrieval fuses the two rankings with Reciprocal Rank Fusion (RRF, k = 60)
+and aggregates back to parents and documents via a *best-plus-margin* rule.
+
+### Determinism and reproducibility
+
+Every artifact (parent, chunk, embedding, Qdrant point) has a
+content-addressable identity. All serialisations are byte-deterministic.
+Every stage is resume-safe via SHA-256 manifests. Two runs with identical
+inputs produce byte-identical artifacts.
 
 ---
 
@@ -91,25 +78,6 @@ sah-rag/
 ├── pyproject.toml                 # Project metadata + dependencies
 ├── .gitignore
 │
-├── baseline_audit/                # Frozen contracts & audit artifacts
-│   ├── common_*.yaml
-│   ├── dataset_*.yaml
-│   ├── longrag_*.yaml
-│   ├── metadata_rag_*.yaml
-│   ├── my_rag_*.yaml
-│   ├── external_canonical_suite_*.yaml
-│   └── reports/                   # Comparison reports (JSON / MD)
-│
-├── docs/                          # Documentation & written reports
-│   ├── README.md
-│   ├── fair_benchmark_methodology.md
-│   ├── architecture.md
-│   └── data/                      # Thesis & comparison reports
-│       ├── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
-│       ├── metadata_rag_full_track_report.tex
-│       ├── three_way_comparison.tex
-│       └── README.md
-│
 ├── src/rag_system/                # Main source package
 │   ├── canonical/                 # Canonical data model
 │   ├── parsing/                   # Deterministic structural parser
@@ -119,10 +87,39 @@ sah-rag/
 │   ├── retrieval/                 # Hybrid RRF + aggregation
 │   ├── evaluation/                # Metric computation
 │   ├── artifacts/                 # Manifest writers & checksums
-│   └── baselines/                 # LongRAG & Metadata-RAG adapters
+│   ├── generation/                # (dry-run only; not part of evaluation)
+│   ├── orchestration/             # Pipeline planner
+│   └── baselines/                 # LongRAG & Metadata-RAG comparators
 │
-├── scripts/                       # Execution & validation scripts
-│   ├── run_my_rag_*.py
+├── baseline_audit/                # Frozen contracts & audit artifacts
+│   ├── common_*.yaml
+│   ├── dataset_*.yaml
+│   ├── fair_benchmark_*.yaml
+│   ├── longrag_*.yaml
+│   ├── metadata_rag_*.yaml
+│   ├── my_rag_*.yaml              # historical name; see Naming Note
+│   └── reports/                   # Comparison reports (JSON / MD)
+│
+├── docs/                          # Documentation
+│   ├── README.md                  # Documentation hub
+│   ├── architecture_specification.md
+│   ├── fair_benchmark_methodology.md
+│   ├── reports/                   # Written reports (LaTeX sources)
+│   │   ├── sah_rag_implementation.tex
+│   │   ├── sah_rag_optimization.tex
+│   │   ├── datasets.tex
+│   │   ├── pipelines_status.tex
+│   │   ├── longrag_full_track_report.tex
+│   │   ├── longrag_vs_sah_rag.tex
+│   │   ├── metadata_rag_full_track_report.tex
+│   │   ├── three_way_comparison.tex
+│   │   └── archived/              # Reports on non-executed architectures
+│   ├── pilot/                     # Infrastructure pilot design docs
+│   └── data/                      # Thesis PDF
+│       └── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
+│
+├── scripts/                       # Execution & validation entry points
+│   ├── run_sah_rag_*.py
 │   ├── run_longrag_*.py
 │   ├── run_metadata_rag_*.py
 │   └── compare_*.py
@@ -132,35 +129,6 @@ sah-rag/
     ├── integration/
     └── fixtures/
 ```
-
----
-
-## Architecture Summary
-
-### Offline stage (knowledge preparation)
-
-1. **Structural parsing** — `DeterministicStructuralParser` segments the
-   canonical text into paragraphs, detects headings by three cascading rules
-   (named, numbered, uppercase), and groups paragraphs into semantic parents.
-2. **Hierarchical chunking** — `HierarchicalChildChunker` splits each parent
-   into 256-token child chunks with 32-token overlap, enforcing that child
-   boundaries never cross parent boundaries.
-3. **Embedding** — BGE-M3 (`BAAI/bge-m3` @ pinned revision) produces dense
-   (1024-dim, FP16, ℓ2-normalised) and learned-sparse representations in one
-   forward pass.
-4. **Storage** — Qdrant collections with named vectors (`dense` + `sparse`)
-   and deterministic point IDs via `uuid5(NAMESPACE_URL, "rag-chunk:" + chunk_id)`.
-
-### Online stage (retrieval)
-
-1. Query is embedded with the same pinned BGE-M3 revision.
-2. Dense top-K and sparse top-K candidate sets are retrieved independently
-   (K = 200 by default).
-3. Ranked lists are fused with Reciprocal Rank Fusion (k = 60).
-4. Fused child chunks are aggregated to parents via
-   `score(P) = max(score(m)) + w * Σ score(m\\{m*})` with `w = 0.05`.
-5. Parents are resolved to canonical documents via
-   `score(D) = max(score(P))`.
 
 ---
 
@@ -194,8 +162,8 @@ export SAH_RAG_CANONICAL_ROOT=/path/to/canonical-datasets
 ### Running the pipeline
 
 ```bash
-# Full offline pipeline (parsing → chunking → embedding → storage)
-python scripts/run_my_rag_m0_full_evaluation.py
+# Full pipeline for SAH-RAG (parsing → chunking → embedding → retrieval → eval)
+python scripts/run_sah_rag_m0_full_evaluation.py
 
 # Comparator: LongRAG
 python scripts/run_longrag_full_retrieval_batch.py
@@ -252,11 +220,19 @@ The four canonical datasets are hosted in a separate repository:
 
 ## Reports
 
-Written artifacts are available under [`docs/data/`](docs/data/):
+Written artifacts are available under [`docs/reports/`](docs/reports/):
 
-- **`REPORT_NIKOLAOS_PAIDOPOULOS.pdf`** — full Diploma Thesis (Greek, with English abstract).
-- **`metadata_rag_full_track_report.tex`** — Metadata-RAG comparator report.
-- **`three_way_comparison.tex`** — SAH-RAG vs LongRAG vs Metadata-RAG.
+- **SAH-RAG implementation** — `sah_rag_implementation.tex`
+- **SAH-RAG optimization** — `sah_rag_optimization.tex`
+- **Datasets** — `datasets.tex`
+- **Pipelines status** — `pipelines_status.tex`
+- **LongRAG comparator** — `longrag_full_track_report.tex`
+- **LongRAG vs SAH-RAG** — `longrag_vs_sah_rag.tex`
+- **Metadata-RAG comparator** — `metadata_rag_full_track_report.tex`
+- **Three-way comparison** — `three_way_comparison.tex`
+- **Non-executed architectures** — `archived/*.tex`
+
+The full Diploma Thesis PDF is in [`docs/data/`](docs/data/).
 
 ---
 
@@ -281,6 +257,17 @@ A machine-readable citation is also available in [`CITATION.cff`](CITATION.cff).
 
 ---
 
+## Naming Note
+
+"My_RAG" was the internal working name of the SAH-RAG architecture during
+development. The architecture was renamed to **SAH-RAG** (Structure-Aware
+Hierarchical RAG) before publication. All user-facing documentation, source
+filenames, and code identifiers use "SAH-RAG". Frozen experimental contracts
+in `baseline_audit/` retain the historical name `my_rag_*` to preserve
+SHA-256 reproducibility of the associated manifests.
+
+---
+
 ## License
 
 This project is released under the **MIT License**. See [`LICENSE`](LICENSE)
@@ -290,10 +277,9 @@ for details.
 
 ## Acknowledgements
 
-Supervisor: **Prof. Emmanouil Vavalis**.
+This work was carried out at the Department of Electrical and Computer
+Engineering, University of Thessaly. The author thanks the examination
+committee for their feedback and support.
 
-Special thanks to the examination committee members **Prof. George Thanos**
-and **Prof. Elias Houstis** for their feedback and support.
-
-This work used the following open-source projects and models:
+The implementation builds on the following open-source projects and models:
 BGE-M3 (BAAI), Qdrant, Hugging Face Transformers, and PyTorch.

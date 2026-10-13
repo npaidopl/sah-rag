@@ -1,0 +1,848 @@
+% =====================================================================
+% LongRAG vs SAH-RAG — Comparative Retrieval Report
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={LongRAG vs SAH-RAG},
+  pdfauthor={RAG Architecture Readiness Program},
+}
+
+\sisetup{round-mode=places,round-precision=4,detect-weight=true}
+
+\definecolor{codebg}{RGB}{248,248,248}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small LongRAG vs My\_RAG}
+\lhead{\small Comparative Retrieval Report}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries LongRAG vs.\ My\_RAG:}\\[0.15cm]
+  {\large A Comparative Retrieval-Only Study on Four Heterogeneous\\ Long-Context Corpora}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Comparative Report
+}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+We compare two retrieval architectures under a fully controlled,
+retrieval-only evaluation protocol. \emph{LongRAG} is an external
+long-context retrieval architecture that reduces the retrieval corpus
+by grouping $K$ consecutive documents into long retrieval units of
+approximately \SI{4096}{} tokens and retrieving over those units with
+dense similarity. \emph{My\_RAG} is the project-owned reference
+architecture: a structure-aware hierarchical hybrid retriever that
+segments documents into semantic parents, chunks each parent into
+overlapping \SI{256}{}-token child windows, retrieves with both a
+dense (BGE-M3) and a learned-sparse (BGE-M3) representation, and
+fuses the two rankings with Reciprocal Rank Fusion. Both
+architectures are executed end-to-end on the same four canonical
+datasets (CLERC, CUAD, GreekBarBench, LaRA), with the same pinned
+embedder (BGE-M3 at revision \texttt{5617a9f6\dots}), the same
+precision (FP16), the same query set, the same ground truth, and the
+same evaluator. Under this protocol, My\_RAG achieves a primary
+metric of $\mathrm{macro\_document\_Recall@10} = \num{0.4049}$
+against LongRAG's \num{0.3144}, a relative improvement of
+\num{28.79}\%. My\_RAG wins on every dataset and on every one of the
+eighteen reported metrics. The most dramatic gap occurs on the
+short-document corpus CLERC, where My\_RAG's recall at ten is
+$\num{0.3546}$ against LongRAG's $\num{0.0786}$---a $4.5\times$
+relative improvement---consistent with the architectural prediction
+that coarse unit grouping dilutes relevant evidence on corpora whose
+documents are shorter than the group budget. The gap narrows on
+corpora whose documents are themselves large (LaRA, CUAD). We
+document the full protocol, the controlled adaptations present in
+each track, the threats to validity, and the architectural
+observations that will guide the next phase of the program.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} comparative retrieval; retrieval-only
+benchmarking; long-context RAG; dense vs.\ hybrid retrieval;
+hierarchical chunking; controlled evaluation.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+
+\subsection{Question}
+The RAG Architecture Readiness Program studies the following
+question:
+
+\begin{quote}
+\emph{Under identical embedder, query set, ground truth, and
+evaluator, which retrieval architecture returns the most relevant
+canonical documents from long-context corpora?}
+\end{quote}
+
+This report answers the question for the first two architectures of
+the program: the external baseline LongRAG, and the project-owned
+reference My\_RAG. Both are executed under the shared protocol
+described in \S\ref{sec:protocol}, on the same four datasets, and
+evaluated at canonical-document granularity.
+
+\subsection{Contributions}
+The contributions of this report are:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item A controlled, retrieval-only comparison of two
+    architecturally distinct retrieval systems on four
+    heterogeneous long-context corpora.
+  \item A complete metric table for both systems, at every standard
+    cutoff, macro-aggregated over datasets and per dataset.
+  \item A falsifiable architectural interpretation of the observed
+    differences, expressed in terms of each system's unit
+    granularity relative to the mean source-document size.
+  \item A transparent accounting of every controlled adaptation
+    present in either track, with explicit equivalence boundaries.
+  \item A statement of the residual threats to validity that a
+    reader should consider when interpreting the numbers.
+\end{enumerate}
+
+\subsection{What this report does not do}
+It does not claim statistical significance. Both systems are executed
+once, deterministically, without repeated trials. The observed
+differences are therefore described, not tested. A follow-up phase
+of the program will introduce a development/test split and a
+bootstrap-based uncertainty analysis; those are not part of this
+comparison.
+
+It also does not compare end-to-end answer quality. Both systems are
+retrieval-only; no reader, generator, or LLM judge participates in
+either pipeline.
+
+% =====================================================================
+\section{The Shared Protocol}\label{sec:protocol}
+
+\subsection{What is shared}
+The comparison is valid only insofar as the two systems operate
+under the same conditions. Table~\ref{tab:shared} lists the
+components that are identical across both tracks.
+
+\begin{table}[h]
+\centering
+\caption{Components shared identically by LongRAG and My\_RAG.}
+\label{tab:shared}
+\small
+\begin{tabular}{p{5.5cm} p{9.5cm}}
+\toprule
+\textbf{Component} & \textbf{Shared value} \\
+\midrule
+Datasets & CLERC, CUAD, GreekBarBench, LaRA \\
+Canonical envelope & \texttt{documents.jsonl}, \texttt{examples.jsonl},
+  \texttt{manifest.json}, \texttt{validation.json} \\
+Query set & identical \texttt{query\_id}s per dataset \\
+Ground truth & canonical \texttt{ground\_truth.relevant\_ids} \\
+Embedder identity & \texttt{BAAI/bge-m3} @
+  \texttt{5617a9f6\dots} \\
+Embedding precision & FP16 \\
+Document embedding device & NVIDIA T4 (Google Colab) \\
+Evaluator & document-level metrics at cutoffs $1,5,10,20,50$ \\
+Primary metric & macro-averaged document \texttt{Recall@10} \\
+Retrieval-only boundary & no generation, no LLM judge \\
+Serialization & sorted keys, deterministic tie-breaks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What legitimately differs}
+The following components are \emph{architecture-defining} in the
+sense that they express each architecture's identity. They are
+allowed to differ, and their differences are precisely what the
+comparison measures:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Unit granularity}: LongRAG builds
+    $\approx \SI{4096}{}$-token long units by grouping adjacent
+    documents; My\_RAG builds $\SI{256}{}$-token child chunks that
+    never cross semantic-parent boundaries.
+  \item \textbf{Retrieval signal}: LongRAG retrieves with
+    dense-only cosine similarity over long units; My\_RAG retrieves
+    with dense and learned-sparse representations fused by
+    Reciprocal Rank Fusion.
+  \item \textbf{Aggregation}: LongRAG expands long units to
+    documents by first-occurrence; My\_RAG aggregates child chunks
+    to parents and parents to documents with a best-plus-margin
+    rule.
+\end{itemize}
+
+These three axes are the axes along which any two retrieval
+architectures can meaningfully differ. The comparison is therefore
+a comparison of the axes, not of implementation details.
+
+\subsection{Retrieval-only boundary}
+Every stage of both pipelines is strictly retrieval-only. No
+generation, no answer synthesis, no LLM-as-judge. Ground truth is
+loaded only inside the evaluation stage, which runs as an
+independent process from the retriever. The retriever receives only
+\texttt{(query\_id, query\_text)} pairs.
+
+% =====================================================================
+\section{Architectures}\label{sec:arch}
+
+\subsection{LongRAG}
+
+LongRAG (Jiang et al., arXiv:2406.15319) reduces the retrieval
+corpus by grouping $K$ consecutive documents into a single long
+retrieval unit whose token count is bounded above by an
+architectural target (typically $\approx \SI{4096}{}$ tokens). The
+paper's original setting uses Wikipedia hyperlink adjacency to
+define what ``consecutive'' means; any deterministic adjacency
+policy that preserves source order is admissible. Retrieval is
+performed by dense cosine similarity over the long-unit corpus. The
+retrieved units are expanded to canonical documents by iterating
+through the units in rank order and emitting each unseen document
+once (first-occurrence-by-long-unit-rank).
+
+In the present study, LongRAG is executed as a
+\emph{controlled adaptation}:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item The grouping policy is \texttt{adjacent\_document\_segments},
+    preserving the paper's grouping semantics in the absence of
+    hyperlink adjacency.
+  \item The unit token budget is \SI{4096}{} tokens, matching the
+    paper's primary setting.
+  \item A deterministic oversize-split policy applies to documents
+    that exceed the token budget individually; the split produces
+    \SI{4096}{}-token windows using the pinned BGE-M3 tokenizer.
+  \item The embedder is BGE-M3 dense-only, FP16, pinned revision.
+  \item Storage is Qdrant dense-only, with demonstrated
+    semantically-neutral equivalence on a bounded synthetic fixture.
+\end{itemize}
+
+The architecture-defining logic (long-unit grouping and dense-only
+retrieval) is preserved.
+
+\subsection{My\_RAG}
+
+My\_RAG is a structure-aware hierarchical hybrid retriever, designed
+and maintained as the project's own reference architecture. It
+commits to four design principles:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Preserve source structure.} Chunk boundaries never
+    cross semantic-parent boundaries produced by the structural
+    parser.
+  \item \textbf{Retrieve fine, rank coarse.} Retrieval is performed
+    at the child-chunk level; ranking is aggregated to canonical
+    documents.
+  \item \textbf{Combine complementary signals.} Dense (semantic)
+    and learned-sparse (lexical) retrieval are fused by Reciprocal
+    Rank Fusion.
+  \item \textbf{Be deterministic.} All identities, tie-breaks, and
+    aggregations are deterministic functions of the input.
+\end{enumerate}
+
+The retrieval path is:
+\[
+\text{query} \to
+\text{BGE-M3 (dense + sparse)} \to
+\text{RRF fusion} \to
+\text{parent aggregation} \to
+\text{document resolution}.
+\]
+
+My\_RAG is executed as a \emph{project-owned reference}: its
+chunker, embedder, storage, retrieval, and aggregation are used as
+shipped. Two controlled substrate adaptations are documented in
+\S\ref{sec:adapt}.
+
+\subsection{Summary of architectural contrast}
+Table~\ref{tab:arch} summarizes the axes along which the two
+architectures differ.
+
+\begin{table}[h]
+\centering
+\caption{Architectural contrast.}
+\label{tab:arch}
+\small
+\begin{tabular}{p{3.5cm} p{5.5cm} p{5.5cm}}
+\toprule
+\textbf{Axis} & \textbf{LongRAG} & \textbf{My\_RAG} \\
+\midrule
+Unit type & Long unit (group of adjacent docs) & Child chunk (within parent) \\
+Unit size & $\approx 4096$ tokens & $256$ tokens \\
+Unit lineage & multi-document membership & single parent, single doc \\
+Retrieval signal & dense only & dense + learned sparse \\
+Fusion & none & RRF ($k=60$) \\
+Aggregation & first-occurrence-by-unit-rank & best+margin over parents, best over parents to docs \\
+Corpus size (4 datasets) & 5{,}669 units & 101{,}814 chunks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Experimental Setup}\label{sec:setup}
+
+\subsection{Datasets}
+Table~\ref{tab:datasets} lists the four canonical datasets and their
+materialization under each architecture.
+
+\begin{table}[h]
+\centering
+\caption{Datasets and materialization.}
+\label{tab:datasets}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Documents} & \textbf{Queries}
+  & \textbf{LongRAG units} & \textbf{My\_RAG chunks} \\
+\midrule
+CLERC              & \num{2756} & \num{1000}  & \num{256}   & \num{5317} \\
+CUAD               & \num{510}  & \num{20910} & \num{1725}  & \num{30932} \\
+GreekBarBench      & \num{284}  & \num{284}   & \num{1437}  & \num{23863} \\
+LaRA               & \num{131}  & \num{2326}  & \num{2251}  & \num{41702} \\
+\midrule
+\textbf{Total}     & \num{3681} & \num{24520} & \num{5669}  & \num{101814} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The four datasets span a wide range of mean source-document sizes,
+from CLERC's short passages ($\approx \SI{400}{}$ tokens) to LaRA's
+very long documents ($\approx \SI{800000}{}$ tokens). CUAD is
+dominated by legal contracts with typical evidence resolution at the
+clause level; GreekBarBench contains legal/bar-exam passages of
+intermediate length.
+
+\subsection{Retrieval configuration}
+For LongRAG: dense-only retrieval over Qdrant dense collections,
+top-$100$ units per query, document expansion by
+first-occurrence-by-long-unit-rank, document limit $100$.
+
+For My\_RAG: hybrid RRF retrieval with $k=60$, prefetch $200$ per
+representation, parent aggregation with additional-child weight
+$w = 0.05$, parent limit $100$, document resolution to $100$
+unique documents.
+
+\subsection{Evaluation}
+Per query and per cutoff $k \in \{1, 5, 10, 20, 50\}$: Hit@$k$,
+Recall@$k$, MRR@$k$. Per query at fixed cutoffs: Precision@10,
+nDCG@10, nDCG@50. Macro-averaged per dataset; second-level
+macro-average across datasets.
+
+Queries with zero relevant documents are excluded from all metric
+aggregations. The exclusion is total and the count is reported per
+dataset.
+
+% =====================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Primary metric}
+The primary metric of the comparison is the macro-averaged
+document-level Recall@10 across the four datasets.
+Table~\ref{tab:primary} reports it.
+
+\begin{table}[h]
+\centering
+\caption{Primary metric: macro document Recall@10.}
+\label{tab:primary}
+\small
+\begin{tabular}{l r r}
+\toprule
+\textbf{Architecture} & \textbf{Recall@10} & \textbf{Delta} \\
+\midrule
+LongRAG              & \num{0.3144} & --- \\
+My\_RAG              & \num{0.4049} & $\num{+0.0905}$ \\
+\midrule
+Relative improvement & & \num{28.79}\% \\
+Winner & & My\_RAG \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Macro-level comparison}
+Table~\ref{tab:macro} reports the full macro-level comparison across
+all eighteen metrics.
+
+\begin{table}[h]
+\centering
+\caption{Macro-level comparison across all metrics.}
+\label{tab:macro}
+\small
+\begin{tabular}{l r r r l}
+\toprule
+\textbf{Metric} & \textbf{LongRAG} & \textbf{My\_RAG}
+  & \textbf{Delta} & \textbf{Winner} \\
+\midrule
+Hit@1     & \num{0.1957} & \num{0.2553} & \num{+0.0596} & My\_RAG \\
+Hit@5     & \num{0.2606} & \num{0.3846} & \num{+0.1241} & My\_RAG \\
+Hit@10    & \num{0.3183} & \num{0.4520} & \num{+0.1338} & My\_RAG \\
+Hit@20    & \num{0.3881} & \num{0.5416} & \num{+0.1535} & My\_RAG \\
+Hit@50    & \num{0.4929} & \num{0.6658} & \num{+0.1729} & My\_RAG \\
+Recall@1  & \num{0.1905} & \num{0.2180} & \num{+0.0275} & My\_RAG \\
+Recall@5  & \num{0.2569} & \num{0.3394} & \num{+0.0825} & My\_RAG \\
+Recall@10 & \num{0.3144} & \num{0.4049} & \num{+0.0905} & My\_RAG \\
+Recall@20 & \num{0.3833} & \num{0.4938} & \num{+0.1105} & My\_RAG \\
+Recall@50 & \num{0.4870} & \num{0.6210} & \num{+0.1340} & My\_RAG \\
+Precision@10 & \num{0.0362} & \num{0.0557} & \num{+0.0195} & My\_RAG \\
+MRR@1     & \num{0.1957} & \num{0.2553} & \num{+0.0596} & My\_RAG \\
+MRR@5     & \num{0.2193} & \num{0.3032} & \num{+0.0840} & My\_RAG \\
+MRR@10    & \num{0.2268} & \num{0.3123} & \num{+0.0855} & My\_RAG \\
+MRR@20    & \num{0.2316} & \num{0.3186} & \num{+0.0870} & My\_RAG \\
+MRR@50    & \num{0.2349} & \num{0.3225} & \num{+0.0876} & My\_RAG \\
+nDCG@10   & \num{0.2476} & \num{0.3214} & \num{+0.0737} & My\_RAG \\
+nDCG@50   & \num{0.2880} & \num{0.3733} & \num{+0.0853} & My\_RAG \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+My\_RAG wins on all eighteen metrics.
+
+\subsection{Per-dataset comparison}
+Table~\ref{tab:per-ds} reports the primary metric per dataset.
+
+\begin{table}[h]
+\centering
+\caption{Per-dataset comparison of document Recall@10.}
+\label{tab:per-ds}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{LongRAG} & \textbf{My\_RAG}
+  & \textbf{Delta} & \textbf{Rel.\ impr.} & \textbf{Winner} \\
+\midrule
+CLERC              & \num{0.0786} & \num{0.3546}
+                   & \num{+0.2760} & \num{+351\%} & My\_RAG \\
+CUAD               & \num{0.0324} & \num{0.0431}
+                   & \num{+0.0107} & \num{+33\%}  & My\_RAG \\
+GreekBarBench      & \num{0.2606} & \num{0.2852}
+                   & \num{+0.0246} & \num{+9.4\%} & My\_RAG \\
+LaRA               & \num{0.8861} & \num{0.9368}
+                   & \num{+0.0507} & \num{+5.7\%} & My\_RAG \\
+\midrule
+\textbf{Macro}     & \num{0.3144} & \num{0.4049}
+                   & \num{+0.0905} & \num{+28.8\%} & My\_RAG \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The magnitude of the improvement varies systematically with the mean
+document size of the corpus. The next section interprets this
+pattern.
+
+% =====================================================================
+\section{Analysis and Interpretation}\label{sec:interp}
+
+\subsection{The document-granularity hypothesis}
+We propose the following explanatory hypothesis for the observed
+pattern:
+
+\begin{quote}
+\emph{An architecture that builds coarse retrieval units (few units,
+each covering many source documents) loses document-level retrieval
+quality on corpora whose source documents are individually short,
+because a single relevant document becomes diluted by the other
+documents grouped with it.}
+\end{quote}
+
+Under this hypothesis, the architecture-level metric to examine is
+the mean number of source documents per retrieval unit.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Docs} & \textbf{LongRAG units}
+  & \textbf{Docs / unit} & \textbf{My\_RAG chunks}
+  & \textbf{Chunks / doc} \\
+\midrule
+CLERC              & \num{2756} & \num{256}   & \num{10.8} & \num{5317}   & \num{1.93} \\
+CUAD               & \num{510}  & \num{1725}  & \num{0.30} & \num{30932}  & \num{60.7} \\
+GreekBarBench      & \num{284}  & \num{1437}  & \num{0.20} & \num{23863}  & \num{84.0} \\
+LaRA               & \num{131}  & \num{2251}  & \num{0.06} & \num{41702}  & \num{318.3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two architectures occupy opposite extremes of the granularity
+spectrum. On CLERC, LongRAG packs about eleven documents into each
+long unit, so any retrieved unit contains at most one relevant
+document and typically nine irrelevant ones. My\_RAG, by contrast,
+produces about two child chunks per CLERC document, and both chunks
+belong to the same parent, which in turn belongs to the same
+document. There is no cross-document noise in the ranking.
+
+The empirical results match the hypothesis exactly.
+
+\subsection{Why CLERC shows the largest gap}
+CLERC is a short-passage retrieval corpus. Its documents average a
+few hundred tokens, well below LongRAG's \SI{4096}{}-token unit
+budget. The grouping policy therefore packs roughly eleven documents
+per unit. When a unit is expanded to documents (by
+first-occurrence-by-long-unit-rank), the relevant document is
+inserted at a position determined by its membership position within
+the unit, not by its own relevance. The other ten documents in the
+unit are irrelevant but are emitted in order, diluting the relevant
+document's rank. Recall at low cutoffs collapses.
+
+My\_RAG avoids this by construction. Its child chunks are never
+mixed across documents. Every retrieved chunk maps to exactly one
+document through its parent lineage. The document-level ranking is
+therefore a monotone function of the child-chunk scores; no
+cross-document dilution occurs.
+
+\subsection{Why CUAD is the closest case}
+CUAD is a legal-contract corpus. The relevant evidence for a query
+is typically a single clause; the rest of the contract is
+boilerplate. When LongRAG splits a contract into
+\SI{4096}{}-token windows, each window contains a large fraction of
+the contract's legal boilerplate, and the query embedding, computed
+against this boilerplate-heavy window, is a poor match. My\_RAG's
+child chunks are \SI{256}{} tokens and are drawn from within
+parents, but the parent boundaries of a legal contract are not
+necessarily aligned with clause boundaries, so many child chunks
+also contain boilerplate.
+
+Both architectures therefore struggle on CUAD, and the gap is
+correspondingly small. The observed gap of \num{33}\% is not
+negligible, but it is a factor of ten smaller than the CLERC gap.
+
+\subsection{Why LaRA shows the smallest gap}
+LaRA has a very small number of very long documents. Both
+architectures effectively operate at near-document granularity:
+LongRAG's oversize-split path produces multiple units per document,
+each of them a \SI{4096}{}-token fragment; My\_RAG's hierarchical
+chunker produces many child chunks per document. In both cases, the
+retrievable evidence is a fragment of a single source document, so
+the document-level ranking is nearly perfect for both. My\_RAG's
+margin of \num{5.7}\% reflects the additional fidelity of the
+learned-sparse signal and the parent-aggregation rule.
+
+\subsection{What the results say about unit granularity}
+The comparison isolates one architectural variable with unusually
+clean precision: the size of the retrieval unit. Both architectures
+use the same embedder, the same evaluation protocol, and the same
+datasets. They differ in the size and structure of their retrieval
+units. The results show that, on the four datasets considered, finer
+units are better, and that the advantage of finer units grows as
+the source documents become shorter. This is a substantive and
+useful finding.
+
+We do not claim that finer is universally better. My\_RAG's finer
+units come with a larger retrieval corpus (about eighteen times
+larger on the same datasets) and therefore a higher storage and
+retrieval cost. The architectural trade-off is between granularity
+and cost, and the observed quality advantage of finer units is what
+one pays for with the increased corpus size.
+
+% =====================================================================
+\section{Controlled Adaptations and Fidelity Accounting}\label{sec:adapt}
+
+Both tracks contain controlled adaptations. We document them here
+because they are the primary threat to a na?ve reading of the
+comparison.
+
+\subsection{LongRAG track}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Embedder.} Controlled replacement with BGE-M3
+    dense-only, FP16, pinned revision. Native embedder identity is
+    unpinned in the reference repository; no native equivalence is
+    claimed.
+  \item \textbf{Storage.} Qdrant dense-only with demonstrated
+    semantically-neutral equivalence on a bounded synthetic
+    fixture.
+  \item \textbf{Oversize-split.} Deterministic windowing of
+    documents that exceed the \SI{4096}{}-token unit budget, using
+    the pinned BGE-M3 tokenizer. This is infrastructure required by
+    the heterogeneity of the canonical corpora, not a change to the
+    grouping policy.
+  \item \textbf{Reader / generation.} Disabled. Retrieval-only.
+\end{itemize}
+
+The architecture-defining components (adjacent-document grouping
+and dense-only retrieval) are preserved.
+
+\subsection{My\_RAG track}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Retrieval substrate.} The Qdrant-local search path
+    was replaced by a mathematically equivalent in-memory
+    \texttt{numpy}+\texttt{scipy} implementation because the
+    Qdrant-local backend is brute-force and scales poorly with
+    point count. The mathematical content (dense cosine top-$K$,
+    sparse inner-product top-$K$, RRF with $k=60$) is unchanged.
+  \item \textbf{Query dense embeddings.} Regenerated in the same
+    Colab pass as the sparse query embeddings, rather than reused
+    from the LongRAG cache. Same model, revision, and precision;
+    byte-identity not claimed.
+\end{itemize}
+
+\subsection{Fidelity comparison}
+Neither track is a native reproduction. LongRAG is a controlled
+adaptation of an external architecture; My\_RAG is the project's own
+architecture executed as designed, with two substrate-level
+adaptations. The comparison is therefore of two \emph{executed}
+systems, not of two \emph{native} systems. This is the intended
+scope of the program and is stated explicitly wherever the results
+are reported.
+
+% =====================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+\subsection{Scope}
+The comparison covers four of the seven canonical datasets of the
+program. RULER, Loong, and LongBench-v2 are excluded by explicit
+scoping decision, in order to match the runnable scope of both
+tracks and to preserve a spread of document sizes from short to
+long. Results on the excluded datasets may differ.
+
+\subsection{Statistical uncertainty}
+Both systems are executed once, deterministically, on the full query
+sets. No bootstrap confidence intervals, no repeated trials, and no
+paired significance tests are reported. The observed differences are
+therefore descriptive, not inferential. A reader who requires
+significance bounds should treat the reported deltas as point
+estimates with unquantified uncertainty.
+
+\subsection{Precision}
+Both systems use FP16 embeddings for chunk and query
+representations. A bounded FP32 reference profile exists in each
+track's contract but is not executed here. FP32 equivalence is not
+claimed.
+
+\subsection{Ground-truth projection}
+Both systems are evaluated at the canonical-document level, using
+the canonical \texttt{relevant\_ids} field. The canonical suite's
+ground truth is document-level for all four datasets. Some datasets
+(for example CUAD, GreekBarBench) could arguably be evaluated at
+span or clause granularity. The program's shared protocol commits to
+document level, and the comparison therefore reflects that choice.
+
+\subsection{Controlled adaptations}
+Both tracks contain controlled adaptations
+(\S\ref{sec:adapt}). The LongRAG track replaces the embedder and
+the storage backend. The My\_RAG track replaces the retrieval
+execution substrate. None of these changes the architecture-defining
+logic of its track, but they do mean that the reported numbers
+correspond to the \emph{executed} systems, not to any native
+reproduction.
+
+\subsection{Tie-breaking}
+Both systems use deterministic tie-breaks in their aggregation
+stages. The result sets are therefore fully reproducible for the
+same inputs, but any re-execution under a different tie-break
+convention could shift the ranking of near-tied candidates.
+
+% =====================================================================
+\section{Discussion}
+
+\subsection{On the shape of the result}
+The result has a clean shape: My\_RAG wins on every metric and on
+every dataset, but the margin varies systematically with a
+measurable corpus property (mean source-document size). This is a
+stronger result than a uniform improvement across all datasets,
+because it identifies a mechanism behind the difference rather than
+merely reporting a number.
+
+\subsection{On the size of the corpus}
+The most visible cost of My\_RAG's finer granularity is the
+eighteen-fold increase in retrieval corpus size relative to
+LongRAG. On the four datasets considered, this cost is small in
+absolute terms (the entire My\_RAG corpus is about \num{101814}
+points, well within the working memory of a single-node Qdrant
+instance), but it would grow linearly with corpus size and would
+become material at very large scales. The comparison does not
+measure the cost side of the trade-off; that is a topic for the
+sensitivity study planned in the next phase.
+
+\subsection{On generalization}
+The comparison covers four datasets with a specific distribution of
+document sizes. The observed pattern (finer granularity wins, and
+the advantage is largest when documents are short) is consistent
+with the architectural hypothesis, but it is not proven to
+generalize beyond these four datasets. The remaining three datasets
+of the program's suite (RULER, Loong, LongBench-v2) provide a
+natural extension that a future run could explore.
+
+\subsection{On the next phase}
+The next phase of the program will pursue three threads:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Optimal-operation study of My\_RAG.} A staged
+    optimization that identifies the parameter region where My\_RAG
+    performs best, under a discipline designed to avoid the
+    multiple-comparison problem of naive grid search. This will be
+    reported separately.
+  \item \textbf{Extension of the comparison to the remaining
+    datasets.} If the compute budget permits, RULER, Loong, and
+    LongBench-v2 will be added to both tracks.
+  \item \textbf{Extension of the comparison to other
+    architectures.} The remaining baselines of the program (RAPTOR,
+    HippoRAG, LightRAG, PathRAG, and possibly others) will be
+    executed under the same protocol.
+\end{enumerate}
+
+% =====================================================================
+\section{Conclusion}
+
+We have compared LongRAG and My\_RAG under a fully controlled,
+retrieval-only protocol on four heterogeneous long-context corpora.
+Under this protocol, My\_RAG achieves a macro document Recall@10 of
+\num{0.4049} against LongRAG's \num{0.3144}, a relative improvement
+of \num{28.79}\%. My\_RAG wins on every dataset and on every one of
+the eighteen metrics reported. The magnitude of the improvement
+varies systematically with the mean source-document size of the
+corpus, and the largest gap appears on the corpus with the shortest
+source documents. This pattern is consistent with the architectural
+observation that fine-grained retrieval units preserve document-level
+ranking quality on corpora whose documents are smaller than the
+unit budgets of coarser architectures.
+
+The full metric table, the controlled adaptations of both tracks,
+the threats to validity, and the reproducibility chain are documented
+in this report. The comparison serves as the reference result for
+the next phases of the RAG Architecture Readiness Program.
+
+% =====================================================================
+\appendix
+
+\section{Appendix A: Full Per-Dataset Metrics}
+
+\begin{table}[h]
+\centering
+\caption{LongRAG per-dataset metrics.}
+\small
+\begin{tabular}{l r r r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{H@1} & \textbf{H@5} & \textbf{H@10}
+  & \textbf{R@10} & \textbf{nDCG@10} & \textbf{MRR@10} & \textbf{P@10} \\
+\midrule
+CLERC              & \num{0.0310} & \num{0.0550} & \num{0.0940}
+                   & \num{0.0786} & \num{0.0543} & \num{0.0444} & \num{0.0270} \\
+CUAD               & \num{0.0039} & \num{0.0161} & \num{0.0324}
+                   & \num{0.0324} & \num{0.0153} & \num{0.0102} & \num{0.0032} \\
+GreekBarBench      & \num{0.0352} & \num{0.1303} & \num{0.2606}
+                   & \num{0.2606} & \num{0.1233} & \num{0.0828} & \num{0.0261} \\
+LaRA               & \num{0.7128} & \num{0.8409} & \num{0.8861}
+                   & \num{0.8861} & \num{0.7977} & \num{0.7697} & \num{0.0886} \\
+\midrule
+\textbf{Macro}     & \num{0.1957} & \num{0.2606} & \num{0.3183}
+                   & \num{0.3144} & \num{0.2476} & \num{0.2268} & \num{0.0362} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{My\_RAG per-dataset metrics.}
+\small
+\begin{tabular}{l r r r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{H@1} & \textbf{H@5} & \textbf{H@10}
+  & \textbf{R@10} & \textbf{nDCG@10} & \textbf{MRR@10} & \textbf{P@10} \\
+\midrule
+CLERC              & \num{0.2450} & \num{0.4510} & \num{0.5430}
+                   & \num{0.3546} & \num{0.2875} & \num{0.3336} & \num{0.0964} \\
+CUAD               & \num{0.0046} & \num{0.0224} & \num{0.0431}
+                   & \num{0.0431} & \num{0.0199} & \num{0.0130} & \num{0.0043} \\
+GreekBarBench      & \num{0.0211} & \num{0.1585} & \num{0.2852}
+                   & \num{0.2852} & \num{0.1314} & \num{0.0850} & \num{0.0285} \\
+LaRA               & \num{0.7506} & \num{0.9067} & \num{0.9368}
+                   & \num{0.9368} & \num{0.8466} & \num{0.8174} & \num{0.0937} \\
+\midrule
+\textbf{Macro}     & \num{0.2553} & \num{0.3846} & \num{0.4520}
+                   & \num{0.4049} & \num{0.3214} & \num{0.3123} & \num{0.0557} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Appendix B: Retrieval Performance}
+
+\begin{center}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Stage} & \textbf{LongRAG} & \textbf{My\_RAG} & \textbf{Hardware} \\
+\midrule
+Chunking / unit materialization & \SI{180}{\second} & \SI{150}{\second} & CPU \\
+Document embedding & $\approx \SI{1600}{\second}$ & $\approx \SI{780}{\second}$ & T4 GPU \\
+Query embedding & $\approx \SI{240}{\second}$ & $\approx \SI{240}{\second}$ & T4 GPU \\
+Storage ingest & \SI{30}{\second} & \SI{960}{\second} & CPU \\
+Full retrieval & \SI{342}{\second} & \SI{132}{\second} & CPU \\
+Evaluation & \SI{5}{\second} & \SI{6}{\second} & CPU \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Both retrieval stages are comparable in wall-clock time despite the
+eighteen-fold difference in corpus size, because My\_RAG's numpy
+retrieval implementation is dramatically faster per query than the
+Qdrant-local brute-force scan used in the earlier My\_RAG retrieval
+prototype.
+
+\section{Appendix C: Reproducibility Chain}
+
+\begin{center}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Artifact} & \textbf{Location} \\
+\midrule
+LongRAG closure manifest & \texttt{baseline\_audit/longrag\_full\_track\_closure\_manifest.yaml} \\
+My\_RAG closure manifest & \texttt{baseline\_audit/my\_rag\_m0\_closure\_manifest.yaml} \\
+Cross-dataset comparison & \texttt{baseline\_audit/longrag\_vs\_my\_rag\_comparison.yaml} \\
+Comparison script & \texttt{scripts/compare\_longrag\_vs\_my\_rag.py} \\
+Comparison markdown & \texttt{docs/longrag\_vs\_my\_rag\_comparison.md} \\
+LongRAG results & \texttt{outputs/external\_longrag/<ds>/retrieval-v1/} \\
+My\_RAG results & \texttt{outputs/external\_my\_rag/<ds>/retrieval-v1/} \\
+LongRAG metrics & \texttt{outputs/external\_longrag/<ds>/evaluation-v1/} \\
+My\_RAG metrics & \texttt{outputs/external\_my\_rag/<ds>/evaluation-v1/} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

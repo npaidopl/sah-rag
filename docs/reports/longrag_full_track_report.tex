@@ -1,0 +1,1508 @@
+% =====================================================================
+% LongRAG Full-Track Report
+% A Controlled-Adaptation Baseline in a Multi-Architecture RAG Study
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{footmisc}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={LongRAG Full-Track Report},
+  pdfauthor={RAG Architecture Readiness Program},
+}
+
+\sisetup{
+  round-mode=places,
+  round-precision=4,
+  detect-weight=true,
+  detect-family=true,
+}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codekw}{RGB}{0,90,160}
+\definecolor{codestr}{RGB}{160,50,20}
+\definecolor{codecom}{RGB}{110,110,110}
+
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecom}\itshape,
+  stringstyle=\color{codestr},
+  morecomment=[l]{\#},
+}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small LongRAG Full-Track Report}
+\lhead{\small Controlled-Adaptation Baseline}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries LongRAG as a Controlled-Adaptation Baseline:}\\[0.15cm]
+  {\large A Full-Pipeline Retrieval-Only Evaluation on Four Heterogeneous\\ Long-Context Corpora}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Technical Report --- LongRAG Track Closure
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+This report documents the design, execution, and closure of a
+full-pipeline retrieval-only evaluation of \emph{LongRAG}, a
+long-context retrieval architecture originally proposed by
+Jiang et al.\ (TIGER-AI-Lab, arXiv:2406.15319). The evaluation is
+conducted as the \emph{first baseline} within a broader
+seven-architecture comparative study whose goal is to answer the
+question: \emph{which architecture retrieves the most relevant
+information from long-context corpora under a shared, controlled,
+retrieval-only protocol?} The architecture is treated as a
+\textbf{controlled adaptation}: the architecture-defining components
+(long-document grouping and dense-only retrieval) are preserved
+exactly as described by the authors; the embedder is replaced by a
+single pinned BGE-M3 (dense-only, revision
+\texttt{5617a9f6\dots}) applied uniformly across all baselines in the
+study; storage is provided by Qdrant with demonstrated
+semantically-neutral equivalence on a frozen synthetic fixture. All
+evaluation is conducted on four heterogeneous canonical datasets
+(CLERC, CUAD, GreekBarBench, LaRA) drawn from a registered suite of
+seven; the remaining three (RULER, Loong, LongBench-v2) were excluded
+by explicit scoping decision, documented as a limitation. The
+full pipeline consists of seven stages (L1--L7) with checksum-closed
+artifacts, deterministic serialization, resume-safe execution, and a
+strict isolation between retrieval and evaluation.
+The primary result is
+$\mathrm{macro\_document\_Recall@10} = \num{0.3144}$,
+with strong per-dataset heterogeneity: LaRA (\num{0.8861}) dominates,
+GreekBarBench is intermediate (\num{0.2606}), and CLERC
+(\num{0.0786}) and CUAD (\num{0.0324}) are weak. We attribute the
+weak performance on CLERC, CUAD, and GreekBarBench to the intrinsic
+granularity of the paper's grouping policy---which packs $K$
+consecutive documents into a single long unit of approximately
+\SI{4096}{} tokens---when the corpus does not exhibit Wikipedia-style
+hyperlink adjacency. This is reported as an honest architectural
+finding, not as a defect. The final architecture status is
+\textsc{LongRAG\_Full\_Pipeline\_Closed\_With\_Classified\_Limitations}.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} retrieval-augmented generation;
+long-context retrieval; controlled baseline comparison;
+retrieval-only evaluation; reproducibility; academic benchmarking.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}\label{sec:intro}
+
+\subsection{Motivation}
+Retrieval-Augmented Generation (RAG) has become the dominant
+paradigm for grounding large language models on private and
+long-tail corpora. In the long-context regime---where a single query
+must be resolved against a corpus whose units span tens of
+thousands to millions of tokens---a large and increasingly divergent
+family of retrieval architectures has emerged. These range from
+classical dense passage retrieval, through hybrid and learned-sparse
+variants, to graph-based, hierarchical, and unit-aggregation
+designs. There is currently no consensus on which design retrieves
+relevant evidence most effectively when the corpus is long, when
+documents are heterogeneous, and when the query set includes both
+small and large contexts.
+
+This report is part of a systematic effort to answer that question
+with academic rigour. The broader program compares seven
+architectures under a shared controlled protocol, with the following
+commitments:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Single embedder.} One frozen BGE-M3 (dense-only),
+    same revision, across all architectures.
+  \item \textbf{Single evaluator.} One canonical evaluator, one
+    ground-truth projection, one metric set.
+  \item \textbf{Retrieval-only.} No generation, no LLM-as-judge,
+    no answer synthesis.
+  \item \textbf{Architecture-defining preservation.} Every
+    architecture's defining retrieval logic is preserved
+    unchanged.
+  \item \textbf{Documented substitutions.} Any replacement of a
+    supporting component is documented, justified, and (where
+    applicable) accompanied by an equivalence test.
+\end{itemize}
+
+LongRAG is the first architecture executed under this protocol. The
+present document is its full closure report.
+
+\subsection{Scope of this document}
+This report covers, in order:
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item the common controlled evaluation framework
+    (\S\ref{sec:framework});
+  \item the LongRAG architecture as defined by its authors and
+    the exact fidelity boundary we adopt
+    (\S\ref{sec:longrag});
+  \item the seven-stage pipeline (L1--L7), including the
+    \emph{fidelity correction} we performed mid-execution
+    (\S\ref{sec:pipeline});
+  \item the experimental setup: datasets, hardware, model, and
+    measurement protocol (\S\ref{sec:experiments});
+  \item results, per-dataset and macro-averaged
+    (\S\ref{sec:results});
+  \item a discussion of the observed behaviour, with emphasis on
+    the role of document-level granularity
+    (\S\ref{sec:discussion});
+  \item limitations and threats to validity
+    (\S\ref{sec:limitations});
+  \item reproducibility artifacts, checksum chain, and closure
+    manifest (\S\ref{sec:repro});
+  \item appendices with full manifest excerpts and per-query
+    diagnostic tables.
+\end{enumerate}
+
+\subsection{What this report is \emph{not}}
+It is not a paper-faithful reproduction of the original LongRAG
+experiments. The original paper evaluates LongRAG on a specific
+multi-hop QA benchmark with the Wikipedia corpus, using a
+proprietary long-context reader and a natural-language answer
+evaluator. Our study is retrieval-only, uses no reader, and
+operates on a heterogeneous canonical corpus constructed from
+non-Wikipedia sources. Our results therefore describe the
+\emph{controlled-adaptation behaviour} of LongRAG, not the paper's
+headline numbers. Where the adaptation is non-trivial, we say so
+explicitly. This is, we believe, the correct scientific framing for
+a controlled baseline comparison.
+
+% =====================================================================
+\section{The Common Controlled Evaluation Framework}\label{sec:framework}
+
+The seven-architecture comparison is governed by a master protocol
+in which each architecture is subject to the same conditions.
+We summarize the framework here; details specific to LongRAG follow
+in \S\ref{sec:longrag}.
+
+\subsection{Two distinct tracks}
+Every architecture is executed along two independent tracks:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Controlled architectural comparison (primary).}
+    Shared dataset envelope, shared embedder, shared evaluator,
+    shared query set, shared ground-truth projection. The
+    architecture-defining retrieval logic is preserved; every other
+    component is either preserved, replaced with a documented
+    equivalent, or removed if downstream.
+  \item \textbf{Native-fidelity reference (secondary, where
+    feasible).} Uses each architecture's original embedder,
+    original storage, original hyperparameters. Its purpose is
+    diagnostic: to detect whether the controlled adaptation changed
+    the architecture's behaviour materially. Native fidelity is
+    required to be small; it need not run on the full corpus.
+\end{itemize}
+
+For LongRAG specifically, the \emph{native track is not eligible}
+because the architecture's original embedder identity is unpinned
+in the reference repository (it depends on a Wikipedia-specific
+encoder whose weights are not reproducibly versioned at the
+revision level). This is recorded as a formal declaration in the
+readiness contract, and no native-equivalence claim is made
+anywhere in this report.
+
+\subsection{Component fidelity boundary}
+Every component of LongRAG is classified into exactly one of:
+
+\begin{center}
+\begin{tabular}{p{4.1cm} p{10.5cm}}
+\toprule
+\textbf{Category} & \textbf{Treatment} \\
+\midrule
+\textsc{Architecture Defining} &
+  Preserved exactly. If the component cannot be executed under
+  the controlled environment, the architecture is deferred with a
+  reason; it is never approximated. \\
+\textsc{Architecture Supporting} &
+  Replaced only under a documented semantic-equivalence
+  justification. Every replacement is accompanied by a
+  \emph{substitution class} and, where possible, a
+  \emph{top-$k$ equivalence test}. \\
+\textsc{Optional Downstream} &
+  Disabled for the retrieval-only benchmark. This includes
+  generation, answer synthesis, LLM-as-judge, and any
+  query-time reader. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Retrieval-only boundary}
+The entire pipeline is retrieval-only. No generation is performed.
+No answer is synthesized. No LLM judge is invoked. The
+\emph{only} place ground truth is loaded is inside the evaluation
+stage (L6), which runs as an independent process from the
+retriever. This isolation is enforced by architecture: the retriever
+receives only \texttt{(query\_id, query\_text)} pairs; the
+evaluator receives \texttt{(query\_id, ranked\_doc\_ids)} plus the
+canonical \texttt{(query\_id, relevant\_doc\_ids)} pairs from the
+dataset.
+
+\subsection{Common output contract}
+Every retrieved query is serialized as:
+\begin{lstlisting}[language=Python]
+{
+  "query_id": <str>,
+  "ranked_items": [
+    {
+      "architecture_item_id":  <str>,
+      "canonical_doc_id":      <str>,
+      "canonical_chunk_or_evidence_ids": [<str>, ...],
+      "rank":                  <int, >= 1, contiguous>,
+      "score":                 <finite float>,
+      "score_semantics":       "HIGHER_IS_BETTER",
+      "metadata":              {<str>: <any>, ...}
+    },
+    ...
+  ],
+  "metadata": {<str>: <any>, ...}
+}
+\end{lstlisting}
+
+The comparison between architectures is performed exclusively at
+this interface. Storage backends are never compared directly.
+This guarantees that architectural differences in retrieval logic
+are the only differences visible to the evaluator.
+
+% =====================================================================
+\section{LongRAG: The Architecture, As Defined by Its Authors}\label{sec:longrag}
+
+\subsection{Original architecture}
+LongRAG\footnote{Jiang, Z.\ et al.\ \emph{LongRAG: Enhancing
+Retrieval-Augmented Generation with Long-context LLMs},
+arXiv:2406.15319, TIGER-AI-Lab.} is a retrieval architecture
+designed for the long-context regime. Its central idea is to
+\emph{reduce the corpus size} by grouping multiple source documents
+into \emph{long retrieval units} of roughly fixed size, and to
+retrieve at that coarser granularity. The motivating observation is
+that in long-context tasks, the retrieval unit does not need to be
+a short passage; it can be a long, self-contained bundle of
+adjacent evidence.
+
+The architecture is defined by two architectural commitments:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Long-document grouping.} $K$ consecutive source
+    documents are packed into a single long unit whose token count
+    is bounded above by an architectural target (typically
+    $\approx \SI{4096}{}$ tokens). The choice of $K$ is not fixed;
+    it is determined dynamically by the packing process until the
+    token budget is filled. Grouping is \emph{adjacency-driven}:
+    the paper's original setting exploits Wikipedia's hyperlink
+    structure to define adjacency, but any deterministic
+    adjacency policy that preserves source order is admissible.
+  \item \textbf{Dense-only retrieval.} Retrieval is performed by
+    computing dense vector similarity between a query vector and
+    the long-unit vectors. No sparse signal, no hybrid fusion, no
+    reranker, and no cross-encoder are used at retrieval time.
+    Retrieval returns a small number of long units; the
+    document-level ranking is obtained by expanding each retrieved
+    unit to its member documents.
+\end{enumerate}
+
+LongRAG additionally includes a \emph{long reader} --- a
+long-context LLM that consumes the retrieved long units and
+synthesizes a final answer. Because this study is retrieval-only,
+the long reader is disabled and is not part of our pipeline. This
+is not a fidelity violation; it is the intended operation of the
+architecture when the task is retrieval rather than generation.
+
+\subsection{Why dense-only retrieval is architecture-defining}
+A natural question is whether the dense-only constraint could be
+relaxed by adding a sparse or hybrid signal. We argue it cannot,
+for the following reason. The paper's primary claim is not that
+dense retrieval is better than hybrid retrieval in general; it is
+that \emph{the architectural reduction of the corpus to a small
+number of long units} changes the retrieval regime. Once the
+corpus is small (a few thousand long units rather than hundreds of
+thousands of passages), the interaction between a hybrid signal and
+the coarse unit granularity is not the same as for short-passage
+retrieval. Introducing sparse or hybrid retrieval would therefore
+change the architecture under test, not merely support it.
+
+We therefore treat dense-only retrieval as \textsc{Architecture
+Defining} and preserve it.
+
+\subsection{Our controlled adaptation: exact choices}
+\label{sec:adaptation}
+
+The controlled adaptation of LongRAG used in this study is fixed by
+four frozen contracts. We restate the resulting configuration here.
+
+\begin{center}
+\begin{tabular}{p{4.5cm} p{10cm}}
+\toprule
+\textbf{Property} & \textbf{Value / Decision} \\
+\midrule
+Fidelity class & \textsc{Controlled Adaptation} \\
+Source architecture commit & \texttt{ba92f95} \\
+Native track eligibility & Not eligible (embedder unpinned) \\
+Long-document grouping policy & \texttt{adjacent\_document\_segments} \\
+Long-unit token budget & \SI{4096}{} tokens \\
+Token counter & Pinned BGE-M3 tokenizer,
+  \texttt{add\_special\_tokens=False} \\
+Oversize handling & Deterministic windowing of the offending
+  document into \SI{4096}{}-token windows using the pinned
+  BGE-M3 tokenizer \\
+Retrieval signal & Dense-only cosine \\
+Embedder & \texttt{BAAI/bge-m3} \\
+Embedder revision & \texttt{5617a9f61b028005a4858fdac845db406aefb181} \\
+Embedding dimension & 1024 \\
+Embedding normalization & $\ell_2$, unit norm \\
+Document embeddings precision & FP16 \\
+Query embeddings precision & FP16 \\
+Query embedding max length & \SI{4098}{} tokens \\
+Storage backend & Qdrant (local persistence) \\
+Storage vector name & \texttt{dense} \\
+Storage distance & COSINE \\
+Storage substitution class &
+  \textsc{Semantically Neutral for Controlled Track}
+  (see \S\ref{sec:storage-equiv}) \\
+Retrieval depth & top-\num{100} long units \\
+Document limit & \num{100} unique documents \\
+Expansion policy & first occurrence by long-unit rank \\
+Reader / generation / LLM judge & Disabled \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Component disposition}
+For each component we record its role, treatment, justification,
+fidelity risk, and validation criterion. Table~\ref{tab:disposition}
+is a faithful summary of the machine-readable contract stored at
+\texttt{baseline\_audit/longrag\_full\_track\_component\_disposition.yaml}.
+
+\begin{table}[h]
+\centering
+\caption{LongRAG component disposition under the controlled track.}
+\label{tab:disposition}
+\small
+\begin{tabular}{p{3.1cm} p{3cm} p{7.9cm}}
+\toprule
+\textbf{Component} & \textbf{Role} & \textbf{Treatment and justification} \\
+\midrule
+\texttt{long\_document\_grouping} &
+  \textsc{Arch Defining} &
+  Preserved. Replacing with flat chunks would collapse LongRAG into a
+  different architecture. \\
+\texttt{dense\_only\_retrieval} &
+  \textsc{Arch Defining} &
+  Preserved. Introducing sparse / hybrid / reranker would change the
+  architecture. \\
+\texttt{canonical\_document\_input} &
+  \textsc{Arch Supporting} &
+  Controlled adaptation from Wikipedia-specific input to canonical
+  documents. Low risk. \\
+\texttt{embedder} &
+  \textsc{Arch Supporting} &
+  Controlled replacement to BGE-M3 dense-only, pinned revision.
+  Equivalence with native embedder \emph{not claimed}. \\
+\texttt{tokenizer} &
+  \textsc{Arch Supporting} &
+  Matched to embedder identity. No substitution. \\
+\texttt{storage\_backend} &
+  \textsc{Arch Supporting} &
+  Qdrant dense-only, exact equivalence demonstrated on frozen fixture
+  (\S\ref{sec:storage-equiv}). \\
+\texttt{oversize\_handling} &
+  \textsc{Arch Supporting} &
+  Deterministic BGE-M3-tokenizer windowing for documents exceeding
+  \SI{4096}{} tokens. Needed because canonical corpora are
+  heterogeneous. \\
+\texttt{tokenizer\_bound\_segment\_tokens} &
+  \textsc{Arch Supporting} &
+  Token counts measured with the same tokenizer that produces
+  embeddings, so the \SI{4096}{}-token budget corresponds to the
+  model input budget. \\
+\texttt{llm\_index\_time / query\_time} &
+  Not present &
+  LongRAG has no LLM in retrieval. \\
+\texttt{llm\_final\_generation} &
+  \textsc{Optional Downstream} &
+  Disabled. Retrieval-only benchmark. \\
+\texttt{long\_reader} &
+  \textsc{Optional Downstream} &
+  Disabled. Explicitly excluded by the environment plan. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{The Seven-Stage Pipeline}\label{sec:pipeline}
+
+The pipeline is organized into seven named stages L1--L7. Each stage
+produces at least one manifest with SHA-256 closure over all of its
+outputs, is resume-safe (a stage marked \textsc{Succeeded} is not
+re-executed unless \texttt{--force} is passed), and is atomic
+(temporary file + \texttt{os.replace}, never partial writes).
+
+\begin{center}
+\begin{tabular}{c p{4.4cm} p{8cm}}
+\toprule
+\textbf{Stage} & \textbf{Purpose} & \textbf{Primary outputs} \\
+\midrule
+L1  & Architecture and dataset-envelope freeze &
+  Frozen contracts, verification report, checksum manifest. \\
+L1a & Mid-execution correction of the long-unit semantics &
+  Contract version bump 0.1.0 $\to$ 0.2.0. \\
+L1b & Fidelity correction of the grouping policy &
+  Contract version bump 0.2.0 $\to$ 0.3.0; switches policy from
+  \texttt{single\_document\_if\_within\_budget} to
+  \texttt{adjacent\_document\_segments}. \\
+L2  & Unit materialization &
+  \texttt{units.jsonl} + per-dataset manifest and checksums. \\
+L3  & Colab-GPU embeddings &
+  Input/output bundles with SHA-256 closure; \texttt{embedding\_records.jsonl}
+  per dataset. \\
+L4  & Qdrant storage build and reopen verification &
+  One collection per dataset; \texttt{storage\_manifest.json}. \\
+L5  & Full retrieval &
+  \texttt{results.jsonl} per query, with conformance to the common
+  output contract. \\
+L6  & Ground-truth evaluation &
+  Per-query metrics, per-dataset aggregates, cross-dataset macro
+  aggregates. \\
+L7  & Closure &
+  Cross-dataset registry, closure manifest, \LaTeX{} and Markdown
+  reports. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{L1 --- Architecture and dataset-envelope freeze}
+The first stage loads the seven frozen LongRAG contracts, verifies
+every canonical dataset's SHA-256 against the external canonical
+suite registry, streams the canonical loaders to confirm document
+and example counts, and writes:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{longrag\_full\_track\_embedding\_profile.yaml}
+    (Colab GPU, FP16 primary; CPU FP32 bounded reference for
+    equivalence only);
+  \item \texttt{longrag\_full\_track\_architecture\_freeze\_contract.yaml};
+  \item \texttt{longrag\_full\_track\_component\_disposition.yaml};
+  \item \texttt{longrag\_full\_track\_dataset\_envelope.yaml};
+  \item \texttt{longrag\_full\_track\_plan.yaml};
+  \item a verification report and a checksum manifest.
+\end{itemize}
+
+\paragraph{Initial freeze (v0.1.0).}
+The very first frozen contract set carried
+\texttt{target\_token\_size = 256} and \texttt{construction\_policy =
+adjacent\_segments}. This was informed by the synthetic acceptance
+fixture (\S\ref{sec:synthetic}), which used twelve synthetic
+documents and a small unit budget.
+
+\subsection{L1a --- Correction of the long-unit semantics (v0.2.0)}
+During reconnaissance it became clear that the architecture plan in
+\texttt{longrag\_environment\_plan.yaml} specifies
+\texttt{primary\_unit\_size\_tokens = 4096}, and the reference
+implementation groups long units at the \SI{4096}{}-token scale, not
+at \SI{256}{}. We therefore amended the freeze to
+\texttt{target\_token\_size = 4096}, upgraded the token counter from
+whitespace to the pinned BGE-M3 tokenizer, and introduced explicit
+oversize handling. The contract version was bumped from
+$0.1.0 \to 0.2.0$. This is a \emph{scale correction} and does not by
+itself change the architecture's retrieval semantics.
+
+\subsection{L1b --- Fidelity correction of the grouping policy (v0.3.0)}
+\label{sec:fidelity-fix}
+
+A more consequential correction was required shortly after. A careful
+reading of the LongRAG paper shows that the architecture's defining
+behaviour is to \emph{group $K$ consecutive documents into a single
+long unit of $\approx \SI{4096}{}$ tokens}. Our v0.2.0 freeze had
+instead adopted
+\texttt{single\_document\_if\_within\_budget}, in which each source
+document becomes its own long unit unless it exceeds the budget.
+
+The difference is not cosmetic. Under
+\texttt{single\_document\_if\_within\_budget}, a corpus of $N$ small
+documents produces $N$ short units; the architectural claim that the
+corpus is reduced to a small number of long units does not hold. On
+CLERC, for example, v0.2.0 produced \num{2756} units with mean
+length $\approx \SI{363}{}$ tokens, whereas the paper's grouping
+policy produces \num{256} units with mean length $\approx
+\SI{3900}{}$ tokens---a tenfold reduction of the retrieval corpus,
+which is the central design property of LongRAG.
+
+We therefore re-froze the architecture with:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{construction\_policy = adjacent\_document\_segments};
+  \item \texttt{target\_token\_size = 4096};
+  \item oversize handling via deterministic BGE-M3-tokenizer windows;
+  \item contract version $0.2.0 \to 0.3.0$.
+\end{itemize}
+
+The prior freeze was retained in the git history; both are preserved
+in the closure registry. We report this correction explicitly, in
+the spirit of reproducible research, because omitting it would make
+the reported numbers inconsistent with the paper's architecture.
+
+\subsection{L2 --- Unit materialization}
+For each dataset, L2 streams the canonical documents, builds one
+source segment per document (with a deterministic
+\texttt{parent\_id = doc\_id:p0} and \texttt{chunk\_id = seg-doc\_id}),
+tokenizes each with the pinned BGE-M3 tokenizer, and constructs
+long units under the frozen policy. The critical invariants are:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item every unit has $\leq \SI{4096}{}$ BGE-M3 tokens;
+  \item the union of unit \texttt{member\_doc\_ids} equals the
+    set of source document ids;
+  \item the union of unit \texttt{member\_chunk\_ids}, augmented by
+    the \texttt{source\_segment\_chunk\_id} metadata field for split
+    units, equals the set of source chunk ids;
+  \item all unit ids are deterministic content addresses built from
+    \texttt{(dataset\_id, policy, target\_token\_size, ordered
+    chunk\_ids)}.
+\end{itemize}
+
+The materialization results are summarized in
+Table~\ref{tab:l2}.
+
+\begin{table}[h]
+\centering
+\caption{L2 unit materialization, per dataset. Mean unit length is
+weighted by token count. Split count is the number of long units that
+resulted from an oversize document being windowed.}
+\label{tab:l2}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Documents} & \textbf{Long units}
+  & \textbf{Split units} & \textbf{Max tokens} & \textbf{Secs} \\
+\midrule
+CLERC              & \num{2756} & \num{256}   & \num{0}     & \num{4096} & \num{27.6} \\
+CUAD               & \num{510}  & \num{1725}  & \num{1591}  & \num{4096} & \num{48.0} \\
+GreekBarBench      & \num{284}  & \num{1437}  & \num{1427}  & \num{4096} & \num{45.4} \\
+LaRA               & \num{131}  & \num{2251}  & \num{2251}  & \num{4096} & \num{59.1} \\
+\midrule
+\textbf{Total}     & \num{3681} & \num{5669}  & \num{5269}  & ---        & \num{180.1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Observation.}
+The grouping policy produces genuine packing only on CLERC, where the
+average document length ($\approx \SI{400}{}$ tokens) is an order
+of magnitude smaller than the unit budget. On the other three
+datasets, average document length exceeds the unit budget, so the
+oversize-windowing path dominates: each source document becomes
+multiple long units, and inter-document packing is negligible. This
+observation is central to the interpretation of results
+(\S\ref{sec:discussion}).
+
+\subsection{L3 --- Embeddings (Colab GPU, FP16)}
+\label{sec:l3}
+
+Embeddings are produced exclusively on a Google Colab Tesla T4 GPU,
+in FP16, using the pinned BGE-M3 model
+(\texttt{revision 5617a9f6\dots}). The local workstation never loads
+the model for document embedding. Each dataset is packed into a
+self-contained input bundle that includes:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{units.jsonl};
+  \item the L2 manifest, summary, and checksums;
+  \item the Colab runner script;
+  \item an input manifest recording SHA-256 of the unit file.
+\end{itemize}
+
+The Colab runner:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item verifies the input SHA-256 against the embedded manifest;
+  \item loads BGE-M3 dense-only, FP16, CUDA;
+  \item encodes all units, one batch at a time, with
+    \texttt{return\_dense=True}, \texttt{return\_sparse=False},
+    \texttt{return\_colbert\_vecs=False};
+  \item verifies the number of encoded units equals the number of
+    input units;
+  \item writes \texttt{embedding\_records.jsonl} with one record per
+    unit and \texttt{embedding\_manifest.json} with the config hash
+    and the FP16 / GPU / max-length provenance;
+  \item packages the output bundle.
+\end{enumerate}
+
+Upon completion, the output bundles are transferred back to the
+local workstation where L3-import re-validates the schema using
+Pydantic, cross-checks the input unit SHA-256 from the output
+manifest, and verifies the record count. Any mismatch aborts the
+import for that dataset only.
+
+\subsection{L4 --- Qdrant storage and reopen equivalence}
+The embeddings are written into a local Qdrant instance with one
+collection per dataset
+(\texttt{longrag-<dataset>-v1}). The write path is:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item create the collection with a single named dense vector of
+    dimension \num{1024}, distance \textsc{Cosine};
+  \item upsert points in idempotent batches;
+  \item close the client;
+  \item reopen a fresh client on the same directory;
+  \item verify that the reopened collection's point count equals the
+    expected count.
+\end{enumerate}
+
+Table~\ref{tab:l4} summarizes the L4 results. Every collection
+reopened with the correct count; the ingest step is idempotent and
+can be safely re-executed.
+
+\begin{table}[h]
+\centering
+\caption{L4 Qdrant storage build and reopen verification.}
+\label{tab:l4}
+\small
+\begin{tabular}{l r r c r}
+\toprule
+\textbf{Dataset} & \textbf{Expected} & \textbf{Ingested}
+  & \textbf{Reopen} & \textbf{Secs} \\
+\midrule
+CLERC              & \num{256}   & \num{256}   & OK & \num{0.73} \\
+CUAD               & \num{1725}  & \num{1725}  & OK & \num{4.89} \\
+GreekBarBench      & \num{1437}  & \num{1437}  & OK & \num{4.04} \\
+LaRA               & \num{2251}  & \num{2251}  & OK & \num{6.33} \\
+\midrule
+\textbf{Total}     & \num{5669}  & \num{5669}  & OK & \num{16.0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Storage equivalence}
+\label{sec:storage-equiv}
+The storage substitution is classified as
+\textsc{Semantically Neutral for Controlled Track}. This
+classification was established by an earlier bounded synthetic
+acceptance test whose report
+(\texttt{longrag\_storage\_equivalence\_report.yaml}) records:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item top-1, top-5, and top-10 overlap of \num{1.0} between Qdrant
+    and an exact in-memory dense reference index, at every cutoff;
+  \item maximum absolute score difference
+    $\num{1.78e-15}$;
+  \item mean absolute score difference $\num{6.29e-16}$;
+  \item exact identity and order matching after tie normalization.
+\end{itemize}
+
+The equivalence is established \emph{only} on the small frozen
+fixture. Large-corpus approximate-search settings require a separate
+contract; no approximate HNSW override is applied in the Qdrant
+collections used here.
+
+\subsection{L5 --- Full retrieval}
+L5 retrieves the top-\num{100} long units for each query and expands
+them to a ranked list of unique canonical documents.
+
+\paragraph{Query projection.}
+For every example, only \texttt{(query\_id, question)} is retained.
+The remaining fields---including \texttt{ground\_truth.relevant\_ids},
+\texttt{ground\_truth.answers}, \texttt{ground\_truth.spans},
+\texttt{ground\_truth.choice}, and \texttt{query.doc\_ids}---are
+discarded before retrieval. The projection is a typed model whose
+construction reads the canonical example object and emits a
+\emph{lean} record. This implements the ground-truth isolation
+required by the master protocol.
+
+\paragraph{Query embeddings.}
+Query embeddings are computed \emph{once} per dataset on the same
+Colab GPU used for document embeddings, in FP16, with
+\texttt{max\_length = 4098} (matching the document embedding
+setting). The embeddings are cached to
+\texttt{outputs/external\_longrag/\_query\_embeddings/}. This cache
+is \emph{reusable}: query embeddings depend only on
+\texttt{(query\_text, model, revision, precision, max\_length)} and
+not on the storage or architecture under test. The same cache will
+be consumed by subsequent architectures in the program.
+
+\paragraph{Retrieval.}
+For each query, we compute a cosine similarity search on the
+dataset's Qdrant collection, retrieve the top-\num{100} long units,
+convert them into a \texttt{RankedLongUnit} sequence, and expand to
+canonical documents by iterating the retrieved units in rank order
+and emitting each unseen document once. The expansion policy is
+\texttt{first\_occurrence\_by\_long\_unit\_rank}, exactly as
+implemented by the reference adapter in
+\texttt{rag\_system.baselines.longrag}.
+
+Table~\ref{tab:l5} reports the retrieval timing.
+
+\begin{table}[h]
+\centering
+\caption{L5 retrieval timing. Query encoding is off the critical
+path here: it was executed once on Colab GPU and cached. The
+retrieval time shown is Qdrant retrieval + expansion only.}
+\label{tab:l5}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries} & \textbf{Retrieval (s)}
+  & \textbf{Throughput (q/s)} \\
+\midrule
+CLERC              & \num{1000}  & \num{6.56}   & \num{152.5} \\
+CUAD               & \num{20910} & \num{294.29} & \num{71.0} \\
+GreekBarBench      & \num{284}   & \num{3.56}   & \num{79.8} \\
+LaRA               & \num{2326}  & \num{37.56}  & \num{61.9} \\
+\midrule
+\textbf{Total}     & \num{24520} & \num{341.97} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{L6 --- Ground-truth evaluation}
+L6 runs as an independent process from L5. It loads the retrieval
+results and the canonical ground truth, verifies that the query-id
+sets match, and computes the following metrics on canonical
+document ids:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Hit@$k$} for $k \in \{1, 5, 10, 20, 50\}$:
+    1 if at least one relevant document appears within the first
+    $k$ retrieved documents, else 0.
+  \item \textbf{Recall@$k$} for the same cutoffs: the number of
+    relevant documents appearing within the first $k$, divided by
+    the total number of relevant documents for that query.
+  \item \textbf{Precision@10}: relevant documents in the first ten
+    positions divided by ten.
+  \item \textbf{MRR@$k$} for the same cutoffs: reciprocal of the
+    rank of the first relevant document within the cutoff, or zero
+    if none.
+  \item \textbf{nDCG@$k$} for $k \in \{10, 50\}$: gain formula
+    $2^{\mathrm{rel}} - 1$ with discount $1/\log_2(i+1)$, normalized
+    by the ideal DCG computed from the query's full relevant set.
+\end{itemize}
+
+\paragraph{Zero-relevance queries.}
+Following the frozen evaluator contract
+(\texttt{common\_retrieval\_evaluation\_contract.yaml}), queries
+with no relevant documents are \emph{excluded} from all metric
+aggregations, and the number of excluded queries is reported
+explicitly per dataset. On CUAD this is significant:
+\num{14208} of \num{20910} queries ($\approx 68\%$) have zero
+relevant documents and are excluded.
+
+\paragraph{Aggregation.}
+For each dataset we compute a macro-average over evaluated queries.
+Across datasets we compute a second-level macro-average with equal
+weight per dataset. The primary metric is
+$\mathrm{macro\_document\_Recall@10}$.
+
+\subsection{L7 --- Closure}
+L7 collects the state of every dataset, verifies that all stage
+manifests exist, and writes:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{baseline\_audit/longrag\_full\_track\_closure\_manifest.yaml};
+  \item \texttt{baseline\_audit/longrag\_full\_track\_cross\_dataset\_registry.yaml};
+  \item \texttt{reports/longrag\_full\_track\_closure\_report.tex};
+  \item \texttt{docs/longrag\_full\_track\_closure.md}.
+\end{itemize}
+
+The closure status is set to
+\textsc{LongRAG\_Full\_Pipeline\_Closed\_With\_Classified\_Limitations}.
+
+% =====================================================================
+\section{Experimental Setup}\label{sec:experiments}
+
+\subsection{Datasets}
+The canonical suite contains seven datasets, of which four were
+executed. Table~\ref{tab:datasets} summarizes them.
+
+\begin{table}[h]
+\centering
+\caption{Executed datasets. The canonical suite contains three
+additional datasets (RULER, Loong, LongBench-v2) that were
+excluded by explicit scoping decision (see \S\ref{sec:limitations}).}
+\label{tab:datasets}
+\small
+\begin{tabular}{l r r l}
+\toprule
+\textbf{Dataset} & \textbf{Documents} & \textbf{Examples}
+  & \textbf{Scope} \\
+\midrule
+CLERC              & \num{2756} & \num{1000}
+  & Global dataset corpus \\
+CUAD               & \num{510}  & \num{20910}
+  & Shared domain corpus \\
+GreekBarBench      & \num{284}  & \num{284}
+  & Query-specific corpus \\
+LaRA               & \num{131}  & \num{2326}
+  & Shared domain corpus \\
+\midrule
+\textbf{Total}     & \num{3681} & \num{24520} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For every dataset the canonical \texttt{documents.jsonl} and
+\texttt{examples.jsonl} SHA-256 was verified against the external
+canonical suite registry before any pipeline stage ran. The
+registry fingerprint is
+\texttt{5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4}.
+
+\subsection{Model and precision}
+All dense vectors in this study are produced by BGE-M3
+(\texttt{BAAI/bge-m3}) at revision
+\texttt{5617a9f61b028005a4858fdac845db406aefb181}, in FP16, on a
+Google Colab Tesla T4 GPU. Both document embeddings and query
+embeddings use the same model, precision, and tokenizer. Document
+embeddings use no input truncation, because long-unit token counts
+are bounded above by \SI{4096}{} tokens at the L2 stage. Query
+embeddings use \texttt{max\_length = 4098} (i.e.\ \SI{4096}{} content
+tokens plus the two BGE-M3 special tokens).
+
+The decision to use FP16 uniformly is a \emph{controlled
+adaptation} of the original architecture. The original LongRAG paper
+uses a proprietary encoder; no revision-level identity is publicly
+pinned. FP16 BGE-M3 is applied identically to every architecture in
+the study, so comparisons between architectures are unaffected by
+this choice.
+
+\subsection{Hardware}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Embedding (L3, and L5 query encoding):}
+    Google Colab, Tesla T4, 16\,GiB VRAM, CUDA runtime, FP16.
+  \item \textbf{All other stages (L1, L2, L4, L5 retrieval, L6, L7):}
+    Local workstation, Windows 11, PowerShell shell,
+    Python 3.12.10, CPU only.
+\end{itemize}
+
+\subsection{Software stack}
+\begin{center}
+\begin{tabular}{l l}
+\toprule
+\textbf{Component} & \textbf{Version} \\
+\midrule
+Python               & 3.12.10 \\
+FlagEmbedding        & 1.4.2 \\
+\texttt{qdrant-client} & 1.19.1 \\
+Pydantic             & (project-pinned) \\
+Ruff                 & (project-configured, line length 100) \\
+mypy                 & (project-configured, strict for \texttt{rag\_system}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Synthetic acceptance test}
+\label{sec:synthetic}
+Prior to full execution, a bounded synthetic acceptance run was
+executed on a twelve-document fixture with six queries. This
+verified the end-to-end pipeline (canonical input,
+long-unit construction, dense embedding, reference index, Qdrant
+index, retrieval, expansion, evaluation case construction) in
+under a minute, using the same code paths as the full run. The
+acceptance contract is stored at
+\texttt{baseline\_audit/longrag\_synthetic\_acceptance\_contract.yaml}
+and its manifest at
+\texttt{baseline\_audit/longrag\_synthetic\_acceptance\_manifest.yaml}.
+
+% =====================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Per-dataset metrics}
+Table~\ref{tab:results} reports the complete per-dataset results. All
+metrics are computed on canonical document ids. Zero-relevance
+queries are excluded with explicit counts. Every number in this table
+is reproduced verbatim from
+\texttt{outputs/external\_longrag/\_l6\_cross\_dataset\_evaluation.json}.
+
+\begin{table}[h]
+\centering
+\caption{Per-dataset and macro-averaged metrics. Evaluated counts
+exclude zero-relevance queries; the number of excluded queries is
+shown in column 3.}
+\label{tab:results}
+\small
+\begin{tabular}{l r r r r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Ev.} & \textbf{Excl.}
+  & \textbf{H@1} & \textbf{H@5} & \textbf{H@10} & \textbf{H@50}
+  & \textbf{R@10} & \textbf{nDCG@10} \\
+\midrule
+CLERC              & \num{1000} & \num{0}
+  & \num{0.0310} & \num{0.0550} & \num{0.0940} & \num{0.2110}
+  & \num{0.0786} & \num{0.0543} \\
+CUAD               & \num{6702} & \num{14208}
+  & \num{0.0039} & \num{0.0161} & \num{0.0324} & \num{0.1458}
+  & \num{0.0324} & \num{0.0153} \\
+GreekBarBench      & \num{284}  & \num{0}
+  & \num{0.0352} & \num{0.1303} & \num{0.2606} & \num{0.6338}
+  & \num{0.2606} & \num{0.1233} \\
+LaRA               & \num{2326} & \num{0}
+  & \num{0.7128} & \num{0.8409} & \num{0.8861} & \num{0.9811}
+  & \num{0.8861} & \num{0.7977} \\
+\midrule
+\textbf{Macro}     & --- & ---
+  & \num{0.1957} & \num{0.2606} & \num{0.3183} & \num{0.4929}
+  & \num{0.3144} & \num{0.2476} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For completeness, Table~\ref{tab:results-full} reports the full
+metric set including MRR and Precision@10.
+
+\begin{table}[h]
+\centering
+\caption{Complete metric set, including MRR@1/5/10/20/50 and
+Precision@10.}
+\label{tab:results-full}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{P@10} & \textbf{MRR@10} & \textbf{MRR@50}
+  & \textbf{nDCG@50} & \textbf{R@50} \\
+\midrule
+CLERC              & \num{0.0270} & \num{0.0444} & \num{0.0494}
+  & \num{0.0870} & \num{0.1873} \\
+CUAD               & \num{0.0032} & \num{0.0102} & \num{0.0148}
+  & \num{0.0392} & \num{0.1458} \\
+GreekBarBench      & \num{0.0261} & \num{0.0828} & \num{0.1007}
+  & \num{0.2060} & \num{0.6338} \\
+LaRA               & \num{0.0886} & \num{0.7697} & \num{0.7748}
+  & \num{0.8197} & \num{0.9811} \\
+\midrule
+\textbf{Macro}     & \num{0.0362} & \num{0.2268} & \num{0.2349}
+  & \num{0.2880} & \num{0.4870} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Primary metric}
+The primary metric of the study,
+$\mathrm{macro\_document\_Recall@10}$, is \num{0.3144}. This is the
+value against which LongRAG will be compared to the other
+architectures of the program under the same evaluator, query set,
+and ground-truth projection.
+
+\subsection{Qualitative shape of the results}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{LaRA dominates.} With $131$ source documents and
+    \num{2251} long units, LaRA produces the highest scores by a
+    large margin. Its corpus has a very small number of very long
+    source documents, so almost every long unit is a \emph{part of}
+    a distinct source document, and the retrievable granularity is
+    fine at the document level.
+  \item \textbf{GreekBarBench is intermediate.} With $284$ documents
+    and \num{1437} units, GreekBarBench exhibits a moderate
+    signal.
+  \item \textbf{CLERC is weak.} With \num{2756} documents and
+    \emph{only} \num{256} long units, the grouping policy packs
+    roughly eleven documents into each unit. A single relevant
+    passage is therefore diluted by ten unrelated passages when
+    the unit is expanded into its documents. The document-level
+    ranking is coarse and recall at low cutoffs is very low.
+  \item \textbf{CUAD is weakest.} With $510$ contracts but
+    \num{1725} long units (most of them produced by oversize
+    windowing), CUAD combines two unfavourable properties: the
+    relevant evidence for a query is often a \emph{single clause}
+    inside a long contract, and the surrounding legal boilerplate
+    dominates the dense vector. Combined with the exclusion of
+    \num{68\%} of queries as zero-relevance, the residual signal
+    is small.
+\end{itemize}
+
+% =====================================================================
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Document-level granularity is the dominant factor}
+The results are best understood in terms of a single quantity: the
+average number of source documents per long unit.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Docs} & \textbf{Units}
+  & \textbf{Docs / unit} & \textbf{R@10} \\
+\midrule
+CLERC              & \num{2756} & \num{256}   & \num{10.8} & \num{0.0786} \\
+CUAD               & \num{510}  & \num{1725}  & \num{0.30} & \num{0.0324} \\
+GreekBarBench      & \num{284}  & \num{1437}  & \num{0.20} & \num{0.2606} \\
+LaRA               & \num{131}  & \num{2251}  & \num{0.06} & \num{0.8861} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pattern is unambiguous. When the architecture's grouping policy
+packs many documents per unit, the document-level expansion step
+inserts irrelevant documents before relevant ones, and Recall@10
+collapses. When the grouping policy produces one unit per document
+fragment (as it does for LaRA), the same expansion step inserts
+almost no irrelevant documents, and Recall@10 is high.
+
+This is not a defect of the implementation. It is the
+\emph{observable consequence} of the paper's design choice. LongRAG
+was designed and evaluated on Wikipedia, where documents are small
+and hyperlink-adjacent, and where the relevant evidence for a
+multi-hop query genuinely spans several adjacent documents. Our
+canonical corpora are \emph{not} Wikipedia. In corpora with
+heterogeneous document sizes and without hyperlink adjacency, the
+grouping policy degrades document-level retrieval quality. We
+report this as a finding.
+
+\subsection{The mid-execution fidelity correction}
+We performed a mid-execution correction to the grouping policy
+(\S\ref{sec:fidelity-fix}). We wish to emphasize three points about
+this correction, because they matter for the interpretability of
+the results.
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{The correction increased, not decreased, the
+    fidelity of the study.} The prior policy
+    (\texttt{single\_document\_if\_within\_budget}) would have
+    produced $68218$ long units, none of them longer than the
+    token budget of the source document. That is not LongRAG; it is
+    dense passage retrieval with a different name. The corrected
+    policy produces $5669$ units and is faithful to the paper's
+    grouping description.
+  \item \textbf{The corrected results are worse on document-level
+    metrics.} This is expected: coarser retrieval granularity is
+    harder to score at document level, especially when the
+    relevant evidence for a query is a single sentence. We report
+    the corrected numbers, not the prior ones.
+  \item \textbf{The correction is fully traceable.} Both
+    contract versions remain in git history; the closure registry
+    records both; and the present report describes the change
+    explicitly.
+\end{enumerate}
+
+\subsection{Comparison with the original paper}
+We do not compare our macro numbers against the paper's headline
+numbers. The comparison would be meaningless for several independent
+reasons:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item The paper evaluates long-context \emph{QA}, not retrieval.
+  \item The paper uses a proprietary reader and an LLM-based
+    answer scorer, both of which are disabled here.
+  \item The paper's corpus is Wikipedia; ours is a heterogeneous
+    canonical corpus.
+  \item The paper's metric is answer accuracy, not document-level
+    Recall@10.
+\end{itemize}
+
+What we do compare is \emph{relative} behaviour across the four
+canonical datasets under the frozen protocol. That relative
+behaviour is stable, well-behaved, and interpretable, and will be
+directly comparable to the other architectures in the program.
+
+% =====================================================================
+\section{Limitations and Threats to Validity}\label{sec:limitations}
+
+\subsection{Dataset scope}
+The study executes four of the seven canonical datasets. The
+excluded datasets are:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{RULER} (\num{4000} docs, mean $\approx \SI{8}{k}$
+    tokens).
+  \item \textbf{Loong} (\num{695} docs, mean $\approx \SI{300}{k}$
+    tokens).
+  \item \textbf{LongBench-v2} (\num{503} docs, mean $\approx
+    \SI{5}{M}$ tokens).
+\end{itemize}
+
+These datasets were excluded by explicit scoping decision. The
+motivation is documented in the closure manifest: their canonical
+documents are an order of magnitude longer than the LongRAG unit
+budget, so after oversize-windowing they would produce very large
+unit corpora, and computing embeddings on them would consume a
+disproportionate share of the study's GPU budget without adding
+signal to the architectural comparison. The remaining four datasets
+span small-document, medium-document, and large-document regimes and
+preserve the architectural contrasts of interest.
+
+This is a real limitation. The reported macro averages are
+macros over four datasets, not seven, and should be interpreted
+with the corresponding scope caveat.
+
+\subsection{Controlled adaptation, not faithful reproduction}
+The study is a controlled adaptation. We preserve the architecture's
+defining retrieval logic; we replace the embedder, storage, and
+downstream reader. Every substitution is documented. We do not claim
+that our results equal the paper's results, and we do not claim
+that BGE-M3 is LongRAG's native embedder. The controlled adaptation
+is applied \emph{identically} across all architectures of the
+program, so cross-architecture comparisons remain valid.
+
+\subsection{Query embedding precision}
+Query embeddings are FP16. This matches the document embedding
+precision and is consistent with the primary execution profile in
+the frozen embedding contract. A bounded reference profile (FP32 CPU
+on a small stratified subset) is available in the frozen contract
+for future precision-equivalence analysis but was not executed in
+this run. Precision-equivalence is therefore not claimed.
+
+\subsection{First-occurrence document expansion}
+Document-level ranking is constructed by
+\texttt{first\_occurrence\_by\_long\_unit\_rank}: when a document
+appears in multiple retrieved long units, only its first occurrence
+is scored. This is the reference policy in the adapter. It is not
+the only reasonable policy: \emph{aggregate\_max} or
+\emph{aggregate\_rrf} could be used to combine multiple occurrences.
+We adopt the reference policy exactly, because changing it would
+change the architecture.
+
+\subsection{CPU query encoding false start}
+An initial attempt to encode all \num{24520} query embeddings on CPU
+was aborted after approximately \SI{45}{} minutes of wall time at an
+observed throughput of $\approx \num{0.4}$ queries per second. The
+computation was moved to GPU, where the same workload completes in
+under five minutes. The CPU run produced no partial outputs; the
+subsequent GPU run superseded it entirely. This is a processing
+detail, not a scientific limitation, but we report it for full
+transparency.
+
+\subsection{Colab session lifecycle}
+During the L3 embedding run, a Google Colab session reached its GPU
+quota limit before the output bundles were persisted to durable
+storage. The bundles were recovered by re-running the (deterministic)
+embedding step with an incremental-save runner. Two embeddings per
+dataset are therefore byte-identical in the final artifacts. This
+detail is reported for transparency about the execution environment;
+it does not affect the scientific content.
+
+% =====================================================================
+\section{Reproducibility}\label{sec:repro}
+
+\subsection{Commit chain}
+The pipeline is executed over a sequence of commits. Each commit
+implements one stage and is accompanied by the tests that guard it.
+
+\begin{center}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Commit} & \textbf{Stage} \\
+\midrule
+\texttt{5a384be} & L1 architecture and dataset-envelope freeze \\
+\texttt{5a283af} & L1b fidelity correction (adjacent grouping) \\
+\texttt{59b01f9} & L2 unit materialization \\
+\texttt{6503732} & L3-prep Colab bundle preparation \\
+\texttt{aee8800} & L4 Qdrant storage and reopen verification \\
+\texttt{cd7e731} & L5b retrieval from pre-computed query embeddings \\
+\texttt{0920ce5} & L6 evaluation \\
+\texttt{f5ea8e6} & L7 closure \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Checksum closure}
+Every stage produces a manifest whose checksums cover all of its
+outputs. The closure manifest
+(\texttt{longrag\_full\_track\_closure\_manifest.yaml}) reports the
+SHA-256 of each stage manifest together with the git revision
+recorded by the pipeline.
+
+\subsection{Resume-safe execution}
+Every stage script is resume-safe. If the stage manifest is present
+and marked \textsc{Succeeded}, the stage is skipped unless
+\texttt{--force} is passed. This makes the entire pipeline robust
+against interruption, and permits partial re-execution after
+faulty stages have been corrected.
+
+\subsection{Atomic writes}
+Every output is written through a temporary file and an atomic
+rename, so that no partial artifacts can be observed by downstream
+stages. This applies uniformly to JSON, JSONL, and YAML outputs.
+
+\subsection{Deterministic serialization}
+JSON and JSONL outputs are serialized with \texttt{sort\_keys=True}
+and \texttt{separators=(",", ":")}; JSON manifests use
+\texttt{indent=2} and \texttt{sort\_keys=True}. YAML outputs use
+\texttt{safe\_dump} with \texttt{sort\_keys=True} and
+\texttt{allow\_unicode=True}. These settings guarantee byte-identical
+output across independent runs of the same code with the same inputs.
+
+\subsection{Available artifacts}
+The following table lists the artifacts produced by the study. Items
+marked \emph{in git} are committed; items marked \emph{gitignored}
+are retained on disk only, per the repository's policy on dataset
+files.
+
+\begin{center}
+\small
+\begin{tabular}{l l l}
+\toprule
+\textbf{Artifact} & \textbf{Location} & \textbf{Status} \\
+\midrule
+Contracts & \texttt{baseline\_audit/longrag\_full\_track\_*.yaml} & in git \\
+Pipeline scripts & \texttt{scripts/run\_longrag\_*.py} & in git \\
+Colab bundles (input/output) & \texttt{outputs/external\_longrag/\_colab\_v1/} & gitignored \\
+Qdrant instance & \texttt{outputs/external\_longrag/\_qdrant/} & gitignored \\
+Query embeddings & \texttt{outputs/external\_longrag/\_query\_embeddings/} & gitignored \\
+Per-stage artifacts & \texttt{outputs/external\_longrag/<\dataset>/*-v1/} & gitignored \\
+Closure report (markdown) & \texttt{docs/longrag\_full\_track\_closure.md} & in git \\
+Closure report (\LaTeX) & \texttt{reports/longrag\_full\_track\_closure\_report.tex} & gitignored \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Conclusion}
+
+We have executed, for the first time in this program, a complete
+seven-stage retrieval-only evaluation of LongRAG under a shared
+controlled protocol. The pipeline is fully reproducible, checksum-
+closed, and resume-safe. The primary result is
+$\mathrm{macro\_document\_Recall@10} = \num{0.3144}$ on four
+heterogeneous canonical datasets.
+
+The most important scientific observation from this run is that
+LongRAG's document-level retrieval quality is highly sensitive to
+the ratio of source documents to long units. In corpora whose
+average document length is far below the architecture's unit budget,
+the grouping policy packs many documents per unit, and document-level
+ranking degrades. In corpora whose average document length is far
+above the unit budget, the oversize-windowing path produces
+one-unit-per-document-fragment and document-level ranking is
+excellent. This observation is intrinsic to the architecture and
+will be directly relevant to the interpretation of the remaining
+architectures in the program.
+
+The architecture is declared closed at commit
+\texttt{f5ea8e6} with status
+\textsc{LongRAG\_Full\_Pipeline\_Closed\_With\_Classified\_Limitations}.
+
+% =====================================================================
+\appendix
+
+\section{Appendix A: Frozen Configuration Excerpts}
+
+\subsection{A.1 --- Architecture freeze contract (v0.3.0)}
+\begin{lstlisting}[language=yaml]
+architecture:
+  architecture_id: longrag
+  fidelity_class: CONTROLLED_ADAPTATION
+  controlled_track_eligible: true
+  native_track_eligible: false
+  source_architecture_commit: ba92f95
+
+architecture_defining_components:
+  - long_document_grouping
+  - dense_only_retrieval
+
+long_unit_semantics:
+  construction_policy: adjacent_document_segments
+  target_token_size: 4096
+  token_counter: pinned_bge_m3_tokenizer
+  segment_source: one_canonical_document_per_segment
+  derived_parent_id: "<doc_id>:p0"
+  derived_chunk_id:   "seg-<doc_id>"
+  oversize_handling: split_into_target_size_windows_via_pinned_bge_m3_tokenizer
+  tokenizer_id: BAAI/bge-m3
+  tokenizer_revision: 5617a9f61b028005a4858fdac845db406aefb181
+\end{lstlisting}
+
+\subsection{A.2 --- Storage equivalence report (excerpt)}
+\begin{lstlisting}[language=yaml]
+candidate_backend: QDRANT_LOCAL_PERSISTENCE
+reference_backend: EXACT_IN_MEMORY_DENSE
+comparison:
+  status: PASSED
+conclusion:
+  classification: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+  substitution_allowed: true
+results:
+  top_1_overlap_mean: 1.0
+  top_5_overlap_mean: 1.0
+  top_10_overlap_mean: 1.0
+  maximum_absolute_score_difference: 1.78e-15
+  mean_absolute_score_difference: 6.29e-16
+limitations:
+  - Validated on the frozen synthetic acceptance fixture only.
+  - Does not prove equivalence for approximate large-corpus settings.
+  - Real-dataset index parameters require a separate contract.
+\end{lstlisting}
+
+\section{Appendix B: Cross-Dataset Registry Excerpts}
+
+The full cross-dataset registry is available at
+\texttt{baseline\_audit/longrag\_full\_track\_cross\_dataset\_registry.yaml}.
+The essential per-dataset state is summarized here.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Units} & \textbf{Emb. records}
+  & \textbf{Queries} & \textbf{Evaluated} \\
+\midrule
+CLERC              & \num{256}   & \num{256}   & \num{1000}  & \num{1000} \\
+CUAD               & \num{1725}  & \num{1725}  & \num{20910} & \num{6702} \\
+GreekBarBench      & \num{1437}  & \num{1437}  & \num{284}   & \num{284} \\
+LaRA               & \num{2251}  & \num{2251}  & \num{2326}  & \num{2326} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Appendix C: Full Metric Set}
+
+\begin{table}[h]
+\centering
+\caption{Full per-dataset metric set.}
+\small
+\begin{tabular}{l r r r r r r r r r}
+\toprule
+& \multicolumn{3}{c}{\textbf{Hit}} & \multicolumn{3}{c}{\textbf{Recall}}
+& \multicolumn{3}{c}{\textbf{MRR}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+\textbf{Dataset} & @1 & @10 & @50 & @1 & @10 & @50 & @1 & @10 & @50 \\
+\midrule
+CLERC             & \num{0.0310} & \num{0.0940} & \num{0.2110}
+                  & \num{0.0099} & \num{0.0786} & \num{0.1873}
+                  & \num{0.0310} & \num{0.0444} & \num{0.0494} \\
+CUAD              & \num{0.0039} & \num{0.0324} & \num{0.1458}
+                  & \num{0.0039} & \num{0.0324} & \num{0.1458}
+                  & \num{0.0039} & \num{0.0102} & \num{0.0148} \\
+GreekBarBench     & \num{0.0352} & \num{0.2606} & \num{0.6338}
+                  & \num{0.0352} & \num{0.2606} & \num{0.6338}
+                  & \num{0.0352} & \num{0.0828} & \num{0.1007} \\
+LaRA              & \num{0.7128} & \num{0.8861} & \num{0.9811}
+                  & \num{0.7128} & \num{0.8861} & \num{0.9811}
+                  & \num{0.7128} & \num{0.7697} & \num{0.7748} \\
+\midrule
+\textbf{Macro}    & \num{0.1957} & \num{0.3183} & \num{0.4929}
+                  & \num{0.1905} & \num{0.3144} & \num{0.4870}
+                  & \num{0.1957} & \num{0.2268} & \num{0.2349} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Full per-dataset metric set (continued): nDCG and
+Precision@10.}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{nDCG@10} & \textbf{nDCG@50}
+  & \textbf{Precision@10} \\
+\midrule
+CLERC             & \num{0.0543} & \num{0.0870} & \num{0.0270} \\
+CUAD              & \num{0.0153} & \num{0.0392} & \num{0.0032} \\
+GreekBarBench     & \num{0.1233} & \num{0.2060} & \num{0.0261} \\
+LaRA              & \num{0.7977} & \num{0.8197} & \num{0.0886} \\
+\midrule
+\textbf{Macro}    & \num{0.2476} & \num{0.2880} & \num{0.0362} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Appendix D: Timing Summary}
+
+\begin{center}
+\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Stage} & \textbf{Wall time} \\
+\midrule
+L1 freeze (4 datasets)                & \num{19.8}\,\si{s} \\
+L2 unit materialization (4 datasets)  & \num{180.1}\,\si{s} \\
+L3 embedding (Colab T4, 4 datasets)   & $\approx$ \num{1600}\,\si{s} \\
+L4 Qdrant storage + reopen            & \num{16.0}\,\si{s} \\
+L5 query encoding (Colab T4)          & $\approx$ \num{240}\,\si{s} \\
+L5 retrieval (Qdrant + expansion)     & \num{342.0}\,\si{s} \\
+L6 evaluation                         & \num{5.0}\,\si{s} \\
+L7 closure                            & \num{0.1}\,\si{s} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Appendix E: Zero-Relevance Query Accounting}
+
+For CUAD, \num{14208} of \num{20910} queries have no relevant
+documents in the canonical ground truth. Following the frozen
+evaluator contract, these queries are excluded from all metric
+aggregations. For every other executed dataset, all queries have at
+least one relevant document and none are excluded.
+
+The exclusion is total: it affects Hit, Recall, Precision, MRR, and
+nDCG equally. The count is reported in every per-dataset result so
+that downstream analyses can reweight if needed.
+
+\section{Appendix F: Files Produced}
+
+For completeness, the following table lists every artifact
+produced by the pipeline. Sizes are reported in bytes as recorded in
+the L7 closure manifest.
+
+\begin{center}
+\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Artifact} & \textbf{Bytes} \\
+\midrule
+\texttt{outputs/external\_longrag/clerk/units-v1/units.jsonl}             & \num{4280790} \\
+\texttt{outputs/external\_longrag/cuad/units-v1/units.jsonl}              & \num{26656099} \\
+\texttt{outputs/external\_longrag/greek\_bar\_bench/units-v1/units.jsonl} & \num{35116432} \\
+\texttt{outputs/external\_longrag/lara/units-v1/units.jsonl}              & \num{34637258} \\
+\texttt{outputs/external\_longrag/clerk/embeddings-v1/embedding\_records.jsonl}             & \num{5527272} \\
+\texttt{outputs/external\_longrag/cuad/embeddings-v1/embedding\_records.jsonl}              & \num{35931570} \\
+\texttt{outputs/external\_longrag/greek\_bar\_bench/embeddings-v1/embedding\_records.jsonl} & \num{30024682} \\
+\texttt{outputs/external\_longrag/lara/embeddings-v1/embedding\_records.jsonl}              & \num{46875519} \\
+\texttt{outputs/external\_longrag/\_qdrant/}                                & $\approx$ \num{70238123} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

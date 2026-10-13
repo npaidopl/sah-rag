@@ -1,26 +1,20 @@
-# Reports & Manuscripts
+# Thesis and Manuscript Data
 
-This directory contains the written artifacts of the SAH-RAG project.
+This directory contains the Diploma Thesis of the SAH-RAG project.
 
-## Files
+## Contents
 
 | File | Description |
-|------|-------------|
-| REPORT_NIKOLAOS_PAIDOPOULOS.pdf | Full diploma thesis (Greek + English abstract). |
-| metadata_rag_full_track_report.tex | LaTeX source of the Metadata-RAG full-track comparison report (Ch. 6 companion). |
-| three_way_comparison.tex | LaTeX source of the three-way comparison report (SAH-RAG vs LongRAG vs Metadata-RAG). |
+|---|---|
+| `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` | Full Diploma Thesis. Greek main text with English abstract and keywords. |
 
-## Compiling the LaTeX sources
+## Related resources
 
-The .tex files assume a standard LaTeX toolchain with latexmk:
+- **LaTeX sources of all reports**: [`../reports/`](../reports/)
+- **Canonical dataset suite**: <https://github.com/npaidopl/canonical-rag-dataset-suite>
+- **Project repository**: see top-level `README.md`
 
-    cd docs/data
-    latexmk -pdf metadata_rag_full_track_report.tex
-    latexmk -pdf three_way_comparison.tex
+## Compiling reports
 
-Compiled PDFs are ignored by .gitignore (they are regenerable).
-
-## Related external resources
-
-- Canonical dataset suite: https://github.com/npaidopl/canonical-rag-dataset-suite
-- Project repository: see top-level README.md
+The `.tex` sources have moved to [`../reports/`](../reports/). See
+[`../reports/README.md`](../reports/README.md) for compilation instructions.

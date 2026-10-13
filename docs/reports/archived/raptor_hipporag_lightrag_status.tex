@@ -1,0 +1,311 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Resource-Bound Closure of a Multi-Baseline Retrieval Benchmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+\title{\bfseries Resource-Bound Closure of a Multi-Baseline\\ Retrieval Benchmark:\\ HippoRAG~2, RAPTOR, and LightRAG on\\ Long-Context Corpora}
+
+\author{Engineering Log --- RAG Architecture Repository}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+This report documents the preparation and closure of a controlled cross-architecture retrieval benchmark comprising three LLM-based baselines---HippoRAG~2, RAPTOR, and LightRAG---on four long-context datasets (CLERC, LaRA, CUAD, GreekBarBench). All three pipelines were implemented end-to-end, validated against synthetic fixtures, and frozen with SHA-256-pinned artifacts. None was executed against a real dataset. The closure is caused by a single external constraint: the indexing-time LLM workload (225{,}160 calls under the controlled protocol) is not feasible within the available budget under the free-tier API conditions accessible to this project. We document the workload in detail, quantify the free-tier and paid alternatives, describe the reproducibility path for any future party, and articulate the academic implications of closing the case without real-dataset execution. The comparison of the non-LLM baselines (\texttt{my\_rag}, LongRAG, PathRAG) on the same corpus remains fully executable and is unaffected by this constraint.
+\end{abstract}
+
+\noindent\textbf{Keywords:} retrieval-augmented generation, cross-architecture benchmark, knowledge graph retrieval, LLM API capacity, reproducibility.
+
+\section{Introduction}
+
+Retrieval-augmented generation (RAG) has become a standard paradigm for grounding language model outputs in external corpora. A growing family of architectures now extends the basic dense-retrieval pipeline with structured components: knowledge graphs, hierarchical summaries, or hybrid graph-and-vector indexes. Comparing these architectures fairly is a non-trivial methodological problem, because each design makes different assumptions about the underlying embedder, language model, and storage backend.
+
+This project set out to conduct such a comparison under a controlled protocol. Specifically, three state-of-the-art LLM-based retrieval architectures were selected as baselines---HippoRAG~2~\cite{hipporag2}, RAPTOR~\cite{raptor}, and LightRAG~\cite{lightrag}---alongside three non-LLM baselines maintained elsewhere in the repository. The evaluation target was retrieval-only, with generation disabled, over four long-context datasets. The deeper purpose of the work was to produce a fair, academically defensible answer to the question: \emph{under controlled conditions, which architecture retrieves the most relevant information from long-context corpora?}
+
+The engineering portion of this work is complete for all three LLM-based baselines: each pipeline is implemented, tested, and validated against synthetic fixtures; each has frozen fidelity contracts, component dispositions, readiness declarations, and cost estimates. What remains is real-dataset execution, which is blocked by a single external constraint. This report documents the closure.
+
+\paragraph{Structure.}
+Section~\ref{sec:arch} briefly describes the three architectures. Section~\ref{sec:design} specifies the experimental protocol. Section~\ref{sec:impl} reports implementation status. Section~\ref{sec:block} analyses the blocking constraint. Section~\ref{sec:exec} identifies what remains executable. Section~\ref{sec:repro} outlines the reproducibility path. Section~\ref{sec:limit} discusses limitations and academic implications, and Section~\ref{sec:conclusion} concludes.
+
+\section{Architectures under Study}
+\label{sec:arch}
+
+All three architectures require an LLM at indexing time; all three are embedder-agnostic; all three are storage-agnostic. This makes them mutually comparable when the embedder and LLM are held fixed.
+
+\subsection{HippoRAG~2}
+
+HippoRAG~2~\cite{hipporag2} extends the original HippoRAG design with passage-level graph integration. The pipeline first performs Open Information Extraction (OpenIE) on each passage: a named-entity recognition (NER) pass followed by a triple-extraction pass, both LLM-driven. Extracted triples become \emph{fact nodes}; entities become \emph{phrase nodes}; passages become \emph{passage nodes}. Edges are constructed between passages and their entities, between entities and their facts, and between entities with high embedding similarity (synonymy edges). At retrieval time, a query embedding is matched to fact nodes, the top-$k$ facts seed a personalization vector, and Personalized PageRank propagates probability mass through the graph. Ranked passages are then expanded into a ranked document list.
+
+Vendor commit pinned in this project: \texttt{2bfd8314...}. Paper: ICML~2025, arXiv~2502.14802.
+
+\subsection{RAPTOR}
+
+RAPTOR~\cite{raptor} constructs a recursive tree of summaries. The corpus is chunked, embedded, and clustered (typically via Gaussian Mixture Models or $k$-means). Each cluster's constituent texts are concatenated and passed to an LLM that produces a summary. Those summaries become nodes at the next level of the tree, and the process repeats until a root node is reached. Retrieval traverses the tree with a collapse step, returning both leaves and internal summary nodes. RAPTOR therefore requires an LLM at \emph{every} level of the tree, for every cluster.
+
+Paper: ICLR~2024, arXiv~2401.18059.
+
+\subsection{LightRAG}
+
+LightRAG~\cite{lightrag} performs LLM-driven entity and relation extraction over the corpus, producing a graph structurally analogous to HippoRAG~2's but without Personalized PageRank. At query time, LightRAG combines \emph{local} retrieval (entity-level neighbourhoods) with \emph{global} retrieval (community-level summaries) in a dual-level scheme. Relation extraction is the most LLM-intensive stage among the three baselines.
+
+Paper: arXiv~2410.05779.
+
+\section{Experimental Design}
+\label{sec:design}
+
+\subsection{Two-Track Protocol}
+
+The benchmark follows the repository's \texttt{fair\_benchmark\_protocol.yaml}:
+
+\begin{description}[leftmargin=1.2cm,style=nextline]
+  \item[Track~A --- Controlled Architectural Comparison (primary).] All LLM-requiring baselines share a single embedder and a single LLM. This isolates architectural differences from embedding- and LLM-induced variation. Only Track~A results enter the leaderboard.
+  \item[Track~B --- Native-Fidelity Reference (secondary).] Each architecture is executed with its vendor's native embedder, native LLM, and native hyperparameters on a small stratified subset. Track~B is reported separately and is not merged with Track~A.
+\end{description}
+
+\subsection{Datasets}
+
+Four long-context datasets were retained for this benchmark (three were dropped by user directive: RULER, Loong, and LongBench~v2).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lrlX}
+\toprule
+\textbf{Dataset} & \textbf{Docs} & \textbf{Examples} & \textbf{Corpus scope / evaluation unit} \\
+\midrule
+CLERC            & 2{,}756 & 1{,}000  & GLOBAL\_DATASET\_CORPUS / PASSAGE \\
+LaRA             & 131     & 2{,}326  & SHARED\_DOMAIN\_CORPUS / CANONICAL\_DOCUMENT \\
+CUAD             & 510     & 20{,}910 & SHARED\_DOMAIN\_CORPUS / SOURCE\_SPAN \\
+GreekBarBench    & 284     & $\sim$284 & QUERY\_SPECIFIC\_CORPUS / SOURCE\_SPAN \\
+\bottomrule
+\end{tabularx}
+\caption{Retained datasets. CLERC splits: train/dev/test = 800/100/100.}
+\label{tab:datasets}
+\end{table}
+
+The canonical envelopes are stored outside the working repository at \texttt{Project~1/processed/canonical/}, with SHA-256-pinned files and a registry (\texttt{external\_canonical\_suite\_registry.yaml}) that records the exact hashes of \texttt{documents.jsonl}, \texttt{examples.jsonl}, \texttt{validation.json}, and \texttt{manifest.json} per dataset. The datasets are treated strictly read-only.
+
+\subsection{Controlled Components}
+
+Under Track~A, the following components are fixed across all LLM-based baselines:
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Embedder:} BAAI/bge-m3, dense-only, revision \texttt{5617a9f6\-1b028005\-a4858fda\-c845db40\-6aefb181}.
+  \item \textbf{LLM:} a single common model for OpenIE, summarization, and entity/relation extraction. The original design selected \texttt{gpt-4o-mini-2024-07-18}; Section~\ref{sec:block} discusses why this selection is not economically feasible in the current environment.
+  \item \textbf{Precision:} FP32, determined by the repository's precision-equivalence protocol.
+  \item \textbf{Evaluation:} the common retrieval evaluator defined in \texttt{common\_retrieval\_evaluation\_contract.yaml}.
+  \item \textbf{Generation:} disabled, per the retrieval-only scope.
+\end{itemize}
+
+Architecture-defining components---graph construction, Personalized PageRank, recursive clustering, tree summarization, dual-level retrieval---are preserved untouched. Component dispositions are recorded in per-architecture \texttt{component\_disposition.yaml} files.
+
+\section{Implementation Status}
+\label{sec:impl}
+
+All three pipelines are complete and validated. Table~\ref{tab:impl} summarises the state.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lrlX}
+\toprule
+\textbf{Baseline} & \textbf{Src files} & \textbf{Tests collected} & \textbf{Readiness / execution decision} \\
+\midrule
+HippoRAG~2 & 15 & $\sim$130 & READY\_FOR\_DATA / CONDITIONAL\_GO \\
+RAPTOR     & 14 & 403        & READY\_FOR\_DATA / CONDITIONAL\_GO \\
+LightRAG   & 8  & 147        & READY\_FOR\_DATA / CONDITIONAL\_GO \\
+\bottomrule
+\end{tabularx}
+\caption{Implementation summary. ``Synthetic'' means the pipeline was validated on synthetic fixtures; no real-dataset execution was performed.}
+\label{tab:impl}
+\end{table}
+
+\subsection{HippoRAG~2}
+
+The HippoRAG~2 implementation spans fifteen modules, including typed canonical mappings (\texttt{hipporag2.py}), graph nodes and edges (\texttt{hipporag2\_graph.py}), deterministic Personalized PageRank (\texttt{hipporag2\_ppr.py}), synonymy-edge construction with native parameters (\texttt{topk}=2047, \texttt{threshold}=0.8), a similarity-provider abstraction supporting both a deterministic stub and a BGE-M3 provider, an OpenIE runner with a content-addressed cache and a transport interface supporting both a dry-run stub and a real OpenAI-compatible client, an in-memory state builder, a state-persistence layer with reopen validation, a retrieval pipeline, an evaluation-case constructor conforming to the project's Output Contract, and a CLERC canonical-envelope adapter.
+
+The real CLERC envelope was verified read-only: 2{,}756 documents, 1{,}000 examples, splits 800/100/100, 0 unresolved references in either direction, average document size 1{,}424~characters, average query length 16{,}322~characters. A semantic smoke run with BGE-M3 offline produced 1 synonymy edge on a synthetic corpus, confirming that the edge builder is functional under the native similarity threshold.
+
+\subsection{RAPTOR}
+
+RAPTOR is implemented across fourteen modules: a recursive clustering module, a tree builder, a summary-request bundler, a summary provider interface, a tokenization utility, persistence layers for fixtures and trees, a retrieval module, structural acceptance harnesses, semantic and prompt validation utilities, and summary-comparison tooling. The project has provisioned a Qwen2.5-1.5B-Instruct summarizer (revision \texttt{989aa798...}) as a zero-cost local option and has established a Colab-based execution path for GPU-assisted summarization.
+
+\subsection{LightRAG}
+
+LightRAG is implemented across eight modules, with recent additions covering a runtime adapter, runtime state management, runtime LLM interaction, and runtime expansion. The repository contains four sequential readiness-execution amendments, indicating active refinement of the LightRAG execution protocol at the time of closure. Extraction-lineage and retrieval smoke outputs exist; no real-dataset execution has been performed.
+
+\section{The Blocking Constraint: LLM API Capacity}
+\label{sec:block}
+
+\subsection{Indexing-Time LLM Workload}
+
+Under Track~A on the four retained datasets, the indexing-time LLM workload is:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lrlX}
+\toprule
+\textbf{Baseline} & \textbf{Calls} & \textbf{Notes} \\
+\midrule
+HippoRAG~2 & 95{,}041  & NER + triple extraction per chunk \\
+RAPTOR     & 10{,}558  & One summary per cluster per level \\
+LightRAG   & 119{,}561 & Entity + relation extraction per chunk \\
+\midrule
+\textbf{Total} & \textbf{225{,}160} & \\
+\bottomrule
+\end{tabularx}
+\caption{Indexing-time LLM call count under Track~A, four datasets.}
+\label{tab:calls}
+\end{table}
+
+These figures assume a chunk size of 256 tokens with 32-token overlap and include the full corpus for each dataset (2{,}756~+~131~+~510~+~284 documents, expanded to chunks). They are drawn from an independent cost-estimation analysis performed on the actual canonical files.
+
+\subsection{Free-Tier API Landscape}
+
+As of the closure date, the free-tier API landscape is:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{lrccX}
+\toprule
+\textbf{Provider} & \textbf{RPD/account} & \textbf{Card} & \textbf{JSON mode} & \textbf{Notes} \\
+\midrule
+Cerebras (free)        & 14{,}400 & yes & yes & Requires verified payment method \\
+Groq \texttt{gpt-oss-120b} & 1{,}000 & no & no & Structured outputs unsupported \\
+Groq \texttt{llama-3.1-8b} & 14{,}400 & no & yes & Model too small for reliable OpenIE \\
+Gemini 2.5 Flash       & 1{,}500 & no & yes & Native \texttt{responseSchema} \\
+\bottomrule
+\end{tabularx}
+\caption{Free-tier API capacity, verified at closure time.}
+\label{tab:free}
+\end{table}
+
+\subsection{Practical Capacity and Wall Time}
+
+A single researcher can realistically provision on the order of ten accounts per provider without triggering anti-abuse thresholds. Under this assumption:
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Groq:} 10 accounts $\times$ 1{,}000~RPD $=$ 10{,}000~RPD. Wall time for the total workload: $225{,}160 / 10{,}000 \approx 22.5$~days.
+  \item \textbf{Gemini:} 10 projects $\times$ 1{,}500~RPD $=$ 15{,}000~RPD. Wall time: $225{,}160 / 15{,}000 \approx 15$~days.
+\end{itemize}
+
+Neither is compatible with the one-day delivery window available for this project. The paid alternative---\texttt{gpt-4o-mini-2024-07-18} at \$0.15/M input and \$0.60/M output---would require approximately \$80 for the three baselines across four datasets with a threefold safety margin. This budget was not available.
+
+\subsection{Why the Constraint Is Structural}
+
+The constraint is not an artefact of an inefficient implementation. It follows from the design of the three architectures: all three place an LLM in the critical path of index construction. There is no architectural reduction that would let them run without an LLM without violating the fidelity boundary---replacing OpenIE, cluster summarization, or entity/relation extraction with rule-based heuristics would produce a different system, not a faithful instance of the architecture under study. The closure therefore respects the fidelity contract.
+
+\section{What Remains Executable}
+\label{sec:exec}
+
+The non-LLM baselines---\texttt{my\_rag}, LongRAG, and PathRAG---are unaffected by this constraint. Their pipelines do not require an LLM at index time and can be executed on the four retained datasets without paid API access. The comparison \texttt{my\_rag} vs.\ LongRAG vs.\ PathRAG retains academic value and can be delivered independently. Any future publication that relies only on those baselines may proceed with no additional resource requirements.
+
+\section{Reproducibility Path}
+\label{sec:repro}
+
+Any future party can complete this work from the current repository state without additional reconnaissance. All implementations, contracts, tests, and synthetic fixtures are frozen and SHA-256-pinned.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Paid OpenAI path.} Provision \texttt{OPENAI\_API\_KEY} for \texttt{gpt-4o-mini-2024-07-18} with a budget of approximately \$80. The existing \texttt{OpenAITransport} and cost ledger are ready; the CLI runner accepts \texttt{-{}-mode real} after the key is set.
+  \item \textbf{Gemini free-tier path.} Provision approximately 150 Gemini projects. Native structured output via \texttt{responseSchema} is supported. Wall time: roughly one day with parallel workers at 15~RPM per project.
+  \item \textbf{Groq free-tier path.} Provision approximately 225 Groq accounts targeting \texttt{gpt-oss-120b}. Because that endpoint does not support \texttt{response\_format=json\_object}, a schema-repair step or a different model would be required. Not recommended.
+\end{enumerate}
+
+In all three paths, the executor begins from the last commit in this repository, reads the closure report, and resumes at the real-dataset execution stage. No re-implementation is necessary.
+
+\section{Limitations and Academic Implications}
+\label{sec:limit}
+
+\subsection{What the Closure Does Not Invalidate}
+
+The closure does not invalidate: (i) the three pipeline implementations, which are complete and tested; (ii) the fidelity boundaries and component dispositions, which are documented per architecture; (iii) the synthetic-acceptance evidence; or (iv) the verified canonical dataset envelopes. All of these remain valid inputs for downstream work.
+
+\subsection{What Must Be Declared in Any Downstream Publication}
+
+Any publication resulting from this work must include the following declarations:
+
+\begin{quote}
+\itshape
+``HippoRAG~2, RAPTOR, and LightRAG were prepared for a controlled cross-architecture comparison but were not executed on real datasets due to the LLM API capacity required at indexing time. Their implementations, contracts, and synthetic-acceptance results are documented and reproducible from the accompanying repository.''
+
+``The non-LLM baselines (\texttt{my\_rag}, LongRAG, PathRAG) were executed on the retained datasets; the comparison presented here is restricted to those baselines.''
+
+``The blocked baselines can be completed by any party with roughly \$80 of OpenAI budget or, alternatively, roughly 150 Gemini free-tier projects.''
+\end{quote}
+
+\subsection{Methodological Value of the Closure}
+
+A methodological side-effect of this work is a transparent, reproducible cost model for LLM-based retrieval architectures under controlled conditions. The per-architecture call counts, the free-tier constraints, and the paid-budget estimate are useful for future research planning even when the full benchmark is not executed. The closure document therefore functions as infrastructure, not only as a record of what did not occur.
+
+\subsection{Residual Risks for the Non-LLM Comparison}
+
+The non-LLM baselines share the same embedder (BGE-M3) and the same evaluation protocol, but they differ in how they organise the corpus. Any comparison must continue to obey the fidelity contract recorded in the repository, including the prohibition on post-hoc threshold tuning and the requirement that ground-truth labels never enter the retriever at runtime.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+This report closes the case on the LLM-based portion of a multi-baseline retrieval benchmark. Three architectures---HippoRAG~2, RAPTOR, and LightRAG---were implemented end-to-end, tested, and frozen. They were not executed on real datasets because the indexing-time LLM workload (225{,}160 calls across four datasets) exceeds what is feasible under the free-tier API conditions available to the project, and because the paid alternative was outside the available budget. The closure respects the fidelity contract: no architecture-defining component was replaced with a weaker substitute to make execution cheaper.
+
+The engineering artefacts produced along the way---typed pipelines, synthetic-acceptance suites, fidelity and disposition contracts, cost models, and a canonical-envelope adapter verified against real data---remain available for future work. Any party with paid OpenAI access or a sufficiently large pool of free-tier Gemini projects can resume from the last commit and produce the full comparison without additional implementation effort.
+
+\section*{Acknowledgements}
+
+This work was carried out within the \texttt{RAG Architecture} repository under a controlled-fidelity protocol. The canonical dataset envelopes are maintained in a separate read-only repository (\texttt{Project~1}). The author thanks the maintainers of HippoRAG~2, RAPTOR, and LightRAG for public reference implementations.
+
+\begin{thebibliography}{9}
+
+\bibitem{hipporag2}
+B.~Guti?rrez et al.,
+\emph{From RAG to Memory: Non-Parametric Continual Learning for Large Language Models},
+ICML 2025, arXiv:2502.14802.
+
+\bibitem{raptor}
+P.~Sarthi et al.,
+\emph{RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval},
+ICLR 2024, arXiv:2401.18059.
+
+\bibitem{lightrag}
+Z.~Guo et al.,
+\emph{LightRAG: Simple and Fast Retrieval-Augmented Generation},
+arXiv:2410.05779.
+
+\bibitem{bgem3}
+J.~Chen et al.,
+\emph{BGE M3-Embedding: Multi-Lingual, Multi-Functionality, Multi-Granularity Text Embeddings Through Self-Knowledge Distillation},
+arXiv:2402.03216.
+
+\end{thebibliography}
+
+\end{document}

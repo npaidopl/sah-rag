@@ -5,7 +5,7 @@ Reads the per-dataset aggregate metrics of three tracks:
 
   - metadata_rag   outputs/external_metadata_rag/<ds>/evaluation-v1/
   - longrag        outputs/external_longrag/<ds>/evaluation-v1/
-  - my_rag         outputs/external_my_rag/<ds>/evaluation-v1/
+  - sah_rag         outputs/external_sah_rag/<ds>/evaluation-v1/
 
 Computes the macro-then-secondary-macro aggregation over the four
 datasets for every cutoff and every metric, and writes a single
@@ -77,9 +77,9 @@ TRACKS: Final[tuple[tuple[str, str, Path], ...]] = (
         REPO_ROOT / "outputs" / "external_longrag",
     ),
     (
-        "my_rag",
-        "My_RAG",
-        REPO_ROOT / "outputs" / "external_my_rag",
+        "sah_rag",
+        "SAH-RAG",
+        REPO_ROOT / "outputs" / "external_sah_rag",
     ),
 )
 
@@ -143,7 +143,7 @@ def _normalize_metric_keys(raw: dict[str, Any]) -> dict[str, float]:
     """Normalize legacy ``metric@k`` keys to native ``metric_at_k``.
 
     Native Metadata-RAG reports already use ``metric_at_k``. Legacy
-    LongRAG and My_RAG reports use ``metric@k``. Both are normalized
+    LongRAG and SAH-RAG reports use ``metric@k``. Both are normalized
     to the native form so the aggregation and the markdown renderer
     can operate on a single key vocabulary.
     """
@@ -160,7 +160,7 @@ def _extract_mean_block(
     """Extract the mean metric block from a native or legacy report.
 
     Native Metadata-RAG reports have a top-level ``mean`` mapping.
-    Legacy LongRAG and My_RAG reports have a top-level
+    Legacy LongRAG and SAH-RAG reports have a top-level
     ``macro_metrics`` mapping. Both are normalized to the native
     ``metric_at_k`` vocabulary.
     """
@@ -183,7 +183,7 @@ def _load_track_aggregates(
 
     Supports both the native Metadata-RAG aggregate format
     (``aggregate_metrics.json`` with a ``mean`` block) and the legacy
-    LongRAG / My_RAG aggregate format (``per_dataset_metrics.json``
+    LongRAG / SAH-RAG aggregate format (``per_dataset_metrics.json``
     with a ``macro_metrics`` block). Missing datasets are silently
     absent.
     """
@@ -287,10 +287,10 @@ def build_comparison(
 
 def render_markdown(comparison: dict[str, Any]) -> str:
     lines: list[str] = []
-    lines.append("# Metadata-RAG vs Baselines — Comparison\n")
+    lines.append("# Metadata-RAG vs Baselines β€” Comparison\n")
     lines.append(
         "Retrieval-only comparison of `Metadata-RAG` against "
-        "`LongRAG` and `My_RAG`.\n"
+        "`LongRAG` and `SAH-RAG`.\n"
     )
     lines.append(
         f"**Primary metric:** macro document `{PRIMARY_METRIC}` "
@@ -314,7 +314,7 @@ def render_markdown(comparison: dict[str, Any]) -> str:
                 PRIMARY_METRIC
             )
             if value is None:
-                cells.append("—")
+                cells.append("β€”")
             else:
                 cells.append(f"{float(value):.4f}")
         lines.append("| " + " | ".join(cells) + " |")
@@ -332,7 +332,7 @@ def render_markdown(comparison: dict[str, Any]) -> str:
         for track in tracks.values():
             value = track["secondary_macro"].get(key)
             if value is None:
-                cells.append("—")
+                cells.append("β€”")
             else:
                 cells.append(f"{float(value):.4f}")
         lines.append("| " + " | ".join(cells) + " |")
@@ -342,8 +342,8 @@ def render_markdown(comparison: dict[str, Any]) -> str:
     lines.append("| Track | Present | Missing |")
     lines.append("|---|---|---|")
     for track in tracks.values():
-        present = ", ".join(track["datasets_present"]) or "—"
-        missing = ", ".join(track["datasets_missing"]) or "—"
+        present = ", ".join(track["datasets_present"]) or "β€”"
+        missing = ", ".join(track["datasets_missing"]) or "β€”"
         lines.append(
             f"| {track['label']} | {present} | {missing} |"
         )
@@ -368,7 +368,7 @@ def render_markdown(comparison: dict[str, Any]) -> str:
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Compare Metadata-RAG against LongRAG and My_RAG over "
+            "Compare Metadata-RAG against LongRAG and SAH-RAG over "
             "the four datasets."
         )
     )

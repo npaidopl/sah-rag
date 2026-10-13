@@ -1,0 +1,269 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,frame=single,
+  backgroundcolor=\color{gray!5},columns=fullflexible}
+
+\title{PathRAG Portfolio Track Closure\\\large Structural Comparator,
+       Semantic Ablation, and Native Fidelity Blocker}
+\author{RAG Architecture Project}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Executive Summary}
+
+The PathRAG portfolio track has been closed under
+\texttt{CLOSED\_AS\_HONEST\_NULL\_RESULT\_FOR\_SEMANTIC\_LAYER\_ABLATION}.
+
+The paper-derived structural comparator was built, tested, and
+empirically evaluated at full canonical scale across seven
+external datasets and 29{,}718 canonical queries. Its retrieval
+metrics are low because it is a structural-only abstraction
+without a semantic layer. This is not a bug and not an
+implementation failure. It is the expected behavior of a
+structural-only retrieval pipeline.
+
+The paper-described PathRAG uses entity and relation extraction
+plus embeddings. That layer is absent by design in this
+comparator, in accordance with the frozen clean-room contract.
+The comparator's low metrics therefore do not indicate that the
+native PathRAG architecture is weak.
+
+Two preregistered amendments (v2.0 and v2.1) attempted to
+realize the frozen three-edge policy. Both failed for the same
+root cause: the canonical structural unit representation is a
+whitespace-joined token sequence with no line structure.
+Anchor patterns requiring line boundaries cannot match. A third
+amendment was not pursued, to avoid post-hoc tuning.
+
+The native PathRAG implementation exists locally but is
+\texttt{BLOCKED\_ON\_LICENSE} and not executed. The semantic
+extension of the comparator is deferred to a future generation.
+
+\section{Commit chain}
+
+\begin{longtable}{ll}
+\toprule
+Phase & Full SHA \\ \midrule
+F4 empirical closure & 10f70c75aa27062e7fbf70e676596fe09c59b86a \\
+V2-A preregistration & 84cf94b8ceb8daf0c88b171e015a6016a438b991 \\
+V2-B extractors + edges & 07320f74f2e95ae453d9a9b9aaa5db1b9959512f \\
+V2-B build + blocking 1 & fbb09efbaf96c83f84c121ea98bb1a5082065111 \\
+V2.1-A preregistration & 3f462ab4bdc15080a00a25d97d397c973a3ee49f \\
+V2.1-B extractors + edges & adf1f3c2e20dcd16a3da051920a0d4abcb560794 \\
+V2.1-B diagnostics + blocking 2 & 4c19339deb55a204774b5d78857e2940d3e7b12f \\
+\textbf{Structural closure} & \textbf{d9de2a4b8cae019e136d8d73fa5c463c0c1b75f6} \\
+Constants restore & 8653d0b5d0b7c51b604cb7f0c019056374514049 \\
+\textbf{Final cleanup} & \textbf{26a6cf749abd36d660d4fa8c0b32d229018d59eb} \\
+\bottomrule
+\end{longtable}
+
+\section{What was built}
+
+The paper-derived structural comparator implements:
+
+\begin{itemize}[leftmargin=*]
+    \item canonical source mapping with duplicate-content lineage
+    \item deterministic structural-unit segmentation (224-token windows, 192 stride, 32 overlap)
+    \item structural adjacency graph (one directed edge per adjacent window pair within a document)
+    \item query-node selection by deterministic lexical overlap over source mapping text
+    \item bounded simple-path enumeration (maximum 3 hops, cycle-free)
+    \item resource propagation with decay and threshold pruning
+    \item path scoring with frozen coefficients (0.4 / 0.4 / 0.2)
+    \item deterministic ranking and document expansion
+    \item full pipeline persistence with checksum closure
+    \item deterministic storage equivalence across independent processes
+\end{itemize}
+
+\section{Empirical results}
+
+All 29{,}718 canonical queries across seven datasets were
+executed and evaluated. Ground truth was loaded only in a
+separate evaluator process, never in the retriever.
+
+\begin{longtable}{lrrrr}
+\toprule
+Dataset & Eligible & Hit@10 & Recall@10 & nDCG@10 \\ \midrule
+lara            &  2{,}326 & 0.0993 & 0.0993 & 0.0993 \\
+ruler           &  4{,}000 & 0.1437 & 0.1437 & 0.1437 \\
+long\_bench\_v2  &    503 & 0.0318 & 0.0318 & 0.0318 \\
+clerk           &  1{,}000 & 0.0000 & 0.0000 & 0.0000 \\
+greek\_bar\_bench &    284 & 0.0000 & 0.0000 & 0.0000 \\
+cuad            &  6{,}702 & 0.0000 & 0.0000 & 0.0000 \\
+loong           &    695 & 0.0000 & 0.0000 & 0.0000 \\
+\midrule
+total eligible  & 15{,}510 & & & \\
+\bottomrule
+\end{longtable}
+
+Macro averages (equal weight per dataset):
+
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\ \midrule
+Hit@10    & 0.0393 \\
+Recall@10 & 0.0393 \\
+MRR@10    & 0.0393 \\
+nDCG@10   & 0.0393 \\
+\bottomrule
+\end{tabular}
+
+Micro averages (weighted by eligible queries): Hit@10 = 0.0530.
+
+\section{Root cause}
+
+Two independent causes, neither of which is a bug:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{No semantic layer.} No embeddings, no entity extraction, no cross-document semantic edges. The comparator is a structural-only paper-derived abstraction.
+    \item \textbf{Topological bound.} With \texttt{maximum\_hops=3} and intra-document linear-chain topology, only query-node pairs within three consecutive structural units of the same document are reachable.
+\end{enumerate}
+
+\section{Amendments attempted}
+
+Two preregistered amendments were made to try to realize
+the frozen Step 96 three-edge policy (STRUCTURAL, CONTAINMENT,
+EXPLICIT\_REFERENCE):
+
+\begin{longtable}{lll}
+\toprule
+Version & Goal & Outcome \\ \midrule
+v2.0 & headings-only target index & nearly zero edges \\
+v2.1 & inline declaration anchors & 9 edges in 7000-unit sample \\
+\bottomrule
+\end{longtable}
+
+Both failed for the same root cause: canonical unit text has
+no line structure. Anchor patterns requiring \texttt{\^{}} or
+\texttt{\textbackslash n} boundaries cannot match.
+
+A third amendment was not pursued. It would risk post-hoc
+tuning and would not change the fundamental structural
+limitation. Changing the canonical representation would
+invalidate node identity and break comparison to v1.
+
+\section{Fair comparison principle}
+
+The comparator's results must not be presented as evidence
+about the native PathRAG architecture. They are evidence about
+the structural-only abstraction. Fair comparison requires
+equal semantic layers across architectures.
+
+The primary portfolio comparison will therefore be restricted
+to architectures with comparable semantic layers: my\_rag,
+LongRAG, and semantic baselines such as BM25 and dense
+retrievers.
+
+\section{Native PathRAG}
+
+The native PathRAG implementation exists locally at
+\texttt{external/baselines/pathrag/} but has no LICENSE file.
+It is retained as audit evidence only and is not executed.
+
+Status: \texttt{BLOCKED\_ON\_LICENSE}.
+
+No numeric results for the native implementation are
+available. No claims can be made about native PathRAG
+effectiveness.
+
+Clearance paths documented:
+
+\begin{itemize}[leftmargin=*]
+    \item written authorization from the repository owner
+    \item authoritative repository license at a pinned commit
+    \item a legally valid authorized fork
+\end{itemize}
+
+\section{Semantic extension}
+
+Adding a semantic layer to the comparator is a separate
+research step, not a fix. It is deferred to a future
+generation and reserved under fidelity class
+\texttt{PAPER\_DERIVED\_WITH\_SEMANTIC\_QUERY\_LINKING}.
+
+Prerequisites before starting:
+
+\begin{itemize}[leftmargin=*]
+    \item explicit user approval as a new research step
+    \item new preregistration commit
+    \item statement that no prior metrics influenced the new design
+    \item frozen embedding model and revision
+    \item frozen similarity threshold
+\end{itemize}
+
+\section{Boundary counters}
+
+\begin{tabular}{ll}
+\toprule
+Counter & Value \\ \midrule
+Ground truth loaded in retriever & false \\
+Ground truth loaded in evaluator & true \\
+Retrieval artifacts mutated & false \\
+Graph mutations & 0 \\
+Leakage hits & 0 \\
+Network requests & 0 \\
+Embeddings executed & false \\
+LLM executed & false \\
+Qdrant executed & false \\
+\bottomrule
+\end{tabular}
+
+\section{Claims}
+
+\begin{tabular}{ll}
+\toprule
+Claim & Status \\ \midrule
+Retrieval effectiveness & NOT CLAIMED \\
+Publishable result & NOT CLAIMED \\
+Cross-dataset generalization & NOT CLAIMED \\
+Statistical significance & NOT CLAIMED \\
+Paper-faithful result & NOT CLAIMED \\
+Native PathRAG comparison & NOT CLAIMED \\
+\bottomrule
+\end{tabular}
+
+\section{Portfolio disposition}
+
+The PathRAG track is closed for the portfolio.
+
+\textbf{Next architectures in sequence:}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{LongRAG} full pipeline (L1--L7)
+    \item \textbf{my\_rag} optimal-operation study (M1--M8)
+\end{itemize}
+
+Both include semantic layers and can be compared fairly
+against baselines under equal conditions.
+
+\section{What this track establishes}
+
+\begin{itemize}[leftmargin=*]
+    \item PathRAG paper-derived structural comparator executes deterministically end-to-end at full canonical scale.
+    \item Pipeline is resumable without corrupting prior artifacts.
+    \item Ground-truth evaluation runs in an isolated evaluator process that does not modify retrieval artifacts.
+    \item Storage equivalence holds for non-degenerate datasets across independent processes.
+    \item No evaluative field value entered any runtime object or committed artifact.
+    \item Graph state remained read-only across every execution.
+\end{itemize}
+
+\section{What this track does NOT establish}
+
+\begin{itemize}[leftmargin=*]
+    \item Native PathRAG performance (license-blocked).
+    \item Semantic PathRAG performance (deferred).
+    \item Publishable results.
+    \item Cross-architecture comparison claims (requires equal semantic layers).
+\end{itemize}
+
+\end{document}

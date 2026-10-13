@@ -1,0 +1,413 @@
+% =====================================================================
+% DISRetrieval Readiness Program — Status Report
+% Compile: pdflatex report.tex  (twice for references)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=2pt}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=2pt,topsep=2pt}
+
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{decisionbox}{
+  colback=blue!4, colframe=blue!55!black,
+  title={\bfseries Decision}, fonttitle=\bfseries,
+  boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+\newtcolorbox{blockerbox}{
+  colback=red!4, colframe=red!60!black,
+  title={\bfseries Blocker}, fonttitle=\bfseries,
+  boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+\newtcolorbox{notebox}{
+  colback=gray!5, colframe=gray!55!black,
+  boxrule=0.4pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small RAG Architecture Portfolio --- Status Report}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={RAG Architecture Portfolio Status Report},
+  pdfauthor={Project Owner},
+  bookmarksnumbered=true
+}
+
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.2em}{0.4em}
+\titlespacing*{\subsection}{0pt}{0.9em}{0.3em}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+% =====================================================================
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries RAG Architecture Portfolio}\\[4pt]
+{\large Status Report and Composition Decision}\\[6pt]
+\rule{\linewidth}{0.4pt}
+\end{center}
+
+\vspace{0.5em}
+
+\begin{notebox}
+\textbf{Scope.} This document records the architecture-level decisions
+taken during the preparation of a controlled retrieval comparison
+program. It states what was verified, what was excluded, and why, in
+order to make the final comparison defensible under academic review.
+No empirical retrieval result is reported here.
+\end{notebox}
+
+% =====================================================================
+\section{Purpose and Objective}
+
+The program aims to answer a single question:
+
+\begin{quote}
+\emph{Which retrieval architecture recovers relevant information most
+effectively from long-context corpora?}
+\end{quote}
+
+The question is retrieval-only. Final answer generation, LLM-based
+judging, and answer evaluation are disabled across every condition.
+The unit of comparison is the architecture-defining retrieval logic.
+
+The program operates under three binding constraints that shape every
+decision below:
+
+\begin{enumerate}
+  \item \textbf{Academic correctness} --- every claim must be
+    evidence-based, reproducible, and defensible.
+  \item \textbf{Comparative fairness} --- all included architectures
+    must be evaluated under common semantic representation, common
+    datasets, common queries, and a common evaluation contract.
+  \item \textbf{Architectural integrity} --- no architecture-defining
+    component may be silently substituted. Where substitution is
+    unavoidable, it is labelled and its risk is stated.
+\end{enumerate}
+
+The program also operates under two hard resource constraints:
+
+\begin{itemize}
+  \item \textbf{Local execution only.} No hosted LLM API is available.
+    Any architecture that requires a hosted LLM at index time or query
+    time is out of scope.
+  \item \textbf{CPU-bound staging.} GPU compute is limited to a single
+    Colab T4 session and is reserved for embedding generation only.
+\end{itemize}
+
+% =====================================================================
+\section{DISRetrieval: Terminal Disposition}
+
+\begin{blockerbox}
+DISRetrieval is closed as \code{DEFERRED\_WITH\_REASON}.\\
+Reason: \code{BLOCKED\_ON\_ARCHITECTURE\_DEFINING\_RST\_PARSER\_LICENSE}.
+\end{blockerbox}
+
+\subsection{Verification findings}
+
+The vendor repository at commit
+\code{4f3144042c6eb1e514a0a89ec704d892a66e700c} was audited
+statically. The following facts were established:
+
+\begin{itemize}
+  \item \textbf{No license file is present.} No \code{LICENSE},
+    \code{NOTICE}, or \code{COPYING} file exists. No per-file license
+    header exists. Under default copyright, execution, reuse,
+    modification, and redistribution are all prohibited.
+  \item \textbf{The RST parser is architecture-defining.} The
+    discourse-aware hierarchical representation produced by the
+    neural RST parser is the paper's primary contribution. Substituting
+    the parser with a heuristic, a generic constituency parser, or a
+    clean-room reimplementation would materially alter the
+    architecture.
+  \item \textbf{The neural parser ships with a bundled checkpoint.}
+    The trained model weights are included in the repository. Loading
+    them constitutes a use of unlicensed weights.
+  \item \textbf{The bundled checkpoint is English-only.} No
+    Chinese-compatible checkpoint is provided. The bundled model is
+    trained on RST-DT and is not suitable for Chinese datasets.
+\end{itemize}
+
+\subsection{Binding decisions}
+
+\begin{decisionbox}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+Q1 (RST parser policy)     & \textbf{A} --- defer entire architecture. No substitution. \\
+Q2 (track placement)       & \textbf{DEFER} --- remains in Track C appendix. \\
+Q3 (\code{multiFieldQA-zh}) & \textbf{EXCLUDE} --- no language-compatible checkpoint. \\
+Q4 (institutional license) & \textbf{NOT ESTABLISHED} --- no research exception evidence. \\
+\bottomrule
+\end{tabularx}
+\end{decisionbox}
+
+\subsection{Reopening conditions}
+
+The architecture may be reconsidered if and only if one of the
+following occurs:
+
+\begin{itemize}
+  \item The vendor repository adds a compatible open-source license.
+  \item The repository owner issues written permission for execution.
+  \item The institution issues written, specific legal clearance for
+    the exact commit, the exact checkpoint SHA-256, and the permitted
+    research scope.
+  \item A legally licensed equivalent parser and checkpoint are
+    identified.
+\end{itemize}
+
+Reopening requires a new versioned amendment and a fresh synthetic
+acceptance run before any dataset pilot.
+
+% =====================================================================
+\section{Excluded Architectures}
+
+The following architectures were excluded from the primary comparison.
+Exclusion is a methodological choice, not a failure of the comparison.
+It is recorded here to make the final scope defensible.
+
+\subsection*{RAPTOR}
+
+\begin{itemize}
+  \item \textbf{Blocker:} index-time LLM summarisation is
+    architecture-defining and cannot be removed.
+  \item \textbf{Cost:} a single dataset requires thousands of LLM
+    summarisation calls. The cost is not sustainable without hosted
+    infrastructure.
+  \item \textbf{Decision:} excluded from the primary comparison.
+\end{itemize}
+
+\subsection*{HippoRAG2}
+
+\begin{itemize}
+  \item \textbf{Blocker:} index-time OpenIE (named-entity and triple
+    extraction) is architecture-defining.
+  \item \textbf{Cost:} graph construction requires on the order of
+    \(10^{7}\) LLM tokens for a single long-context dataset.
+  \item \textbf{Decision:} excluded from the primary comparison.
+\end{itemize}
+
+\subsection*{LightRAG}
+
+\begin{itemize}
+  \item \textbf{Blocker:} index-time entity and relation extraction is
+    architecture-defining.
+  \item \textbf{Cost:} graph construction is the most expensive of the
+    three graph-based systems considered, exceeding \(10^{7}\) LLM
+    tokens per dataset.
+  \item \textbf{Decision:} excluded from the primary comparison.
+\end{itemize}
+
+\subsection*{MemorAG}
+
+\begin{itemize}
+  \item \textbf{Blocker:} requires a GPU with 16--24~GB VRAM plus an
+    LLM at both index time and query time.
+  \item \textbf{Decision:} excluded. Hardware requirements exceed the
+    available host envelope.
+\end{itemize}
+
+\subsection*{KAG}
+
+\begin{itemize}
+  \item \textbf{Blocker:} requires a multi-service environment
+    (OpenSPG, Neo4j, hosted LLM).
+  \item \textbf{Decision:} excluded. The infrastructure is not
+    reproducible within the scope of the study.
+\end{itemize}
+
+\subsection*{HiKEY}
+
+\begin{itemize}
+  \item \textbf{Blocker:} multimodal input contract required
+    (PDF, tables, images, layout). No public repository is available.
+  \item \textbf{Decision:} excluded. The canonical envelope is
+    text-only.
+\end{itemize}
+
+\subsection*{Summary}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l X l@{}}
+\toprule
+\textbf{Architecture} & \textbf{Primary blocker} & \textbf{Track} \\
+\midrule
+DISRetrieval & License absent on architecture-defining RST parser & C \\
+RAPTOR       & Index-time LLM summarisation                   & C \\
+HippoRAG2    & Index-time LLM OpenIE                          & C \\
+LightRAG     & Index-time LLM entity/relation extraction      & C \\
+MemorAG      & GPU + LLM requirements                         & C \\
+KAG          & Multi-service environment                      & C \\
+HiKEY        & Multimodal input contract                      & C \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\section{On the Correctness of Scope Reduction}
+
+Reducing the architecture set is sometimes perceived as a weakness. It
+is not. Under the constraints stated in Section~1, the following
+outcomes hold.
+
+\begin{itemize}
+  \item \textbf{Including a system that cannot be run fairly is worse
+    than excluding it.} A partial or substituted execution would
+    violate the fairness pillar and produce numbers that cannot be
+    defended.
+  \item \textbf{Exclusion with a stated reason is reproducible.} Any
+    reviewer can re-derive the exclusion from the same repository
+    audit, the same cost estimates, and the same license findings.
+  \item \textbf{Exclusion increases internal validity.} The remaining
+    architectures share the same canonical envelope, the same
+    embedder, the same queries, the same metrics, and the same
+    evaluation contract. The comparison is therefore clean.
+\end{itemize}
+
+A feasibility appendix that records the excluded systems is a
+recognised methodological practice. It does not weaken the primary
+result; it bounds the claims.
+
+% =====================================================================
+\section{Final Composition}
+
+The primary comparison will include four architectures. All four are
+runnable locally without hosted LLM calls and without GPU inference
+beyond a single Colab T4 session used only for embedding generation.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}c l X l@{}}
+\toprule
+\textbf{\#} & \textbf{Architecture} & \textbf{Retrieval paradigm} & \textbf{State} \\
+\midrule
+1 & \code{my\_rag}     & Hybrid hierarchical (dense + sparse, parent aggregation) & Ready \\
+2 & \code{longrag}     & Dense long-unit retrieval                                & Ready \\
+3 & \code{pathrag}     & Path-based resource propagation                          & Partial \\
+4 & \code{metadata\_rag} & Metadata-filtered hybrid retrieval                     & Planned \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Notes on individual entries}
+
+\paragraph{\code{my\_rag}.} Project-owned reference. Fully implemented
+and validated in the infrastructure pilot. Serves as the anchor
+architecture for the comparison.
+
+\paragraph{\code{longrag}.} Controlled adaptation. Synthetic acceptance
+passed. Storage equivalence validated against an exact reference
+dense index. Embeddings are generated in Colab T4. No LLM stage is
+required.
+
+\paragraph{\code{pathrag}.} Project-owned paper-derived comparator.
+Because the foreign repository is unlicensed, only the clean-room
+comparator is executable. The comparator operates without embedding
+augmentation. This is a structural limitation, not an algorithmic
+inferiority, and it will be stated as such in every reported table.
+Lower retrieval metrics are expected and are not treated as evidence
+about the paper's original design.
+
+\paragraph{\code{metadata\_rag}.} Paper-derived clean-room
+implementation. No foreign source repository exists. Implementation
+proceeds from the paper specification only, with a rule-based query
+metadata inference stage that does not require an LLM.
+
+% =====================================================================
+\section{Datasets}
+
+Four datasets will be used in the primary comparison. All four are
+registered in the canonical suite and have been verified for
+integrity.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l r r X@{}}
+\toprule
+\textbf{Dataset} & \textbf{Documents} & \textbf{Queries} & \textbf{Primary evaluation unit} \\
+\midrule
+LaRA            & 131   & 2{,}326 & Canonical document \\
+CLERK           & 2{,}756 & 1{,}000 & Passage \\
+CUAD            & 510   & 20{,}910 & Source span \\
+GreekBarBench   & 284   & 284     & Source span \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The four datasets provide coverage along three dimensions:
+
+\begin{itemize}
+  \item \textbf{Domain:} legal, financial, general, and multilingual.
+  \item \textbf{Language:} English and Greek.
+  \item \textbf{Corpus scope:} global, shared-domain, and
+    query-specific.
+\end{itemize}
+
+% =====================================================================
+\section{What Is Not Claimed}
+
+The following statements are explicitly out of scope for this report
+and for the resulting primary comparison.
+
+\begin{itemize}
+  \item No claim of paper-level effectiveness is made for any excluded
+    architecture.
+  \item No numeric comparison is made between included architectures
+    and excluded architectures.
+  \item No comparison is made between the included architectures and
+    any hosted or commercial retrieval system.
+  \item No claim is made that the included set is a complete or
+    representative sample of the retrieval literature.
+  \item No claim is made that lower metrics observed in the
+    \code{pathrag} comparator reflect the design of the original
+    PathRAG system.
+\end{itemize}
+
+% =====================================================================
+\section{Summary of Decisions}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Decision area} & \textbf{Resolution} \\
+\midrule
+DISRetrieval & Deferred with reason: architecture-defining RST parser license absent. \\
+RAPTOR       & Excluded: index-time LLM cost not sustainable. \\
+HippoRAG2    & Excluded: index-time LLM cost not sustainable. \\
+LightRAG     & Excluded: index-time LLM cost not sustainable. \\
+MemorAG      & Excluded: GPU and LLM requirements. \\
+KAG          & Excluded: service environment required. \\
+HiKEY        & Excluded: multimodal contract required. \\
+Primary set  & Four architectures: \code{my\_rag}, \code{longrag}, \code{pathrag}, \code{metadata\_rag}. \\
+Datasets     & LaRA, CLERK, CUAD, GreekBarBench. \\
+Evaluation   & Retrieval-only, document or span level, common metrics. \\
+LLM usage    & Zero hosted LLM calls in the primary comparison. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\vspace{1em}
+\begin{center}
+\rule{0.5\linewidth}{0.4pt}
+\end{center}
+
+\end{document}

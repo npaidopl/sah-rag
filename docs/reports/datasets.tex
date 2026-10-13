@@ -1,0 +1,630 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage{caption}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!5},
+    columns=fullflexible,
+}
+
+\sisetup{
+    group-separator = {,},
+    group-minimum-digits = 4,
+}
+
+\title{%
+    Dataset Statistics Report\\
+    \large LaRA, CLERK, CUAD, and GreekBarBench\\
+    \large Canonical Long-Context RAG Evaluation Suite
+}
+\author{Canonical RAG Dataset Suite}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Executive Summary}
+
+This report presents descriptive statistics for four canonical datasets
+used in a broader evaluation suite for long-context Retrieval-Augmented
+Generation (RAG) systems. The datasets span a diverse range of
+document lengths, query characteristics, and retrieval tasks, providing
+a heterogeneous basis for comparing RAG architectures on realistic
+long-context workloads.
+
+The four datasets in scope are:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{LaRA} — long-document retrieval benchmark.
+    \item \textbf{CLERK} — legal case-law retrieval (CLERC).
+    \item \textbf{CUAD} — contract clause extraction.
+    \item \textbf{GreekBarBench} — Greek legal bar-examination benchmark.
+\end{itemize}
+
+All four datasets are drawn from the same canonicalization pipeline,
+which produces a uniform envelope:
+
+\begin{lstlisting}
+documents.jsonl   # canonical document records
+examples.jsonl    # canonical query + ground truth records
+validation.json   # per-dataset validation report
+manifest.json     # identity and integrity metadata
+\end{lstlisting}
+
+The canonical envelope makes all four datasets directly consumable by
+any pipeline that adheres to the shared retrieval contract. All
+numbers in this report were computed from the canonical files as they
+exist on disk.
+
+\section{Context and Purpose}
+
+\subsection{Broader Evaluation Program}
+
+The four datasets in this report are part of a larger, seven-dataset
+canonical suite assembled for evaluating and comparing eleven RAG
+architectures on long-context retrieval. The suite spans multiple
+domains:
+
+\begin{itemize}[leftmargin=*]
+    \item long-context general QA (RULER, LongBench~v2, Loong),
+    \item long-document retrieval (LaRA),
+    \item legal case law (CLERK),
+    \item contractual clause extraction (CUAD),
+    \item Greek legal reasoning (GreekBarBench).
+\end{itemize}
+
+The four datasets covered in this report were selected because they
+exhibit a wide range of corpus characteristics: from very long
+documents with short queries (LaRA), to short documents with long
+queries (CLERK), to medium-sized contracts with many queries (CUAD),
+to structured legal questions (GreekBarBench). This heterogeneity is
+intentional; the suite is designed so that no single architecture
+benefits disproportionately from a single document-length regime.
+
+\subsection{Design Principles}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Canonical identity.} Every document and every example
+    has a stable, deterministic identifier that is preserved across
+    all downstream stages.
+    \item \textbf{Uniform ground truth.} Every example exposes a
+    ground-truth structure with documented cardinality semantics,
+    including datasets with legitimately empty ground truth (CUAD
+    clause queries that do not appear in a given contract).
+    \item \textbf{Query-to-document linkage.} Every query carries an
+    explicit reference to its authoritative source documents via
+    \texttt{query.doc\_ids}, eliminating ambiguity during retrieval
+    evaluation.
+    \item \textbf{Document-level preservation.} The canonical
+    document text is preserved verbatim. No normalization, no
+    chunking, and no embedding occurs at this stage.
+\end{enumerate}
+
+\subsection{Intended Use}
+
+The canonical files described here are \emph{pre-retrieval} inputs.
+They are intended to be consumed by RAG pipelines that will:
+
+\begin{enumerate}[leftmargin=*]
+    \item parse and chunk the documents according to their own
+    architecture-specific policy,
+    \item generate embeddings with a frozen, revision-pinned encoder
+    (in the controlled comparison track),
+    \item persist the resulting index,
+    \item execute retrieval against the canonical queries,
+    \item project ranked items back to canonical document identifiers,
+    \item evaluate retrieval quality against the ground truth.
+\end{enumerate}
+
+\section{Methodology}
+
+\subsection{Sources}
+
+All statistics in this report were computed directly from the
+canonical files under:
+
+\begin{lstlisting}
+C:/Users/USER1/Documents/Project 1/processed/canonical/<dataset>/
+  documents.jsonl
+  examples.jsonl
+  validation.json
+  manifest.json
+\end{lstlisting}
+
+\subsection{Definitions}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Document.} One canonical record in
+    \texttt{documents.jsonl}. Text is read from
+    \texttt{text\_normalized} with fallback to \texttt{text\_raw} or
+    \texttt{text}.
+    \item \textbf{Example.} One canonical query with its associated
+    ground truth, read from \texttt{examples.jsonl}.
+    \item \textbf{Token.} Whitespace-delimited token
+    (\texttt{len(text.split())}). This is a stable,
+    tokenizer-independent count suitable for cross-dataset comparison.
+    \item \textbf{Chunk estimate.} A projection of how many chunks a
+    document would yield under a fixed chunk size with a fixed
+    overlap. The formula is:
+    \begin{equation*}
+        C = 1 + \left\lceil \frac{T - S + \text{stride} - 1}{\text{stride}} \right\rceil,
+        \quad \text{stride} = S - O,
+    \end{equation*}
+    where $T$ is the token count, $S$ is the chunk size, and $O$ is
+    the overlap. Chunking is \emph{not} executed at this stage; the
+    numbers are projections only.
+    \item \textbf{Ground-truth cardinality.} The number of document
+    identifiers listed in \texttt{ground\_truth.relevant\_ids} for one
+    example.
+\end{itemize}
+
+\subsection{Non-Goals}
+
+This report does \emph{not} include:
+
+\begin{itemize}[leftmargin=*]
+    \item tokenizer-specific token counts (e.g.\ BGE-M3 or Qwen
+    tokenization),
+    \item actual chunked outputs,
+    \item embeddings,
+    \item retrieval results or evaluation metrics,
+    \item any normalization, filtering, or modification of the source
+    text.
+\end{itemize}
+
+\section{Dataset Profiles}
+
+\subsection{LaRA (Long-context Retrieval Assessment)}
+
+LaRA is a long-document retrieval benchmark designed to stress-test
+RAG systems on very long source documents with short, targeted
+queries. In LaRA, a single document can easily exceed the
+32\,768-token context window of many encoders; the retrieval task is
+therefore fundamentally about identifying the correct long document
+from a small but very heavy corpus.
+
+\paragraph{Key characteristics.}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Corpus size.} 131 documents — the smallest corpus
+    in the suite.
+    \item \textbf{Document length.} Mean 40{,}463 whitespace tokens;
+    maximum 106{,}030. The corpus is dominated by long documents.
+    \item \textbf{Query length.} Mean 111 characters — short,
+    highly-targeted queries.
+    \item \textbf{Ground truth.} 1 relevant document per query
+    (cardinality exactly 1).
+    \item \textbf{Examples per document.} $\approx 17.8$ queries per
+    document on average.
+\end{itemize}
+
+\paragraph{What LaRA tests.}
+LaRA is the natural stress test for \emph{long-document} retrieval:
+can an architecture locate a single needle in a heavily-tokenized
+document without relying on chunk-level shortcuts? Because the
+ground-truth cardinality is exactly 1, LaRA measures pure
+long-document identification.
+
+\subsection{CLERK (CLERC Legal Retrieval)}
+
+CLERK is derived from the CLERC benchmark for legal case-law
+retrieval. Unlike LaRA, CLERK pairs short documents with long,
+information-rich queries. It is a legal-domain dataset in which the
+retrieval task is to identify which passage(s) of a legal corpus are
+relevant to a full case description.
+
+\paragraph{Key characteristics.}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Corpus size.} 2{,}756 documents — the largest
+    corpus in this report.
+    \item \textbf{Document length.} Mean 233 whitespace tokens;
+    maximum 254. Documents are essentially uniform in length and very
+    short.
+    \item \textbf{Query length.} Mean 16{,}322 characters — by far
+    the longest queries in the suite.
+    \item \textbf{Ground truth.} Mean 2.77 relevant documents per
+    query; maximum 9. This is the only dataset in this report with
+    non-trivial ground-truth cardinality.
+    \item \textbf{Examples per document.} $\approx 0.36$ queries per
+    document — many documents are not individually referenced.
+\end{itemize}
+
+\paragraph{What CLERK tests.}
+CLERK places heavy emphasis on \emph{query understanding} and
+\emph{multi-document retrieval}. The long queries stress the encoder's
+ability to summarize legal facts; the short documents favor
+architectures that can perform efficient dense retrieval over a large
+pool. Because ground-truth cardinality varies from 1 to 9, CLERK
+rewards recall-oriented retrieval policies.
+
+\subsection{CUAD (Contract Understanding Atticus Dataset)}
+
+CUAD is a legal contract analysis dataset. Each document is a
+commercial contract; each example is a clause-extraction query
+(e.g.\ ``Highlight the parts related to termination for
+convenience''). CUAD is characterized by many queries per document,
+and by the fact that most clause queries do not apply to most
+contracts — the ground truth is legitimately empty for the majority of
+query-document pairs.
+
+\paragraph{Key characteristics.}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Corpus size.} 510 contracts.
+    \item \textbf{Document length.} Mean 7{,}861 whitespace tokens;
+    median 5{,}006; maximum 47{,}733.
+    \item \textbf{Query length.} Mean 260 characters — short clause
+    descriptions.
+    \item \textbf{Ground truth.} 20{,}910 examples, of which
+    \textbf{14{,}208 (67.9\%) have empty ground truth} and 6{,}702
+    have exactly one relevant document. All non-empty examples have
+    cardinality 1.
+    \item \textbf{Examples per document.} $\approx 41$ clause queries
+    per contract.
+\end{itemize}
+
+\paragraph{What CUAD tests.}
+CUAD stresses \emph{many-shot query evaluation}. A single contract may
+be queried dozens of times, once per clause. The dominance of empty
+ground truths means any evaluation must include an explicit
+\emph{negative} class handling policy: architectures that always
+return a top-$k$ result will be penalized if the metric does not
+account for empty-relevance queries. CUAD is the primary benchmark
+in this suite for measuring false-positive behaviour.
+
+\subsection{GreekBarBench}
+
+GreekBarBench is a Greek-language legal reasoning benchmark built from
+bar-examination style questions. Each document is a short legal
+excerpt; each query is a bar-exam style question in Greek. It is the
+only non-English dataset in this report, providing a multilingual
+stress test for the encoder.
+
+\paragraph{Key characteristics.}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Corpus size.} 284 documents.
+    \item \textbf{Document length.} Mean 10{,}162 whitespace tokens;
+    median 9{,}971; maximum 25{,}307. Documents are moderately long
+    and relatively uniform.
+    \item \textbf{Query length.} Mean 194 characters.
+    \item \textbf{Ground truth.} 1 relevant document per query
+    (cardinality exactly 1).
+    \item \textbf{Examples per document.} Exactly 1 query per
+    document.
+\end{itemize}
+
+\paragraph{What GreekBarBench tests.}
+GreekBarBench is a clean, one-to-one benchmark: one query, one
+document, no ambiguity. It measures a pipeline's ability to
+correctly identify a single relevant source in a foreign-language
+corpus. Its uniform structure makes it the easiest dataset in the
+suite for sanity-checking a new architecture, while still being
+informative about multilingual encoder behaviour.
+
+\section{Main Statistics}
+
+\begin{table}[h]
+\centering
+\caption{Main statistics for the four datasets.}
+\small
+\begin{tabular}{@{}l S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] S[table-format=6.0]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+document count                & 131    & 2756   & 510    & 284    \\
+example (GT) count            & 2326   & 1000   & 20910  & 284    \\
+total dataset size (bytes)    & 84388337 & 26809056 & 89752275 & 77697117 \\
+mean tokens per document      & 40463.66 & 233.49 & 7861.19 & 10161.60 \\
+mean chunks per doc @ 512/ov64 & 90.70 & 1.00 & 17.89 & 23.06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{File Sizes}
+
+\begin{table}[h]
+\centering
+\caption{Per-file sizes in bytes.}
+\small
+\begin{tabular}{@{}l S[table-format=8.0] S[table-format=8.0] S[table-format=8.0] S[table-format=8.0]@{}}
+\toprule
+\textbf{File} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+documents.jsonl & 69390194 & 8577683  & 53378228 & 68949846 \\
+examples.jsonl  & 14996106 & 18229557 & 36370354 & 8744487  \\
+validation.json & 969      & 702      & 2620     & 1688     \\
+manifest.json   & 1068     & 1114     & 1073     & 1096     \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Document Counts}
+
+\begin{table}[h]
+\centering
+\caption{Canonical document counts.}
+\small
+\begin{tabular}{@{}l S[table-format=5.0]@{}}
+\toprule
+\textbf{Dataset} & \textbf{Documents} \\
+\midrule
+LaRA          & 131    \\
+CLERK         & 2756   \\
+CUAD          & 510    \\
+GreekBarBench & 284    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Example and Ground-Truth Counts}
+
+\begin{table}[h]
+\centering
+\caption{Example-level counts.}
+\small
+\begin{tabular}{@{}l S[table-format=6.0] S[table-format=6.0] S[table-format=6.0] S[table-format=6.0]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+example count                     & 2326  & 1000  & 20910 & 284  \\
+examples with empty GT            & 0     & 0     & 14208 & 0    \\
+examples with GT (non-empty)      & 2326  & 1000  & 6702  & 284  \\
+unique relevant documents         & 131   & 2756  & 510   & 284  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Ground-Truth Cardinality per Example}
+
+\begin{table}[h]
+\centering
+\caption{Ground-truth cardinality statistics.}
+\small
+\begin{tabular}{@{}l S[table-format=2.2] S[table-format=2.2] S[table-format=2.2] S[table-format=2.2]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+mean GT cardinality    & 1.00 & 2.77 & 1.00 & 1.00 \\
+median GT cardinality  & 1.00 & 2.00 & 1.00 & 1.00 \\
+min GT cardinality     & 1    & 1    & 1    & 1    \\
+max GT cardinality     & 1    & 9    & 1    & 1    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Token Statistics per Document}
+
+\begin{table}[h]
+\centering
+\caption{Whitespace-token statistics per document.}
+\small
+\begin{tabular}{@{}l S[table-format=8.0] S[table-format=8.0] S[table-format=8.0] S[table-format=8.0]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+total whitespace tokens  & 5300739 & 643497 & 4009206 & 2885893  \\
+mean tokens per doc      & 40463.66 & 233.49 & 7861.19 & 10161.60 \\
+median tokens per doc    & 41179   & 253    & 5006    & 9971    \\
+min tokens per doc       & 7695    & 4      & 109     & 2       \\
+max tokens per doc       & 106030  & 254    & 47733   & 25307   \\
+p95 tokens per doc       & 84447.50 & 253   & 25203.05 & 23879.00 \\
+p99 tokens per doc       & 102756.70 & 254  & 41869.66 & 25307.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Character and Word Statistics per Document}
+
+\begin{table}[h]
+\centering
+\caption{Character and word statistics per document.}
+\small
+\begin{tabular}{@{}l S[table-format=9.0] S[table-format=9.0] S[table-format=9.0] S[table-format=9.0]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+total chars             & 33386478 & 3924950 & 25833097 & 18882132 \\
+mean chars per doc      & 254858.61 & 1424.15 & 50653.13 & 66486.38 \\
+median chars per doc    & 276788  & 1536    & 32152.50 & 67362  \\
+min chars per doc       & 49257   & 15      & 645     & 18     \\
+max chars per doc       & 624923  & 1793    & 300418  & 164780 \\
+mean words per doc      & 40463.66 & 233.49 & 7861.19 & 10161.60 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Chunk Estimates per Document}
+
+\begin{table}[h]
+\centering
+\caption{Projected mean chunks per document, under five chunking configurations.}
+\small
+\begin{tabular}{@{}l S[table-format=4.2] S[table-format=4.2] S[table-format=4.2] S[table-format=4.2]@{}}
+\toprule
+\textbf{Configuration} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+size 256,  overlap 0    & 158.54 & 1.00 & 31.22 & 40.17 \\
+size 512,  overlap 0    & 79.51  & 1.00 & 15.86 & 20.33 \\
+size 512,  overlap 64   & 90.70  & 1.00 & 17.89 & 23.06 \\
+size 1024, overlap 0    & 39.99  & 1.00 & 8.18  & 10.38 \\
+size 1024, overlap 128  & 45.50  & 1.00 & 9.12  & 11.69 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Query Statistics}
+
+\begin{table}[h]
+\centering
+\caption{Query-level statistics.}
+\small
+\begin{tabular}{@{}l S[table-format=8.2] S[table-format=8.2] S[table-format=8.2] S[table-format=8.2]@{}}
+\toprule
+\textbf{Metric} & \textbf{LaRA} & \textbf{CLERK} & \textbf{CUAD} & \textbf{GreekBarBench} \\
+\midrule
+mean query chars                & 111.77   & 16322.28 & 260.00 & 194.16 \\
+queries with query.doc\_ids     & 2326     & 1000     & 20910  & 284    \\
+total query.doc\_id references  & 2326     & 2770     & 20910  & 284    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Aggregate Summary}
+
+\begin{table}[h]
+\centering
+\caption{Aggregate statistics across the four datasets.}
+\begin{tabular}{@{}l S[table-format=8.0]@{}}
+\toprule
+\textbf{Aggregate metric} & \textbf{Value} \\
+\midrule
+total documents (all four)                       & 3681       \\
+total examples (all four)                        & 24520      \\
+total examples with non-empty GT                 & 10312      \\
+total examples with empty GT                     & 14208      \\
+total dataset size (bytes)                       & 278646785  \\
+total whitespace tokens (documents)              & 12839335   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Cross-dataset extremes.}
+\begin{tabular}{@{}l l@{}}
+\toprule
+\textbf{Descriptor} & \textbf{Dataset} \\
+\midrule
+largest corpus                       & CLERK (2756 docs) \\
+smallest corpus                      & LaRA (131 docs) \\
+most examples                        & CUAD (20910) \\
+fewest examples                      & GreekBarBench (284) \\
+longest documents (mean)             & LaRA (40463.66 tokens) \\
+shortest documents (mean)            & CLERK (233.49 tokens) \\
+longest queries (mean characters)    & CLERK (16322.28) \\
+shortest queries (mean characters)   & LaRA (111.77) \\
+highest mean GT cardinality          & CLERK (2.77) \\
+most empty-GT examples               & CUAD (14208) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cross-Dataset Observations}
+
+\subsection{Corpus and Query Length Inversion}
+
+The four datasets display a striking inversion between document and
+query length:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{LaRA} has very long documents (mean 40k tokens) and
+    very short queries (mean 112 characters).
+    \item \textbf{CLERK} has very short documents (mean 233 tokens)
+    and very long queries (mean 16k characters).
+    \item \textbf{CUAD} sits in the middle for both.
+    \item \textbf{GreekBarBench} has medium-length documents and short
+    queries.
+\end{itemize}
+
+This inversion is deliberate in the suite design: it ensures that no
+single encoder or retrieval policy can dominate all four datasets
+through document-length or query-length bias alone.
+
+\subsection{Empty Ground Truth}
+
+CUAD is the only dataset in this report with legitimate empty ground
+truths; 67.9\% of CUAD examples have zero relevant documents. Any
+retrieval evaluation that includes CUAD must handle the negative class
+explicitly. This is a distinct property from the three other datasets,
+which all have strictly positive ground truth.
+
+\subsection{Query-to-Document Ratio}
+
+The ratio of queries to documents varies by more than two orders of
+magnitude:
+
+\begin{itemize}[leftmargin=*]
+    \item LaRA: $\approx 17.8$ queries per document.
+    \item GreekBarBench: $1$ query per document (perfectly balanced).
+    \item CUAD: $\approx 41$ queries per document.
+    \item CLERK: $\approx 0.36$ queries per document.
+\end{itemize}
+
+The LaRA and CUAD ratios reward evaluation designs that can
+efficiently amortize a single document's indexing cost across many
+queries. CLERK's ratio rewards query-side efficiency, and
+GreekBarBench is the only strictly balanced dataset in the suite.
+
+\subsection{Cross-Language Coverage}
+
+GreekBarBench is the only non-English dataset in this report. Any
+encoder used for the full suite must be multilingual; this is one
+reason the controlled comparison track uses BGE-M3 as its shared
+encoder.
+
+\section{Limitations}
+
+\begin{itemize}[leftmargin=*]
+    \item Token counts are whitespace-based and are \emph{not}
+    tokenizer-specific. Real tokenizer counts (e.g.\ BGE-M3 or Qwen
+    tokenization) will differ and must be measured separately during
+    the embedding stage.
+    \item Chunk counts are pure projections. Actual chunking is
+    deferred to the architecture-specific preprocessing stage.
+    \item Ground-truth cardinality is measured at the
+    \emph{document} level. Some datasets carry additional
+    span-level, choice-level, or answer-level annotations that are
+    not summarized in this report.
+    \item The full canonicalization pipeline includes validation
+    reports and per-file checksums; this report is a
+    \emph{statistical} view, not a substitute for the formal
+    validation artifacts.
+    \item Only four of the seven canonical datasets are covered here.
+    RULER, Loong, and LongBench~v2 are outside the scope of this
+    report.
+\end{itemize}
+
+\section{Summary}
+
+The four datasets in this report constitute a heterogeneous long-
+context RAG evaluation basis:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{LaRA} measures long-document retrieval with
+    single-document ground truth.
+    \item \textbf{CLERK} measures legal multi-document retrieval with
+    long queries and moderate ground-truth cardinality.
+    \item \textbf{CUAD} measures clause-level contract retrieval with
+    a dominant negative class.
+    \item \textbf{GreekBarBench} measures multilingual single-document
+    retrieval with a one-to-one query-document structure.
+\end{itemize}
+
+Together they cover a broad range of document lengths
+($2$--$106{,}030$ tokens), query lengths
+($112$--$16{,}322$ characters), ground-truth cardinalities
+($0$--$9$), and languages (English and Greek). This range is
+intentional and is what makes the suite suitable for a controlled,
+reproducible, architecture-agnostic evaluation of long-context RAG
+systems.
+
+\end{document}

@@ -4,52 +4,66 @@ This directory contains the written documentation of the SAH-RAG project.
 
 ## Contents
 
-### Reports
+### Reports (`reports/`)
 
-Located under `data/`. See [`data/README.md`](data/README.md) for details.
+LaTeX sources of all written reports. See [`reports/README.md`](reports/README.md).
 
-- `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` — full Diploma Thesis
-- `metadata_rag_full_track_report.tex` — Metadata-RAG comparator report
-- `three_way_comparison.tex` — three-way comparison report
+- `sah_rag_implementation.tex` — SAH-RAG architecture & implementation
+- `sah_rag_optimization.tex` — SAH-RAG parameter study
+- `datasets.tex` — Dataset descriptions
+- `pipelines_status.tex` — Pipelines status
+- `longrag_full_track_report.tex` — LongRAG comparator
+- `longrag_vs_sah_rag.tex` — LongRAG vs SAH-RAG
+- `metadata_rag_full_track_report.tex` — Metadata-RAG comparator
+- `three_way_comparison.tex` — SAH-RAG vs LongRAG vs Metadata-RAG
 
-### Methodology
+### Thesis (`data/`)
 
-Frozen methodology artifacts are stored in the sibling
-[`baseline_audit/`](../baseline_audit/) directory. Key contracts include:
+- `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` — Full Diploma Thesis
 
-- `common_retrieval_evaluation_contract.yaml`
-- `cross_baseline_execution_contract.yaml`
-- `fair_benchmark_*.yaml`
-- `statistical_analysis_plan.yaml`
-- `component_substitution_policy.yaml`
+### Pilot design docs (`pilot/`)
 
-These YAML contracts are **frozen**: they are read by validators and are not
-modified after the corresponding experiment has been committed.
+Infrastructure pilot documentation. See [`pilot/README.md`](pilot/README.md).
 
-### Architecture
+### Top-level documentation
 
-The architecture is documented in:
+| File | Purpose |
+|---|---|
+| `architecture_specification.md` | SAH-RAG architecture, components, invariants |
+| `fair_benchmark_methodology.md` | Shared fair-comparison protocol |
+| `canonical_data_contract.md` | Canonical envelope and data model |
+| `deterministic_parser.md` | Structural parser specification |
+| `hierarchical_child_chunker.md` | Child chunker specification |
+| `hybrid_retrieval.md` | Hybrid RRF retrieval and aggregation |
+| `qdrant_hybrid_storage.md` | Qdrant collection layout |
+| `embedding_shards.md` | Embedding shard format |
+| `bge_m3_tokenizer_adapter.md` | Tokenizer adapter details |
+| `artifact_provenance.md` | Content-addressable identities and manifests |
+| `execution_environment_freeze.md` | Environment reproduction policy |
+| `docker_qdrant_operations.md` | Local Qdrant operations |
+| `external_canonical_dataset_suite.md` | External dataset suite |
+| `real_dataset_inventory_and_sizing.md` | Dataset inventory and sizing |
+| `retrieval_evaluation.md` | Evaluation procedure |
+| `metadata_rag_paper_spec_audit.md` | Metadata-RAG clean-room spec audit |
+| `longrag_full_track_closure.md` | LongRAG full-track closure |
+| `longrag_vs_sah_rag_comparison.md` | LongRAG vs SAH-RAG comparison write-up |
+| `sah_rag_m0_closure.md` | SAH-RAG M0 closure |
+| `sah_rag_m7_locked_test.md` | SAH-RAG M7 locked test |
+| `sah_rag_m8_closure.md` | SAH-RAG M8 closure |
+| `sah_rag_end_to_end_inspection.md` | End-to-end inspection |
+| `remaining_baselines_sequencing.md` | Disposition of non-executed comparators |
 
-- Top-level [`README.md`](../README.md) — overview and quick start
-- Source docstrings under [`src/rag_system/`](../src/rag_system/)
-- Thesis Chapter 3 (design) and Chapter 4 (implementation), in `data/`
+## Frozen contracts
 
-### Reproducibility
+Frozen experimental contracts live in the sibling directory
+[`baseline_audit/`](../baseline_audit/). These files are read by validators
+and are not modified after the corresponding experiment has been committed.
+
+## Reproducibility
 
 Every run produces a `manifest.json` with SHA-256 checksums of all inputs and
 outputs. To verify a run:
 
     python scripts/validate_*.py --manifest path/to/manifest.json
 
-See the individual scripts under [`scripts/`](../scripts/) for details.
-
-## Navigating the codebase
-
-| I want to... | Start here |
-|---|---|
-| Understand the architecture | top-level `README.md` |
-| Run the full pipeline | `scripts/run_my_rag_*.py` |
-| Reproduce the comparison | `scripts/compare_*.py` |
-| Inspect frozen contracts | `baseline_audit/*.yaml` |
-| Read the thesis | `docs/data/REPORT_NIKOLAOS_PAIDOPOULOS.pdf` |
-| Verify a specific artifact | the corresponding `manifest.json` |
+See [`scripts/`](../scripts/) for details.

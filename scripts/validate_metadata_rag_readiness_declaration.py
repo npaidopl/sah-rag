@@ -314,9 +314,9 @@ def _check_results(data: dict[str, Any]) -> None:
     )
     three = results["three_track_comparison"]
     _require(
-        set(three.keys()) == {"longrag", "metadata_rag", "my_rag"},
+        set(three.keys()) == {"longrag", "metadata_rag", "sah_rag"},
         "results.three_track_comparison must contain exactly "
-        "longrag, metadata_rag, my_rag",
+        "longrag, metadata_rag, sah_rag",
     )
 
 

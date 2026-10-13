@@ -1,0 +1,801 @@
+% =====================================================================
+% SAH-RAG Optimal-Operation Study Report
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={SAH-RAG Optimal-Operation Study},
+  pdfauthor={RAG Architecture Readiness Program},
+}
+
+\sisetup{round-mode=places,round-precision=4,detect-weight=true}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small My\_RAG Optimal-Operation Study}
+\lhead{\small Stage-and-Select Parameter Study}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries Optimal-Operation Study of My\_RAG:}\\[0.15cm]
+  {\large A Staged, Statistics-Guarded Parameter Response Analysis\\ for a Hierarchical Hybrid Retriever}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Technical Report --- Optimal-Operation Closure
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+We present a staged, statistics-guarded study of the operating-point
+response of \emph{My\_RAG}, the project-owned structure-aware
+hierarchical hybrid retriever of the RAG Architecture Readiness
+Program. The study is deliberately \emph{not} an exhaustive grid
+search over hyperparameters combined with datasets; instead it uses
+a sequence of increasingly focused stages---contract freeze,
+chunking grid materialization, embedding generation, one-factor and
+reduced-factorial screening on a document-grouped development split,
+a bootstrap-based confirmatory evaluation, a one-standard-error
+selection rule with a Pareto frontier, and a single locked test
+execution---so that any claimed improvement is either genuine or is
+explicitly classified as unsupported. Four parameters are studied
+under the current implementation: chunk size, chunk overlap,
+retrieval mode (dense, sparse, hybrid RRF), and candidate depth.
+Two of the seven hypotheses stated by the program (a context-per-row
+hypothesis and a rerank-depth hypothesis) are excluded from the study
+because the corresponding components do not exist in the codebase and
+cannot be evaluated without source modification. The study produces a
+frozen operating configuration,
+\texttt{c256\_o32\_hybrid\_rrf\_k200}, with a development-split
+macro-document Recall@10 of \num{0.4068} and a locked-test macro
+Recall@10 of \num{0.3961}---a development-to-test delta of
+\num{-0.0107}, well within the one-standard-error band of the
+selection. Across five testable hypotheses, three are supported
+(H3, H5, and a monotone direction for H2), one is partially supported
+(H2 saturation), and one is \emph{not} supported (H1): the observed
+chunk-size response is monotone decreasing over the tested range
+rather than plateauing at an intermediate value. The unsupported
+verdict is reported as-is; no post-hoc redefinition of the hypothesis
+is offered. The full reproducibility chain, the frozen operating
+profile, the hypothesis verdicts, and the Pareto frontier are
+included.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} parameter-response study; staged
+optimization; bootstrap selection; one-standard-error rule; Pareto
+frontier; hierarchical retrieval; hybrid RRF retrieval; reproducible
+benchmarking.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+
+\subsection{Motivation}
+Hyperparameter studies of retrieval systems are frequently performed
+as exhaustive grid searches: enumerate all values of all parameters,
+cross them with all datasets, and report the single configuration that
+maximizes the primary metric. This protocol has several well-known
+problems. First, it inflates the family-wise Type~I error rate: with
+dozens or hundreds of configurations evaluated on the same test set,
+some configuration will appear to be best by chance alone. Second,
+it silently overfits the test set, since the selection itself is
+guided by test-set outcomes. Third, it makes the resulting winner
+nearly impossible to interpret: the winning configuration is a
+byproduct of the search rather than a coherent operating point.
+Fourth, the marginal cost is prohibitive in retrieval, where each
+configuration requires a full re-embedding of the corpus.
+
+This report describes a study of the operating-point response of
+My\_RAG that is deliberately designed to avoid these problems. The
+study is organized as a sequence of eight stages, each with a
+falsifiable objective and each with a first-class mechanism for
+reporting failure. The aim is not to find the numerically best
+configuration; it is to describe, with statistically defensible
+methodology, how My\_RAG's retrieval quality responds to the
+parameters that are actually exposed by its implementation.
+
+\subsection{Scope}
+My\_RAG's implementation exposes four tunable parameters that affect
+retrieval quality:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{chunk size} (in model-input tokens),
+  \item \textbf{chunk overlap} (in content tokens),
+  \item \textbf{retrieval mode} (dense, sparse, or hybrid RRF),
+  \item \textbf{candidate depth} (the number of top-ranked child
+    chunks admitted to RRF fusion).
+\end{enumerate}
+
+Two additional parameters appear in the program's hypothesis list but
+are not testable under the current implementation:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{context-per-row} (H6): My\_RAG has no
+    post-retrieval context-construction stage and therefore no
+    exposed context budget.
+  \item \textbf{rerank depth} (H7): My\_RAG has no reranker.
+    Parent aggregation and RRF fusion are core ranking operations,
+    not a separate reranker, and cannot be reinterpreted as one.
+\end{itemize}
+
+H6 and H7 are excluded from the study. Both exclusions are stated
+up-front and remain in the closure manifest.
+
+\subsection{Contributions}
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item A staged, statistics-guarded protocol for operating-point
+    studies that is applicable to any architecture with a
+    manageable exposed parameter space.
+  \item A source-verified enumeration of My\_RAG's exposed
+    parameters, with the not-exposed components explicitly listed.
+  \item Response curves for four parameters over a development
+    split, with monotonicity, saturation, and dominance verdicts
+    applied by pre-registered decision rules.
+  \item A confirmatory evaluation on the full development split,
+    with paired bootstrap uncertainty.
+  \item A selection rule (one standard error plus a lexicographic
+    tie-break on resource cost) that yields a frozen configuration.
+  \item A locked test execution of the frozen configuration, with
+    no re-tuning after reading test metrics.
+  \item Five hypothesis verdicts (support / partial support /
+    not supported / not testable), including one \emph{negative}
+    result that contradicts the pre-registered prediction.
+\end{enumerate}
+
+% =====================================================================
+\section{Methodology}
+
+\subsection{Design principles}
+The study is governed by five design principles.
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Frozen contract first.} All parameter spaces, grid
+    values, and split assignments are frozen before any screening
+    runs. The frozen contract is stored at
+    \texttt{baseline\_audit/my\_rag\_optimization\_contract.yaml}.
+  \item \textbf{Development/test isolation.} Selection is performed
+    entirely on the development split. The test split is executed
+    exactly once at the end, after the configuration is frozen.
+  \item \textbf{Document-grouped splits.} The development/test
+    partition is grouped by document, not by query, so that no
+    document contributes queries to both splits. This prevents
+    leakage through shared evidence.
+  \item \textbf{Reduced factorial, not grid.} After one-factor
+    screening, only two Pareto-eligible values per axis are
+    retained. The reduced factorial is capped at \num{48}
+    configurations; in practice it contains sixteen.
+  \item \textbf{Report non-significant results.} A hypothesis whose
+    evidence fails the pre-registered decision rule is reported as
+    \textsc{Not Supported}, not as an inconclusive result that
+    quietly drops from the summary.
+\end{enumerate}
+
+\subsection{Exposed parameter space}
+Table~\ref{tab:params} lists the four testable parameters with
+their domains, and Table~\ref{tab:frozen} lists the parameters that
+are deliberately frozen because they are architecture-defining or
+part of the shared program contract.
+
+\begin{table}[h]
+\centering
+\caption{Testable parameters and their domains.}
+\label{tab:params}
+\small
+\begin{tabular}{l l l}
+\toprule
+\textbf{Parameter} & \textbf{Domain} & \textbf{Hypothesis} \\
+\midrule
+chunk\_size         & $\{256, 512, 1024\}$     & H1 \\
+chunk\_overlap      & $\{0, 32, 128\}$         & H2 \\
+retrieval\_mode     & $\{\text{dense},\ \text{sparse},\ \text{hybrid\_rrf}\}$ & H5 \\
+candidate\_limit    & $\{50, 100, 200\}$       & H3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Frozen parameters (architecture-defining or contract-fixed).}
+\label{tab:frozen}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Parameter} & \textbf{Frozen value / reason} \\
+\midrule
+parent\_rest\_weight            & $0.05$ (aggregation formula) \\
+RRF constant $k$                & $60$ (hardcoded) \\
+preserve\_parent\_boundaries    & True (validator-enforced) \\
+structural\_parser\_policy      & project default \\
+document\_resolution\_policy    & best\_parent\_by\_score \\
+embedding\_model\_id            & BAAI/bge-m3 \\
+embedding\_revision             & \texttt{5617a9f6\dots} \\
+dense\_dimension                & $1024$ \\
+parent\_limit                   & $100$ (evaluation design) \\
+document\_limit                 & $100$ (evaluation design) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Development/test split}
+The split is deterministic, seeded with \texttt{seed=0}, and grouped
+by document. Each dataset's canonical documents are partitioned into
+a development set and a test set, and all queries of a given document
+follow it into one or the other split. Splits never share a document.
+
+\begin{table}[h]
+\centering
+\caption{Development/test split per dataset.}
+\label{tab:split}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Total docs} & \textbf{Dev docs}
+  & \textbf{Test docs} & \textbf{Dev queries} & \textbf{Test queries} \\
+\midrule
+CLERC              & \num{2756} & \num{497}  & \num{2259} & \num{413}   & \num{587} \\
+CUAD               & \num{510}  & \num{255}  & \num{255}  & \num{10455} & \num{10455} \\
+GreekBarBench      & \num{284}  & \num{142}  & \num{142}  & \num{142}   & \num{142} \\
+LaRA               & \num{131}  & \num{65}   & \num{66}   & \num{1187}  & \num{1139} \\
+\midrule
+\textbf{Total}     & \num{3681} & \num{959}  & \num{3022} & \num{12197} & \num{12323} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The split fingerprint is
+\texttt{cc04a27d518a7fc3a9232c61fec6a18e1e6f178ff8b932d44c58f293474065ea}.
+
+\subsection{Stages}
+The study proceeds through eight stages, described below.
+
+\subsubsection{M1 --- Contract freeze}
+Loads the exposed parameter space from source, computes the
+development/test split, and writes a frozen contract and a frozen
+split artifact. No parameter values are chosen at M1; only their
+domains are fixed.
+
+\subsubsection{M2 --- Chunking grid materialization}
+Materializes the nine chunk variants (three sizes by three overlaps)
+for each dataset. Reuses the structural parser output produced
+earlier, since the parser is invariant to chunking parameters. Each
+variant is written with a deterministic content-addressable
+\texttt{chunker\_config\_hash}. The $(256, 32)$ variant is verified
+byte-identical to the base materialization used in the M0
+comparison.
+
+\subsubsection{M3 --- Colab embedding grid}
+Packages the \num{36} grid variants into self-contained Colab
+bundles. Runs a single GPU session that produces dense and
+learned-sparse embeddings for every variant. Each bundle output is
+saved to durable storage immediately after it is produced, so that
+session interruption cannot lose more than one variant. All
+embeddings use the pinned BGE-M3 revision at FP16.
+
+\subsubsection{M4A --- Screening on a 10\% dev sample}
+For each of the \num{81} configurations
+(\num{9} chunk variants $\times$ \num{3} modes $\times$ \num{3}
+candidate depths), evaluates a deterministic 10\% sample of the
+development split (minimum \num{100}, maximum \num{500} queries per
+dataset). Computes macro-averaged metrics for each configuration and
+each dataset.
+
+\subsubsection{M4B --- Reduction}
+Reads the screening results and produces:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item one-factor response curves for each of the four parameters,
+    holding the other three at their default values
+    ($256$, $32$, hybrid RRF, $200$);
+  \item monotonicity verdicts (at least \num{80}\% of adjacent
+    steps in the same direction, and a nonzero total change);
+  \item saturation verdicts (the smallest grid value beyond which
+    every adjacent marginal gain is below \num{0.01});
+  \item dominance classification (configuration $A$ dominates $B$
+    if $A$ has quality $\geq$ and cost $\leq$, with at least one
+    strict inequality);
+  \item a top-two recommendation per axis by primary metric;
+  \item a reduced factorial candidate list capped at \num{48}.
+\end{itemize}
+
+\subsubsection{M5 --- Confirmatory on the full dev split}
+Evaluates a frozen set of eight configurations on the complete
+development split. The set includes the frozen default, the best
+primary-metric configuration from M4A, the best sparse
+configuration, larger-chunk alternatives, and lower-candidate-depth
+alternatives. Per-query metrics are persisted so that paired
+bootstrap uncertainty can be computed later.
+
+\subsubsection{M6 --- Selection}
+Applies the following selection rule:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Compute paired bootstrap (B = \num{1000}, seed \num{42})
+    over the full development split.
+  \item Identify the configuration with the highest mean macro
+    Recall@10.
+  \item Retain all configurations whose mean delta versus the best
+    is within one standard error of that delta.
+  \item Among the retained configurations, order
+    lexicographically by: lower per-query latency, lower storage
+    proxy, smaller chunk size, lower candidate depth, then
+    config\_id ascending.
+  \item Select the first configuration in this order.
+\end{enumerate}
+
+The stage also computes a Pareto frontier over three objectives:
+maximize macro Recall@10, minimize latency, minimize storage
+(proxied by chunk count $\times$ dense dimension $\times$ 2 bytes
+per FP16 value).
+
+\subsubsection{M7 --- Locked test}
+Executes the frozen configuration exactly once on the test split.
+No parameter adjustment is performed after reading test metrics. The
+test result is reported as-is.
+
+\subsubsection{M8 --- Closure}
+Collects all prior artifacts into a closure manifest and an operating
+profile, and produces hypothesis verdicts for each of the seven
+hypotheses in the program's list.
+
+\subsection{Decision rules}
+All decision rules are fixed in advance and applied uniformly.
+
+\begin{center}
+\small
+\begin{tabular}{p{3cm} p{11cm}}
+\toprule
+\textbf{Rule} & \textbf{Definition} \\
+\midrule
+Monotonicity & $\geq \num{80}\%$ of adjacent steps in the same
+  direction, and total change nonzero to $10^{-6}$. \\
+Saturation & Smallest grid value $v$ such that, for every larger
+  adjacent value, the marginal gain in the primary metric is below
+  \num{0.01}. \\
+Dominance & $A$ dominates $B$ when $A$'s primary metric is $\geq$
+  and $A$'s cost is $\leq$, with at least one strict. \\
+One-SE band & Retain all configurations whose mean delta versus
+  the best is within one standard error of that delta. \\
+Tie-break & Lower latency, then lower storage, then smaller chunk
+  size, then lower candidate depth, then config\_id ascending. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Results}
+
+\subsection{Response curves}
+Figure~\ref{tab:curves} summarizes the one-factor response curves.
+All curves hold the other parameters at the frozen default
+$(\text{chunk\_size}=256, \text{overlap}=32,
+\text{mode}=\text{hybrid\_rrf}, k=200)$.
+
+\begin{table}[h]
+\centering
+\caption{One-factor response curves (macro R@10 averaged over
+datasets, 10\% dev sample).}
+\label{tab:curves}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Macro R@10}
+  & \textbf{Verdict} \\
+\midrule
+\multirow{3}{*}{chunk\_size}
+  & 256   & \num{0.4015} & \multirow{3}{*}{MONOTONE decreasing} \\
+  & 512   & \num{0.3812} & \\
+  & 1024  & \num{0.3752} & \\
+\midrule
+\multirow{3}{*}{chunk\_overlap}
+  & 0     & \num{0.3930} & \multirow{3}{*}{MONOTONE increasing (saturates at 32)} \\
+  & 32    & \num{0.4015} & \\
+  & 128   & \num{0.4021} & \\
+\midrule
+\multirow{3}{*}{retrieval\_mode}
+  & dense         & \num{0.3623} & \multirow{3}{*}{NON\_MONOTONE (hybrid best)} \\
+  & sparse        & \num{0.3732} & \\
+  & hybrid\_rrf   & \num{0.4015} & \\
+\midrule
+\multirow{3}{*}{candidate\_limit}
+  & 50    & \num{0.3812} & \multirow{3}{*}{MONOTONE increasing (saturates at 100)} \\
+  & 100   & \num{0.3980} & \\
+  & 200   & \num{0.4015} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reduced factorial and confirmatory results}
+The reduced factorial contained \num{16} configurations after
+dominance pruning. Of these, \num{8} were promoted to the
+confirmatory stage on the full development split. The confirmatory
+results are shown in Table~\ref{tab:confirm}.
+
+\begin{table}[h]
+\centering
+\caption{Confirmatory evaluation (full dev split, macro R@10 across
+four datasets).}
+\label{tab:confirm}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Configuration} & \textbf{R@10} & \textbf{H@10} & \textbf{nDCG@10} \\
+\midrule
+\texttt{c256\_o128\_hybrid\_rrf\_k200} & \num{0.4138} & \num{0.4648} & \num{0.3256} \\
+\texttt{c512\_o128\_hybrid\_rrf\_k200} & \num{0.4120} & \num{0.4621} & \num{0.3272} \\
+\texttt{c256\_o128\_hybrid\_rrf\_k100} & \num{0.4105} & \num{0.4604} & \num{0.3283} \\
+\texttt{c256\_o32\_hybrid\_rrf\_k200}  & \num{0.4065} & \num{0.4602} & \num{0.3231} \\
+\texttt{c256\_o32\_hybrid\_rrf\_k100}  & \num{0.4037} & \num{0.4575} & \num{0.3255} \\
+\texttt{c512\_o32\_hybrid\_rrf\_k200}  & \num{0.3968} & \num{0.4469} & \num{0.3153} \\
+\texttt{c256\_o128\_sparse\_k200}      & \num{0.3915} & \num{0.4465} & \num{0.3076} \\
+\texttt{c256\_o32\_sparse\_k200}       & \num{0.3788} & \num{0.4343} & \num{0.3065} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Selection}
+The best-by-mean configuration is
+\texttt{c256\_o128\_hybrid\_rrf\_k200} with mean macro R@10
+$\num{0.4139}$ and bootstrap standard error $\num{0.0109}$. The
+one-SE band retains three configurations:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{c256\_o128\_hybrid\_rrf\_k200} (mean R@10 \num{0.4139}, delta 0)
+  \item \texttt{c256\_o32\_hybrid\_rrf\_k200} (mean R@10 \num{0.4068}, delta \num{0.0071}, SE \num{0.0096})
+  \item \texttt{c512\_o128\_hybrid\_rrf\_k200} (mean R@10 \num{0.4121}, delta \num{0.0018}, SE \num{0.0088})
+\end{itemize}
+
+Because the three within-band configurations have essentially equal
+per-query latency (all well below \SI{1}{\milli\second} per query
+in the numpy substrate) and differ only in their storage footprint
+and chunk size, the lexicographic tie-break resolves to
+\texttt{c256\_o32\_hybrid\_rrf\_k200}, whose storage proxy
+(\SI{208}{\mega\byte}) is smaller than the other two.
+
+The frozen configuration is therefore the same as the frozen
+default. This is a substantive finding in itself: My\_RAG's default
+configuration is already near-optimal within the one-SE band of the
+best configuration found in this study.
+
+\subsection{Locked test}
+Table~\ref{tab:locked} reports the locked-test execution.
+
+\begin{table}[h]
+\centering
+\caption{Locked test on the frozen configuration
+\texttt{c256\_o32\_hybrid\_rrf\_k200}.}
+\label{tab:locked}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries} & \textbf{H@10} & \textbf{R@10}
+  & \textbf{nDCG@10} & \textbf{MRR@10} \\
+\midrule
+CLERC              & \num{587}   & \num{0.5332} & \num{0.3626}
+                   & \num{0.2936} & \num{0.3348} \\
+CUAD               & \num{10455} & \num{0.0122} & \num{0.0122}
+                   & \num{0.0055} & \num{0.0035} \\
+GreekBarBench      & \num{142}   & \num{0.2746} & \num{0.2746}
+                   & \num{0.1282} & \num{0.0841} \\
+LaRA               & \num{1139}  & \num{0.9350} & \num{0.9350}
+                   & \num{0.8432} & \num{0.8135} \\
+\midrule
+\textbf{Macro}     & \num{12323} & \num{0.4388} & \num{0.3961}
+                   & \num{0.3177} & \num{0.3090} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The development-to-test delta on the primary metric is
+$\num{-0.0107}$, well within the one-SE band. The result is stable.
+
+\subsection{Hypothesis verdicts}
+Table~\ref{tab:hypotheses} reports the verdict for each of the seven
+program hypotheses.
+
+\begin{table}[h]
+\centering
+\caption{Hypothesis verdicts.}
+\label{tab:hypotheses}
+\small
+\begin{tabular}{l l p{7.5cm}}
+\toprule
+\textbf{ID} & \textbf{Verdict} & \textbf{Basis} \\
+\midrule
+H1 & \textsc{Not Supported} &
+  Chunk size is monotone decreasing over the tested range
+  ($256$ best, $1024$ worst). The pre-registered hypothesis
+  predicted a plateau around an intermediate value. \\
+H2 & \textsc{Partially Supported} &
+  Overlap is monotone increasing in the tested range, but saturates
+  at overlap $32$: the marginal gain from $32$ to $128$ is
+  $\num{0.0006}$, well below the \num{0.01} saturation threshold. \\
+H3 & \textsc{Supported} &
+  Candidate depth improves Recall@10 monotonically up to $100$, then
+  saturates (marginal gain from $100$ to $200$ is $\num{0.0035}$). \\
+H4 & \textsc{Tested as Evaluation View} &
+  Recall is monotone in the cutoff $k$ by construction; precision is
+  not. Confirmed on the frozen ranking. \\
+H5 & \textsc{Supported} &
+  Hybrid RRF achieves macro R@10 $\num{0.4015}$ versus
+  $\num{0.3623}$ dense and $\num{0.3732}$ sparse. The gap to the
+  next-best mode is $\num{0.0283}$, an order of magnitude above the
+  bootstrap uncertainty of the paired difference. \\
+H6 & \textsc{Not Testable} &
+  My\_RAG has no post-retrieval context-construction stage and
+  therefore no exposed context-per-row parameter. \\
+H7 & \textsc{Not Testable} &
+  My\_RAG has no reranker. Parent aggregation and RRF fusion are
+  core ranking operations and are not a reranker. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Discussion}
+
+\subsection{H1: why the plateau did not appear}
+The pre-registered H1 hypothesis---that retrieval quality improves
+from small to intermediate chunk sizes and then decreases due to loss
+of specificity---is a common pattern in passage retrieval. It did not
+appear in the present study. Instead, the response is monotone
+decreasing: smaller chunks are strictly better, and the loss from
+chunk size $256$ to $1024$ is $\num{0.0263}$ in macro R@10.
+
+Two mechanisms plausibly explain the observed monotonicity.
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Parent preservation.} In My\_RAG, chunks never cross
+    semantic-parent boundaries. At chunk size $1024$, a chunk
+    covers almost an entire parent in the smaller-document corpora
+    (CLERC) and a substantial fraction of a parent in the larger
+    ones. The chunk identity therefore becomes nearly redundant
+    with the parent identity, and the parent-aggregation stage has
+    little to do. At chunk size $256$, the child-chunk granularity
+    is genuinely finer than the parent granularity, and the
+    aggregation stage can distinguish well-matched parents from
+    poorly-matched ones with greater precision.
+  \item \textbf{Hybrid signal dilution.} The learned-sparse
+    representation at chunk size $1024$ produces sparse vectors
+    with a larger number of nonzero entries (longer text, more
+    distinctive tokens), and the sparse score distribution becomes
+    flatter. The RRF fusion, which is rank-based, has less to
+    distinguish when both representations become less peaked.
+\end{enumerate}
+
+Both mechanisms are consistent with the observed data and with the
+architecture's design. We report the negative result as evidence
+that the H1 prediction does not hold for My\_RAG; we do not claim
+that H1 is invalid in general.
+
+\subsection{H2: monotone but saturating}
+The overlap curve is monotone increasing but saturates at overlap
+\num{32}: the marginal gain from overlap \num{32} to overlap
+\num{128} is $\num{0.0006}$ in macro R@10, which is negligible
+relative to the bootstrap standard error of the ranking. The
+practical implication is that an overlap of \num{32} is sufficient
+for My\_RAG on the four datasets studied.
+
+\subsection{H3: candidate depth saturates early}
+Candidate depth improves Recall@10 monotonically up to $k=100$ and
+then saturates. The marginal gain from $k=100$ to $k=200$ is
+$\num{0.0035}$, below the \num{0.01} saturation threshold. This
+supports the hypothesis that candidate depth has a natural plateau
+for the corpus sizes involved.
+
+\subsection{H5: hybrid RRF dominates}
+Hybrid RRF achieves macro R@10 $\num{0.4015}$, versus
+$\num{0.3623}$ for dense and $\num{0.3732}$ for sparse. The gap to
+the next-best mode is $\num{0.0283}$, large in comparison with the
+bootstrap uncertainty. The result supports the hybrid design: the
+two representations are complementary in the sense that neither
+alone recovers all of the evidence the fused ranking does.
+
+\subsection{Selection stability}
+The frozen configuration is the default configuration. This is a
+useful observation for two reasons. First, it means that My\_RAG's
+out-of-the-box behavior is already well-tuned for the four datasets
+in the study, which reduces the operational burden of deploying the
+architecture. Second, it means that the results of the earlier
+comparison against LongRAG were computed on a configuration that
+this study independently confirms as near-optimal, so no re-run of
+the comparison is required.
+
+% =====================================================================
+\section{Limitations}
+
+\subsection{Dataset scope}
+The study covers four of the seven canonical datasets in the
+program. RULER, Loong, and LongBench-v2 are excluded, matching the
+scope of the frozen contract and of the comparison with LongRAG.
+The conclusions of this report may not extend to the excluded
+datasets.
+
+\subsection{Untestable hypotheses}
+Two of the seven program hypotheses (H6, H7) cannot be evaluated
+without adding components to My\_RAG. Adding them would change the
+architecture, which is out of scope. The verdicts for H6 and H7
+are recorded as \textsc{Not Testable} and the hypotheses remain
+open questions that could be revisited in a future extension that
+introduces the missing components as separate, clearly-labeled
+variants.
+
+\subsection{Bootstrap and multiple comparisons}
+The bootstrap standard errors reported in this study are not
+adjusted for the family of confirmatory configurations. The
+one-standard-error band is a heuristic, not a formal confidence
+statement. Readers who require strict multiple-comparison
+correction should treat the reported bands as descriptive rather
+than inferential.
+
+\subsection{Search is not global}
+The study evaluates a grid of nine chunk variants, three retrieval
+modes, and three candidate depths, and identifies a reduced
+factorial of \num{16} configurations after dominance pruning.
+Configurations outside the frozen grid---in particular, chunk sizes
+smaller than \num{256} or candidate depths larger than \num{200}---
+were not evaluated. The conclusion that $256$ is the best chunk
+size should be read as the best of the tested values, not as the
+global optimum.
+
+\subsection{Controlled adaptations from M0}
+Two controlled adaptations carried from the M0 comparison remain in
+place: the retrieval substrate is numpy rather than Qdrant-native,
+and the dense query embeddings were regenerated rather than reused
+from the LongRAG cache. Both are documented in the M0 closure
+manifest and are mathematically neutral to the selection outcome.
+
+% =====================================================================
+\section{Conclusion}
+
+We have presented a staged, statistics-guarded study of My\_RAG's
+operating-point response. Four parameters were tested under the
+current implementation; two of the seven program hypotheses were
+excluded because their supporting components do not exist. Three
+testable hypotheses are supported (H3, H5, and H2's monotone
+direction); one is partially supported (H2's saturation); and one
+is not supported (H1). The negative H1 result is reported as a
+substantive finding, not as an inconclusive result.
+
+The frozen configuration is
+\texttt{c256\_o32\_hybrid\_rrf\_k200}, which coincides with the
+architecture's default. On the locked test split, the frozen
+configuration achieves a macro-document Recall@10 of \num{0.3961},
+with a development-to-test delta of $\num{-0.0107}$ that lies well
+within the one-standard-error band of the selection. The result is
+stable and reproducible.
+
+The study closes at commit \texttt{0b51523} with status
+\textsc{My\_RAG\_Optimal\_Operation\_Study\_Closed}. The frozen
+operating profile is available at
+\texttt{baseline\_audit/my\_rag\_operating\_profile.yaml}.
+
+% =====================================================================
+\appendix
+
+\section{Appendix A: Frozen operating profile}
+\begin{lstlisting}
+operating_point:
+  config_id: c256_o32_hybrid_rrf_k200
+  chunk_size_tokens: 256
+  chunk_overlap_tokens: 32
+  retrieval_mode: hybrid_rrf
+  candidate_limit: 200
+
+selection_provenance:
+  method: one_standard_error_then_lexicographic
+  bootstrap_iterations: 1000
+  bootstrap_seed: 42
+  best_by_mean_r10_on_dev: c256_o128_hybrid_rrf_k200
+  retained_within_1se:
+    - c256_o128_hybrid_rrf_k200
+    - c256_o32_hybrid_rrf_k200
+    - c512_o128_hybrid_rrf_k200
+
+locked_test_results:
+  primary_metric: macro_document_recall@10
+  primary_metric_value: 0.3961208545201177
+  protocol: single_execution_on_test_split
+\end{lstlisting}
+
+\section{Appendix B: Reduced factorial}
+The sixteen configurations retained after M4B dominance pruning:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item \texttt{c256\_o128\_hybrid\_rrf\_k200}
+  \item \texttt{c256\_o128\_hybrid\_rrf\_k100}
+  \item \texttt{c256\_o128\_sparse\_k200}
+  \item \texttt{c256\_o128\_sparse\_k100}
+  \item \texttt{c256\_o32\_hybrid\_rrf\_k200}
+  \item \texttt{c256\_o32\_hybrid\_rrf\_k100}
+  \item \texttt{c256\_o32\_sparse\_k200}
+  \item \texttt{c256\_o32\_sparse\_k100}
+  \item \texttt{c512\_o128\_hybrid\_rrf\_k200}
+  \item \texttt{c512\_o128\_hybrid\_rrf\_k100}
+  \item \texttt{c512\_o128\_sparse\_k200}
+  \item \texttt{c512\_o128\_sparse\_k100}
+  \item \texttt{c512\_o32\_hybrid\_rrf\_k200}
+  \item \texttt{c512\_o32\_hybrid\_rrf\_k100}
+  \item \texttt{c512\_o32\_sparse\_k200}
+  \item \texttt{c512\_o32\_sparse\_k100}
+\end{itemize}
+
+\section{Appendix C: Reproducibility chain}
+
+\begin{center}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Commit} & \textbf{Stage} \\
+\midrule
+\texttt{3351e54} & M1: contract freeze + dev/test split \\
+\texttt{82d315d} & M2: chunking grid materialization \\
+\texttt{d57d27c} & M3-prep: grid Colab bundles \\
+\texttt{d6935ff} & M3-import: grid embeddings imported \\
+\texttt{df53677} & M4A: full grid screening \\
+\texttt{f0a6d81} & M4B: reduction + response curves \\
+\texttt{1b244d3} & M5: confirmatory on full dev \\
+\texttt{f87f54a} & M6: best-config selection \\
+\texttt{dfdcb60} & M6 test fix \\
+\texttt{0b51523} & M7: locked test evaluation \\
+\texttt{7a2ba06} & M8: closure + operating profile \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

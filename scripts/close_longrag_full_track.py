@@ -152,7 +152,7 @@ def build_closure_manifest(
             "reduced_scope_reason": (
                 "User decision at L2-prep: exclude ruler, loong, "
                 "long_bench_v2 from the LongRAG run to save compute "
-                "for the My_RAG track. The three datasets have "
+                "for the SAH-RAG track. The three datasets have "
                 "canonical documents with 8K-5M tokens each; after "
                 "the oversize-split policy they yield very large "
                 "unit corpora. The remaining four datasets preserve "
@@ -216,7 +216,7 @@ def build_closure_manifest(
                 "common_retrieval_evaluation_contract.yaml."
             ),
         ],
-        "next_gate": "my_rag_full_pipeline",
+        "next_gate": "sah_rag_full_pipeline",
     }
 
 

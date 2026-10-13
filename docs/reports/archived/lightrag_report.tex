@@ -1,0 +1,653 @@
+% !TEX program = pdflatex
+% ================================================================
+% LightRAG Implementation Report
+% Πλήρης τεχνική αναφορά για την υλοποίηση της αρχιτεκτονικής
+% LightRAG στο πλαίσιο σύγκρισης 11 RAG αρχιτεκτονικών
+% ================================================================
+\documentclass[11pt,a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[greek,english]{babel}
+\usepackage{alphabeta}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{tabularx}
+
+% --- Hyperref setup ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black,
+  pdftitle={LightRAG Implementation Report},
+  pdfauthor={RAG Architecture Research Program}
+}
+
+% --- Listings setup ---
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codecomment}{RGB}{100,100,100}
+\definecolor{codestring}{RGB}{0,100,0}
+\definecolor{codekeyword}{RGB}{0,0,180}
+\lstdefinestyle{code}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  commentstyle=\color{codecomment}\itshape,
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{codestring},
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{black!30},
+  numbers=left,
+  numberstyle=\tiny\color{black!40},
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+}
+\lstset{style=code}
+
+% --- Header / Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small LightRAG Implementation Report}
+\fancyhead[R]{\small \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Custom box ---
+\newtcolorbox{keybox}{
+  colback=blue!4,
+  colframe=blue!50!black,
+  boxrule=0.4pt,
+  arc=2pt,
+  left=6pt,
+  right=6pt,
+  top=4pt,
+  bottom=4pt,
+}
+
+\newtcolorbox{warnbox}{
+  colback=red!4,
+  colframe=red!50!black,
+  boxrule=0.4pt,
+  arc=2pt,
+  left=6pt,
+  right=6pt,
+  top=4pt,
+  bottom=4pt,
+}
+
+% ================================================================
+\begin{document}
+
+% --- Title page ---
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+  {\Huge\bfseries LightRAG Implementation\par}
+  \vspace{0.5cm}
+  {\Large Πλήρης Τεχνική Αναφορά\par}
+  \vspace{0.3cm}
+  {\large Controlled Adaptation για Δίκαιη Ακαδημαϊκή Σύγκριση\par}
+  \vspace{2cm}
+  {\large Πρόγραμμα Σύγκρισης RAG Αρχιτεκτονικών\par}
+  \vspace{0.3cm}
+  {\large Track 1: Controlled Architectural Comparison\par}
+  \vspace{3cm}
+
+  \begin{tabular}{rl}
+    \textbf{Αρχιτεκτονική:}    & LightRAG \\[4pt]
+    \textbf{Source commit:}    & \texttt{453dce83d6d0354a06e46c8d4029a0895c4e054b} \\[4pt]
+    \textbf{Reproduction class:} & \texttt{CONTROLLED\_ADAPTATION} \\[4pt]
+    \textbf{Primary mode:}     & Hybrid retrieval \\[4pt]
+    \textbf{Readiness:}        & \texttt{READY\_FOR\_BOUNDED\_REAL\_DATA\_PILOT} \\[4pt]
+    \textbf{Generation:}       & Disabled \\[4pt]
+    \textbf{Datasets (Track 1):} & 4 (clerk, cuad, lara, greek\_bar\_bench) \\
+  \end{tabular}
+
+  \vfill
+  {\small Τελευταία ενημέρωση: commit \texttt{21526c9}\par}
+\end{titlepage}
+
+% ================================================================
+\section{Εκτελεστική Σύνοψη}
+% ================================================================
+
+Η παρούσα αναφορά τεκμηριώνει την πλήρη αρχιτεκτονική, τις αποφάσεις
+σχεδιασμού, την τρέχουσα κατάσταση και το εναπομένον έργο της
+υλοποίησης LightRAG στο πρόγραμμα δίκαιης σύγκρισης RAG
+αρχιτεκτονικών. Η υλοποίηση ακολουθεί αυστηρά το πλαίσιο
+\texttt{CONTROLLED\_ADAPTATION}: η architecture-defining λογική του
+κατασκευαστή παραμένει ακέραιη, ενώ μόνο infrastructure-level
+components (embeddings backend, storage persistence, LLM
+provider) αντικαθίστανται με τεκμηριωμένη και αναστρέψιμη
+διαδικασία.
+
+\begin{keybox}
+\textbf{Τρεις αμετάβλητοι στόχοι} που καθοδηγούν κάθε απόφαση:
+\begin{enumerate}[nosep]
+  \item \textbf{Ακαδημαϊκή ορθότητα}  κάθε αποτέλεσμα να αντέχει
+        κριτική επιτροπής.
+  \item \textbf{Δικαιοσύνη σύγκρισης}  κοινό dataset envelope, κοινός
+        embedder (BGE-M3 rev \texttt{5617a9f6}), κοινό query set,
+        κοινή ground-truth projection.
+  \item \textbf{Διατήρηση γνησιότητας}  ουδεμία αλλαγή σε prompts,
+        chunker, graph semantics.
+\end{enumerate}
+\end{keybox}
+
+% ================================================================
+\section{Αρχιτεκτονική LightRAG  Native Σημασιολογία}
+% ================================================================
+
+\subsection{Upstream Pipeline}
+
+Η native LightRAG εκτελεί την εξής ακολουθία:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Chunking}  fixed-token F-strategy, default
+        \texttt{chunk\_token\_size=1200},
+        \texttt{chunk\_overlap=100}, μέσω του
+        \texttt{chunking\_by\_token\_size}.
+  \item \textbf{Entity extraction}  LLM call ανά chunk, με
+        delimiter-based output (\texttt{<|\#|>} και
+        \texttt{<|COMPLETE|>}).
+  \item \textbf{Relation extraction}  ίδιο LLM call, δύο περάσματα
+        (gleaning).
+  \item \textbf{Entity/relation description merge}  LLM summarization
+        για deduplication.
+  \item \textbf{Graph persistence}  NetworkX GraphML.
+  \item \textbf{Vector persistence}  NanoVectorDB για entities,
+        relations, chunks.
+  \item \textbf{Query}  keyword extraction (LLM) $\rightarrow$
+        hybrid retrieval $\rightarrow$ context construction.
+\end{enumerate}
+
+\subsection{Τι Κρατάμε  Architecture-Defining Components}
+
+Οι ακόλουθες 14 συνιστώσες θεωρούνται \emph{architecture-defining}
+και παραμένουν αμετάβλητες:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Component} & \textbf{Status} \\
+\midrule
+\texttt{chunking} & PRESERVED \\
+\texttt{content\_addressed\_chunk\_identity} & PRESERVED\_VIA\_MAPPING \\
+\texttt{entity\_extraction} & CONTROLLED\_REPLACEMENT (Qwen) \\
+\texttt{relationship\_extraction} & CONTROLLED\_REPLACEMENT (Qwen) \\
+\texttt{entity\_description\_merge} & PRESERVED \\
+\texttt{relationship\_description\_merge} & PRESERVED \\
+\texttt{entity\_source\_lineage} & PRESERVED\_VIA\_MAPPING \\
+\texttt{relationship\_source\_lineage} & PRESERVED\_VIA\_MAPPING \\
+\texttt{local\_entity\_retrieval} & PRESERVED \\
+\texttt{global\_relation\_retrieval} & PRESERVED \\
+\texttt{hybrid\_retrieval} & PRESERVED \\
+\texttt{context\_construction} & PRESERVED \\
+\texttt{token\_budget\_policy} & PRESERVED \\
+\texttt{graph\_storage} & PRESERVED (NetworkX runtime) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Τι Αντικαθιστούμε  Controlled Adaptations}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Native} & \textbf{Controlled} \\
+\midrule
+Embedder & OpenAI text-embedding-3-large & BGE-M3 (shared) \\
+Extraction LLM & GPT-4o-mini & Qwen2.5-1.5B-Instruct \\
+KV persistence & JsonKVStorage & Deterministic JSONL \\
+Vector index & NanoVectorDB & Project-owned file index \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warnbox}
+\textbf{Κρίσιμος περιορισμός}: Το native extraction LLM
+(\texttt{GPT-4o-mini}) απαιτεί network access και hosted inference,
+κάτι ασύμβατο με offline execution. Η αντικατάσταση με Qwen 1.5B
+είναι \emph{ρητά σημασμένη} ως
+\texttt{CONTROLLED\_ADAPTATION} και \emph{ουδέποτε} αναφέρεται ως
+native-faithful.
+\end{warnbox}
+
+% ================================================================
+\section{Ο Σχεδιασμός μας  Τριφασική Ροή}
+% ================================================================
+
+Η υλοποίηση σπάει το native pipeline σε τρεις φάσεις, διατηρώντας
+την native ακολουθία \emph{αυτούσια}. Ο διαχωρισμός γίνεται στα
+embeddings  που είναι \emph{architecture-supporting}, όχι
+architecture-defining.
+
+\subsection{Stage 1  Local Pre-Embedding}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Βήμα} & \textbf{Native function} & \textbf{LLM;} \\
+\midrule
+Canonical validation & \texttt{CanonicalSourceDocument} & No \\
+Native chunking & \texttt{chunking\_by\_token\_size} & No \\
+Entity extraction & \texttt{extract\_entities} & \textbf{Qwen} \\
+Relation extraction & (internal) & \textbf{Qwen} \\
+Entity merge & \texttt{merge\_nodes\_and\_edges} & \textbf{Qwen} \\
+Description merge & (internal) & \textbf{Qwen} \\
+Occurrence lineage & \texttt{compute\_canonical\_chunk\_identity} & No \\
+Embedding request bundle & custom & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Έξοδος Stage 1}:
+\begin{itemize}[nosep]
+  \item \texttt{chunk\_embedding\_requests.jsonl}
+  \item \texttt{entity\_embedding\_requests.jsonl}
+  \item \texttt{relationship\_embedding\_requests.jsonl}
+  \item \texttt{occurrence\_lineage.jsonl}
+  \item \texttt{graph\_input\_artifacts.jsonl}
+  \item \texttt{extraction\_cache.jsonl} (Qwen checksum-bound)
+\end{itemize}
+
+\textbf{Απαγορεύεται}:
+\begin{itemize}[nosep]
+  \item Placeholder vector insertion
+  \item Provisional vector insertion
+  \item Retrieval, evaluation, ground-truth loading
+\end{itemize}
+
+\subsection{Stage 2  Colab GPU Embeddings}
+
+\begin{itemize}[nosep]
+  \item BGE-M3 FP16 dense embedding
+  \item Frozen revision validation (\texttt{5617a9f6\ldots})
+  \item Deterministic shard persistence
+  \item \textbf{LLM calls: 0} (BGE-M3 δεν είναι LLM)
+\end{itemize}
+
+\textbf{Απαγορεύεται}: Qwen extraction, graph construction,
+retrieval, evaluation, query processing, ground-truth loading.
+
+\subsection{Stage 3  Local Post-Embedding}
+
+\begin{itemize}[nosep]
+  \item Embedding import + closure validation
+  \item Deterministic file-index population
+  \item Native NetworkX graph materialization
+  \item Clean shutdown $\rightarrow$ reopen
+  \item \texttt{aquery\_data(mode="hybrid")}
+  \item Canonical expansion
+  \item Ground-truth evaluation (ξεχωριστά)
+\end{itemize}
+
+\textbf{Απαγορεύεται}: Live embedding inference, missing-vector
+fallback, answer generation, LLM judge.
+
+% ================================================================
+\section{Χρήση LLM  Πλήρης Ανάλυση}
+% ================================================================
+
+\subsection{Πού Χρησιμοποιείται LLM}
+
+\begin{longtable}{p{4.5cm}p{3cm}p{2.5cm}p{3.5cm}}
+\toprule
+\textbf{Στάδιο} & \textbf{LLM;} & \textbf{Model} & \textbf{Calls} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Στάδιο} & \textbf{LLM;} & \textbf{Model} & \textbf{Calls} \\
+\midrule
+\endhead
+Stage 1 chunking & Όχι &  & 0 \\
+Stage 1 entity extraction & Ναι & Qwen 1.5B & $\sim$1--3/chunk \\
+Stage 1 relation extraction & Ναι & Qwen 1.5B & $\sim$1--2/chunk \\
+Stage 1 description merge & Ναι & Qwen 1.5B & $\sim$1/entity \\
+Stage 1 keyword priming & Ναι & Qwen 1.5B & 1/query \\
+\midrule
+Stage 2 embeddings & Όχι & BGE-M3 & 0 \\
+\midrule
+Stage 3 graph build & Όχι &  & 0 \\
+Stage 3 query keywords & Ναι (cache) & Qwen 1.5B & 0 (replay) \\
+Stage 3 ranking/expansion & Όχι &  & 0 \\
+Stage 3 evaluation & Όχι &  & 0 \\
+\midrule
+Generation & Όχι &  & 0 \\
+LLM judge & Όχι &  & 0 \\
+Answer synthesis & Όχι &  & 0 \\
+\bottomrule
+\end{longtable}
+
+\subsection{B1 Thin Infrastructure Wrapper}
+
+Ο B1 wrapper \emph{δεν αλλάζει} το underlying generation. Προσθέτει
+μόνο:
+
+\begin{itemize}[nosep]
+  \item Checksum-bound immutable cache
+  \item Token/request accounting
+  \item Single identical retry
+  \item Failure logging
+\end{itemize}
+
+\begin{warnbox}
+Ο wrapper \textbf{MUST NOT} αλλάζει:
+\begin{itemize}[nosep]
+  \item Prompt
+  \item System prompt
+  \item History messages
+  \item Generation parameters (temperature, max\_tokens, \ldots)
+  \item Parsing delimiters
+  \item Output text
+\end{itemize}
+\end{warnbox}
+
+Δύο cache modes:
+\begin{itemize}[nosep]
+  \item \texttt{INDEXING}  Cache miss $\rightarrow$ live inference,
+        write cache, return.
+  \item \texttt{REPLAY}  Cache miss $\rightarrow$ \texttt{CacheMissError},
+        no live inference. Αυτό είναι το query-time benchmark mode.
+\end{itemize}
+
+\subsection{Cache Key Συνιστώσες}
+
+\begin{equation*}
+\text{key} = \text{SHA256}\Bigl(
+  \text{repo\_id} \,\|\, \text{revision} \,\|\,
+  \text{tokenizer\_revision} \,\|\,
+  \text{prompt}^{\text{SHA}} \,\|\,
+  \text{system}^{\text{SHA}} \,\|\,
+  \text{history} \,\|\,
+  \text{decoding\_config}
+\Bigr)
+\end{equation*}
+
+Οποιαδήποτε αλλαγή δημιουργεί νέο namespace. \textbf{Ποτέ} overwrite
+ή silent reuse (E5 ACK).
+
+\subsection{Token Ceiling}
+
+\begin{itemize}[nosep]
+  \item Hard ceiling: 50,000,000 tokens (input + output)
+  \item Stop new atomic unit at 95\%
+  \item Failure rate threshold: 1\%
+  \item On exceed: \texttt{BLOCKED\_ON\_TOKEN\_CEILING}
+\end{itemize}
+
+\subsection{?? Fairness Consideration}
+
+\begin{warnbox}
+\textbf{Κρίσιμο ζήτημα}: Αν τα άλλα baselines (HippoRAG 2, RAPTOR,
+My\_RAG) χρησιμοποιούν \texttt{GPT-4o-mini} για extraction και η
+LightRAG χρησιμοποιεί \texttt{Qwen2.5-1.5B}, η σύγκριση \emph{δεν
+είναι apples-to-apples}.
+
+\medskip
+\textbf{Possible interpretations}:
+\begin{enumerate}[nosep]
+  \item \emph{Σκόπιμο}  θέλουμε native-faithful baseline per
+        architecture.
+  \item \emph{Λάθος}  αγνοήσαμε το LLM-capability gap.
+  \item \emph{Controlled}  όλα τα baselines χρησιμοποιούν το ίδιο
+        LLM (π.χ. Qwen ή GPT-4o-mini).
+\end{enumerate}
+
+\textbf{Απαιτείται απόφαση} για το ποιο μοντέλο θα οριστεί ως κοινό
+για όλα τα baselines του Track 1.
+\end{warnbox}
+
+% ================================================================
+\section{Τι Έχουμε Κάνει  Ολοκληρωμένα Παραδοτέα}
+% ================================================================
+
+\subsection{Commits (LightRAG-specific)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Commit} & \textbf{Deliverable} \\
+\midrule
+\texttt{a0a3276} & Fidelity contract + disposition + acquisition policy + 27 decisions \\
+\texttt{b052cab} & Source inventory + disposition amendment 01 \\
+\texttt{6de67f3} & Adapter decision registry + amendment 02 \\
+\texttt{fdf8482} & Isolated environment manifest + validator \\
+\texttt{71b26fb} & Runtime adapter (envelope + occurrence lineage) \\
+\texttt{e34420e} & B1 thin LLM infrastructure wrapper \\
+\texttt{06ef5f5} & Runtime state (config + mappings + lifecycle) \\
+\texttt{430b788} & Runtime expansion (native rank preservation) \\
+\texttt{6641d87} & Reject whitespace-only canonical text \\
+\texttt{b6d8159} & Execution amendment 03 \\
+\texttt{7f60493} & Position-based native chunk IDs \\
+\texttt{3134714} & Structural Windows probe (11/11 gates) \\
+\texttt{21526c9} & Execution amendment 04 (4-dataset + 3-stage) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Modules Υλοποίησης}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Module} & \textbf{Σκοπός} & \textbf{Tests} \\
+\midrule
+\texttt{lightrag\_runtime\_adapter.py} & Envelope + occurrence & 24 \\
+\texttt{lightrag\_runtime\_llm.py} & B1 wrapper & 21 \\
+\texttt{lightrag\_runtime\_state.py} & Lifecycle + mappings & 34 \\
+\texttt{lightrag\_runtime\_expansion.py} & Native rank preservation & 19 \\
+\midrule
+\textbf{Σύνολο} & & \textbf{98} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Isolated Environment}
+
+\begin{itemize}[nosep]
+  \item Location: \texttt{external/environments/lightrag/}
+  \item Python: 3.12.10
+  \item Packages: 100 (torch 2.14.1+cpu, transformers 5.19,
+        FlagEmbedding 1.4.2, qdrant-client 1.19.1, orjson 3.13)
+  \item Install method: \texttt{sys.path.insert} (no pip install
+        of vendored lightrag)
+\end{itemize}
+
+\subsection{Structural Windows Probe  11/11 Gates}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Gate} & \textbf{Status} \\
+\midrule
+isolated\_environment\_valid & ? PASS \\
+Windows\_process\_start\_valid & ? PASS \\
+async\_queue\_lifecycle\_valid & ? PASS \\
+native\_chunking\_exercised & ? PASS (7 chunks) \\
+deterministic\_entities\_and\_relations\_ingested & ? PASS (10 ent, 9 rel) \\
+graph\_created & ? PASS (GraphML) \\
+vector\_index\_created & ? PASS (3 vdb files) \\
+persistence\_completed & ? PASS \\
+aquery\_data\_completed & ? PASS \\
+canonical\_expansion\_completed & ? PASS \\
+clean\_shutdown\_completed & ? PASS (12 storages) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Qwen Acquisition}
+
+\begin{itemize}[nosep]
+  \item Model: \texttt{Qwen/Qwen2.5-1.5B-Instruct}
+  \item Revision: \texttt{989aa7980e4cf806f80c7fef2b1adb7bc71aa306}
+  \item Size: 10 files, 2.89 GiB
+  \item License: Apache-2.0
+  \item Cache: \texttt{D:/rag\_work/hf\_cache}
+  \item Isolated env visibility: ? (verified with
+        \texttt{local\_files\_only=True})
+\end{itemize}
+
+% ================================================================
+\section{Τι Μένει  Roadmap}
+% ================================================================
+
+\subsection{’μεσα}
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Cell} & \textbf{Deliverable} & \textbf{Status} \\
+\midrule
+5c-run & End-to-end demo (real Qwen) & ?? script γραμμένο \\
+5d & 12-doc acceptance (scripted + real) & ?? \\
+5e & Execution amendment 05 & ?? \\
+5f & Colab transfer protocol (LightRAG-specific) & ?? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Πλήρης Real Data Execution}
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Cell} & \textbf{Deliverable} & \textbf{Status} \\
+\midrule
+6 & Stage 1 pipeline: canonical $\rightarrow$ embedding requests & ?? \\
+7 & Colab round-trip (Stage 2) & ?? \\
+8 & Stage 3: import + graph + retrieval + expansion & ?? \\
+9 & Evaluation pipeline (ground-truth) & ?? \\
+10 & Run 4 datasets (clerk, cuad, lara, greek\_bar\_bench) & ?? \\
+11 & Cross-dataset analysis + reports & ?? \\
+12 & Fairness resolution (gpt-4o-mini) & ?? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Readiness Transition Gates}
+
+Μετάβαση από \texttt{READY\_FOR\_BOUNDED\_REAL\_DATA\_PILOT} σε
+\texttt{READY\_FOR\_FULL\_REAL\_EXECUTION} απαιτεί:
+
+\begin{enumerate}[nosep]
+  \item \texttt{real\_qwen\_demo\_passed}
+  \item \texttt{extraction\_cache\_replay\_passed}
+  \item \texttt{reopen\_equivalence\_passed}
+  \item \texttt{repeat\_determinism\_passed}
+  \item \texttt{colab\_transfer\_roundtrip\_passed}
+  \item \texttt{embedding\_request\_coverage\_100\%}
+  \item \texttt{embedding\_import\_checksums\_valid}
+  \item \texttt{deterministic\_file\_index\_valid}
+  \item \texttt{extraction\_resource\_sizing\_passed}
+  \item \texttt{graph\_and\_lineage\_persistence\_valid}
+  \item \texttt{evaluation\_boundary\_frozen}
+  \item \texttt{leakage\_hits\_zero}
+\end{enumerate}
+
+% ================================================================
+\section{Ακαδημαϊκή Τοποθέτηση}
+% ================================================================
+
+\subsection{Γιατί η προσέγγιση είναι ακαδημαϊκά έντιμη}
+
+\begin{enumerate}
+  \item \textbf{Ρητή σήμανση controlled adaptations}: Κάθε
+        αντικατάσταση φέρει label \texttt{CONTROLLED\_ADAPTATION} και
+        τεκμηρίωση σε YAML.
+  \item \textbf{Αμετάβλητο native pipeline}: Οι 14 architecture-defining
+        συνιστώσες παραμένουν ακριβώς όπως στον κατασκευαστή.
+  \item \textbf{Deterministic reproducibility}: Checksums, pinned
+        revisions, atomic writes, frozen configs.
+  \item \textbf{Two-track design}: Track 1 (controlled comparison) με
+        κοινό embedder. Track 2 (native-fidelity) ρητά
+        \texttt{DEFERRED\_WITH\_REASON} λόγω αδυναμίας offline reproduction.
+  \item \textbf{No silent substitutions}: Κάθε failure που δεν
+        απαντιέται από source οδηγεί σε escalation, όχι εικασία.
+  \item \textbf{Hard failure semantics}: Cache miss σε REPLAY mode
+        σημαίνει σκληρό fail, όχι heuristic fallback.
+\end{enumerate}
+
+\subsection{Controlled Adaptation  Τι Σημαίνει Πραγματικά}
+
+\begin{keybox}
+\textbf{Controlled adaptation} = αντικατάσταση infrastructure-level
+component με \emph{αποδεδειγμένα ισοδύναμο} (semantic equivalence)
+υποκατάστατο, με:
+\begin{itemize}[nosep]
+  \item Ρητή τεκμηρίωση της αντικατάστασης
+  \item Fidelity risk classification (LOW/MEDIUM/HIGH)
+  \item Validation requirement
+  \item Amendment record
+\end{itemize}
+\textbf{Δεν} σημαίνει ελεύθερη τροποποίηση του pipeline.
+\end{keybox}
+
+% ================================================================
+\section{Αναφορές & Contracts}
+% ================================================================
+
+\begin{itemize}[nosep]
+  \item \texttt{baseline\_audit/lightrag\_fidelity\_contract.yaml}
+  \item \texttt{baseline\_audit/lightrag\_component\_disposition.yaml}
+  \item \texttt{baseline\_audit/lightrag\_environment\_acquisition\_policy.yaml}
+  \item \texttt{baseline\_audit/lightrag\_decision\_registry.yaml}
+  \item \texttt{baseline\_audit/lightrag\_source\_inventory.yaml}
+  \item \texttt{baseline\_audit/lightrag\_adapter\_decision\_registry.yaml}
+  \item \texttt{baseline\_audit/lightrag\_readiness\_execution\_amendment\_03.yaml}
+  \item \texttt{baseline\_audit/lightrag\_readiness\_execution\_amendment\_04.yaml}
+  \item \texttt{baseline\_audit/lightrag\_isolated\_environment\_manifest.yaml}
+  \item \texttt{baseline\_audit/raptor\_qwen\_cache\_manifest.yaml}
+  \item \texttt{baseline\_audit/raptor\_qwen\_file\_registry.yaml}
+\end{itemize}
+
+% ================================================================
+\section{Ανοιχτά Ζητήματα}
+% ================================================================
+
+\begin{warnbox}
+\textbf{1. LLM Fairness  GPT-4o-mini vs Qwen2.5-1.5B}
+
+Απαιτείται απόφαση: χρησιμοποιούν όλα τα baselines το ίδιο LLM, ή
+κάθε baseline χρησιμοποιεί το native LLM του; Αν όχι, η σύγκριση
+χρειάζεται ρητή ερμηνεία (native-stack vs isolated-architecture).
+\end{warnbox}
+
+\begin{warnbox}
+\textbf{2. Colab Transfer Protocol}
+
+Πρέπει να υλοποιηθεί LightRAG-specific runner και schemas (Q41=C),
+βασισμένα στο architecture-neutral envelope του LongRAG.
+\end{warnbox}
+
+\begin{warnbox}
+\textbf{3. Evaluation Pipeline}
+
+Ground-truth projection per dataset και per-query metrics
+(Precision, Recall, Hit, nDCG, MRR) με per-dataset macro
+aggregation. Den εξαρτάται από LLM.
+\end{warnbox}
+
+\vfill
+\begin{center}
+\rule{0.5\textwidth}{0.4pt}\\[6pt]
+\textit{Τέλος αναφοράς}
+\end{center}
+
+\end{document}

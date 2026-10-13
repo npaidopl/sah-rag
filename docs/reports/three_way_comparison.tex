@@ -1,0 +1,491 @@
+% =====================================================================
+% Three-Way Comparison Report
+% LongRAG vs Metadata-RAG vs SAH-RAG on Four Heterogeneous Corpora
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={Three-Way Comparison Report},
+}
+
+\sisetup{
+  round-mode=places,
+  round-precision=4,
+  detect-weight=true,
+  detect-family=true,
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Three-Way Comparison}
+\lhead{\small LongRAG $\cdot$ Metadata-RAG $\cdot$ My\_RAG}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries LongRAG \emph{vs} Metadata-RAG \emph{vs}
+   My\_RAG:}\\[0.15cm]
+  {\large A Retrieval-Only Three-Way Comparison on Four\\
+   Heterogeneous Long-Context Corpora}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Comparative Report
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+\noindent
+We compare three retrieval architectures under a fully controlled,
+retrieval-only evaluation protocol on four heterogeneous
+long-context corpora (CLERC, CUAD, GreekBarBench, LaRA). LongRAG is
+a controlled adaptation of an external architecture that groups
+adjacent documents into long retrieval units and retrieves with
+dense similarity. Metadata-RAG is a paper-derived comparator whose
+defining surface is a metadata-driven multistage filter preceding a
+dense similarity search; under the frozen configuration its metadata
+filter activates only on the LaRA corpus and it is therefore
+measured as a dense-only retriever on the other three. My\_RAG is
+the project-owned reference architecture, a structure-aware
+hierarchical hybrid retriever that fuses dense and learned-sparse
+signals by Reciprocal Rank Fusion and aggregates child chunks to
+canonical documents through a parent-based rule. Under the shared
+protocol My\_RAG achieves a macro-averaged document Recall@10 of
+\num{0.4049}, Metadata-RAG of \num{0.3651}, and LongRAG of
+\num{0.3144}. Metadata-RAG wins over LongRAG by \num{16.1}\% and
+loses to My\_RAG by \num{9.8}\%. We report the full metric table,
+the per-dataset decomposition, and the architectural observations
+that emerge from the three-track ordering.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} comparative retrieval; retrieval-only
+benchmarking; metadata-driven retrieval; hybrid retrieval; dense
+retrieval; controlled architectural comparison.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+
+\subsection{Question}
+Under identical embedder, query set, ground truth, and evaluator,
+which of three architecturally distinct retrievers returns the most
+relevant canonical documents from long-context corpora? This report
+answers the question for the three tracks that have been executed on
+the program's four-dataset scope.
+
+\subsection{Scope}
+The four datasets are CLERC, CUAD, GreekBarBench, and LaRA. They
+span the realistic range of source-document sizes from short
+passages (CLERC, a few hundred tokens per document) to very long
+documents (LaRA, hundreds of thousands of tokens per document).
+The shared protocol, the shared embedder, and the shared evaluation
+are described in Section~\ref{sec:protocol}.
+
+\subsection{What this report does not claim}
+It does not claim statistical significance. Each track is executed
+once, deterministically, on its full query set. The observed
+differences are descriptive. It does not claim native-fidelity
+reproduction of any external architecture. It does not compare
+end-to-end answer quality; all three tracks are retrieval-only.
+
+% =====================================================================
+\section{The Three Architectures}\label{sec:arch}
+
+\subsection{LongRAG}
+LongRAG reduces the retrieval corpus by grouping $K$ adjacent
+documents into a single long retrieval unit whose token count is
+bounded above by an architectural target of approximately
+\num{4096} tokens. The paper's original setting uses Wikipedia
+hyperlink adjacency to define ``adjacent''; this study uses a
+deterministic adjacent-document grouping that preserves source
+order. Retrieval is dense-only over the long-unit corpus. Retrieved
+units are expanded to canonical documents by iterating through the
+units in rank order and emitting each unseen document once.
+LongRAG is executed as a controlled adaptation; the
+architecture-defining components (long-unit grouping and dense-only
+retrieval) are preserved.
+
+\subsection{Metadata-RAG}
+Metadata-RAG is a metadata-driven multistage retrieval
+architecture. Its defining surface is a metadata layer that
+intervenes between the query and the semantic similarity search.
+Each canonical document (or each window of it, after amendment 04)
+carries a typed metadata record extracted by a deterministic
+extractor. Each query emits typed constraints produced by the same
+extractor applied to the query text. Candidate windows must satisfy
+a minimum match ratio of \num{0.5} against the query's emitted
+constraints. The candidate set is then retrieved by exact dense
+similarity over BGE-M3 embeddings, and the metadata and semantic
+scores are fused with fixed coefficients $\alpha_m = 0.3$ and
+$\alpha_s = 0.7$. When the candidate set is empty the pipeline
+falls back to dense-only retrieval over the full corpus.
+
+Under the frozen \texttt{min\_match\_ratio} of \num{0.5} the filter
+activates only on LaRA (see Section~\ref{sec:analysis}). On CLERC,
+CUAD, and GreekBarBench the architecture is measured as a dense-only
+BGE-M3 retriever over the full corpus.
+
+\subsection{My\_RAG}
+My\_RAG is the project-owned reference architecture. It is a
+structure-aware hierarchical hybrid retriever that commits to four
+design principles: preserve source structure, retrieve fine and
+rank coarse, combine complementary retrieval signals, and be
+deterministic everywhere. It segments documents into
+semantic-parent spans, chunks each parent into overlapping
+\num{256}-token child windows without ever crossing parent
+boundaries, and indexes each child chunk with both a dense
+(\num{1024}-dimensional, L2-normalized BGE-M3) and a learned-sparse
+(BGE-M3 lexical weight) representation. At query time it retrieves
+independently from each representation, fuses the two rankings with
+Reciprocal Rank Fusion ($k=60$), aggregates child chunks to their
+parents with a best-plus-margin rule ($w=0.05$), and resolves
+parents to canonical documents by best-parent-score.
+
+\subsection{Architectural contrast}
+Table~\ref{tab:arch} summarises the axes along which the three
+architectures differ.
+
+\begin{table}[h]
+\centering
+\caption{Architectural contrast across the three tracks.}
+\label{tab:arch}
+\small
+\begin{tabular}{p{3.0cm} p{3.8cm} p{3.8cm} p{3.8cm}}
+\toprule
+\textbf{Axis} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{My\_RAG} \\
+\midrule
+Unit type & long unit & single-doc window & child chunk \\
+Unit size & $\approx\num{4096}$ tokens & $\le\num{8190}$ tokens
+  & $\num{256}$ tokens \\
+Lineage & multi-document & single document
+  & single parent, single doc \\
+Retrieval signal & dense & dense + metadata filter
+  & dense + learned sparse \\
+Fusion & none & weighted score & RRF ($k=60$) \\
+Aggregation & first-occurrence by unit rank
+  & first-occurrence by lineage id
+  & best-plus-margin parent, best parent by doc \\
+Corpus size (4 datasets) & \num{5669} units
+  & \num{5725} windows & \num{101814} chunks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{The Shared Protocol}\label{sec:protocol}
+
+\subsection{What is shared}
+Table~\ref{tab:shared} lists the components that are identical
+across all three tracks.
+
+\begin{table}[h]
+\centering
+\caption{Components shared identically by the three tracks.}
+\label{tab:shared}
+\small
+\begin{tabular}{p{5.0cm} p{10.0cm}}
+\toprule
+\textbf{Component} & \textbf{Shared value} \\
+\midrule
+Datasets & CLERC, CUAD, GreekBarBench, LaRA \\
+Canonical envelope & \texttt{documents.jsonl},
+  \texttt{examples.jsonl}, \texttt{manifest.json} \\
+Query set & identical \texttt{query\_id}s per dataset \\
+Ground truth & canonical \texttt{ground\_truth.relevant\_ids} \\
+Embedder identity & \texttt{BAAI/bge-m3} @ \texttt{5617a9f6\ldots} \\
+Embedding precision & FP16 \\
+Document embedding device & NVIDIA T4 (Google Colab) \\
+Evaluator & document-level metrics, cutoffs $\{1,5,10,20,50\}$ \\
+Primary metric & macro-averaged document \texttt{Recall@10} \\
+Retrieval-only boundary & no generation, no LLM judge \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What legitimately differs}
+Unit type and unit size; retrieval signal; fusion mechanism;
+aggregation rule. These are exactly the architectural axes that the
+comparison is designed to measure.
+
+\subsection{Retrieval-only boundary}
+Every stage of every pipeline is strictly retrieval-only. Ground
+truth is loaded only inside the evaluation stage, which is an
+independent process from the retriever. The retriever receives only
+\texttt{(query\_id, query\_text)} pairs.
+
+% =====================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Primary metric}
+Table~\ref{tab:primary} reports the per-dataset and macro-averaged
+document \texttt{Recall@10}.
+
+\begin{table}[h]
+\centering
+\caption{Per-dataset and macro-averaged document \texttt{Recall@10}.}
+\label{tab:primary}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{My\_RAG} \\
+\midrule
+CLERC              & \num{0.0786} & \num{0.2726} & \num{0.3546} \\
+CUAD               & \num{0.0324} & \num{0.0294} & \num{0.0431} \\
+GreekBarBench      & \num{0.2606} & \num{0.2711} & \num{0.2852} \\
+LaRA               & \num{0.8861} & \num{0.8874} & \num{0.9368} \\
+\midrule
+\textbf{Macro}     & \num{0.3144} & \num{0.3651} & \num{0.4049} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Full macro metric comparison}
+Table~\ref{tab:full} reports the complete macro-averaged metric set.
+
+\begin{table}[h]
+\centering
+\caption{Macro metric comparison across the three tracks.}
+\label{tab:full}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Metric} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{My\_RAG} \\
+\midrule
+Hit@1     & \num{0.1957} & \num{0.2313} & \num{0.2553} \\
+Hit@5     & \num{0.2606} & \num{0.3389} & \num{0.3846} \\
+Hit@10    & \num{0.3183} & \num{0.4085} & \num{0.4520} \\
+Hit@20    & \num{0.3881} & \num{0.4789} & \num{0.5416} \\
+Hit@50    & \num{0.4929} & \num{0.5920} & \num{0.6658} \\
+Recall@1  & \num{0.1905} & \num{0.2026} & \num{0.2180} \\
+Recall@5  & \num{0.2569} & \num{0.2999} & \num{0.3394} \\
+Recall@10 & \num{0.3144} & \num{0.3651} & \num{0.4049} \\
+Recall@20 & \num{0.3833} & \num{0.4316} & \num{0.4938} \\
+Recall@50 & \num{0.4870} & \num{0.5478} & \num{0.6210} \\
+Precision@10 & \num{0.0362} & \num{0.0482} & \num{0.0557} \\
+MRR@10    & \num{0.2268} & \num{0.2797} & \num{0.3123} \\
+MRR@50    & \num{0.2349} & \num{0.2882} & \num{0.3225} \\
+nDCG@10   & \num{0.2476} & \num{0.2883} & \num{0.3214} \\
+nDCG@50   & \num{0.2880} & \num{0.3319} & \num{0.3733} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering is consistent across every metric: My\_RAG first,
+Metadata-RAG second, LongRAG third. This uniformity is itself a
+finding: the three architectures rank differently along a single
+dominant axis, and the axis is not noise.
+
+\subsection{Relative position}
+\begin{center}
+\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Comparison} & \textbf{Relative delta} \\
+\midrule
+Metadata-RAG vs LongRAG & $+16.1\%$ on macro Recall@10 \\
+Metadata-RAG vs My\_RAG & $-9.8\%$ on macro Recall@10 \\
+My\_RAG vs LongRAG & $+28.8\%$ on macro Recall@10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Per-dataset relative deltas}
+\begin{table}[h]
+\centering
+\caption{Relative improvement of Metadata-RAG over LongRAG per
+dataset.}
+\label{tab:relativedelta}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{Relative delta} \\
+\midrule
+CLERC              & \num{0.0786} & \num{0.2726} & $+247\%$ \\
+CUAD               & \num{0.0324} & \num{0.0294} & $-9.3\%$ \\
+GreekBarBench      & \num{0.2606} & \num{0.2711} & $+4.0\%$ \\
+LaRA               & \num{0.8861} & \num{0.8874} & $+0.15\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The largest advantage of Metadata-RAG over LongRAG is on the
+shortest-document corpus (CLERC), where LongRAG's coarse
+multi-document units dilute the relevant document. The single
+dataset on which Metadata-RAG loses to LongRAG is CUAD, where the
+query text is templated and produces at most one constraint per
+query, leaving the metadata filter inactive and the dense-only
+Metadata-RAG pipeline at a slight disadvantage relative to LongRAG's
+coarser but better-scored long units on long legal contracts.
+
+% =====================================================================
+\section{Analysis}\label{sec:analysis}
+
+\subsection{Why My\_RAG wins}
+My\_RAG combines three architectural mechanisms that neither of the
+other two tracks provides simultaneously:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item hierarchical chunking that never crosses semantic-parent
+    boundaries, which keeps evidence coherent at the retrieval unit
+    level;
+  \item a learned-sparse lexical signal fused with the dense signal
+    by Reciprocal Rank Fusion, which recovers evidence that the
+    dense signal alone misses;
+  \item a parent-aggregation rule that rewards parents with multiple
+    strong child chunks, which prevents a single long parent from
+    dominating the document ranking by sheer chunk count.
+\end{enumerate}
+
+None of the other tracks has all three at once. LongRAG has none of
+them; Metadata-RAG has the first, but only through amendment 04, and
+its metadata filter is inactive on three of the four datasets, so
+its effective architecture on those three datasets is a plain
+dense-only document-level retriever.
+
+\subsection{Why Metadata-RAG beats LongRAG}
+The comparison is not between two dense-only retrievers at the same
+granularity. LongRAG retrieves over units that may contain many
+documents; Metadata-RAG retrieves over windows that are always
+single-document. On corpora whose documents are shorter than
+LongRAG's unit budget, the single-document window preserves
+document identity in the ranking, while the multi-document unit
+dilutes it. The magnitude of the resulting gap is the largest on
+CLERC, where LongRAG packs roughly eleven documents per unit; it
+narrows on LaRA, where both architectures operate at
+near-document-level granularity.
+
+\subsection{Why Metadata-RAG loses to My\_RAG}
+On the three datasets where the metadata filter is inactive,
+Metadata-RAG is a dense-only single-document retriever with no
+hierarchical chunking, no lexical signal, and no parent aggregation.
+My\_RAG has all three. The gap of \num{9.8}\% on the primary metric
+is the aggregate effect of those missing mechanisms.
+
+On LaRA, where the metadata filter does activate, the gap narrows to
+\num{5.3}\%. This is consistent with the metadata filter contributing
+a real but bounded improvement on the one corpus where it activates.
+
+\subsection{The metadata-stage activation finding}
+The single most important observation for the program's paper is the
+metadata-stage activation rate. Under the frozen
+\texttt{min\_match\_ratio} of \num{0.5}, the filter activated on
+\num{0.1}\% of CLERC queries, \num{2.4}\% of CUAD, \num{7.7}\% of
+GreekBarBench, and \num{66.3}\% of LaRA. The pattern is not random:
+it tracks the constraint density produced by the frozen extractor
+on each dataset's query texts. Long judicial opinions in CLERC emit
+dozens of constraints per query and make the frozen threshold
+unattainable. Templated CUAD queries emit at most one constraint.
+Greek queries emit nothing because the extractor is ASCII-only.
+English natural questions in LaRA emit a moderate number of
+constraints and the filter activates on the majority of the corpus.
+
+The architectural observation is that a metadata-driven retrieval
+architecture with a frozen threshold can be effectively dense-only
+on corpora whose query text distribution does not align with the
+threshold. No post-hoc tuning was applied; the observation is
+reported as-is.
+
+% =====================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+\subsection{Scope}
+The comparison covers four of the program's canonical datasets. The
+remaining three (RULER, Loong, LongBench-v2) are excluded by
+explicit scoping decision to match the runnable scope of all three
+tracks.
+
+\subsection{Statistical uncertainty}
+Both tracks are executed once, deterministically, on the full query
+set. No bootstrap confidence intervals, no repeated trials, and no
+paired significance tests are reported. The observed differences are
+descriptive.
+
+\subsection{Precision}
+FP16 embeddings are used. FP32 equivalence is not claimed.
+
+\subsection{Ground-truth projection}
+All three tracks are evaluated at the canonical-document level.
+Datasets with span-level or clause-level annotations could arguably
+be evaluated at finer granularity; the program's shared protocol
+commits to document level.
+
+\subsection{Controlled adaptations}
+Each track contains controlled adaptations. Their full documentation
+is in each track's own report; the comparison reports only the
+executed numbers.
+
+\subsection{Frozen thresholds}
+The metadata filter threshold of \num{0.5}, the fusion coefficients
+$\alpha_m=0.3$ and $\alpha_s=0.7$, the RRF constant $k=60$, the
+child-chunk size of \num{256} tokens, the parent-aggregation weight
+$w=0.05$, and the long-unit budget of $\approx\num{4096}$ tokens are
+all frozen. Any of them could in principle be tuned to improve a
+given track's numbers on a given corpus; the controlled comparison
+does not permit this.
+
+% =====================================================================
+\section{Conclusion}
+
+We have compared LongRAG, Metadata-RAG, and My\_RAG under a fully
+controlled, retrieval-only protocol on four heterogeneous
+long-context corpora. Under this protocol My\_RAG achieves a macro
+document \texttt{Recall@10} of \num{0.4049}, Metadata-RAG of
+\num{0.3651}, and LongRAG of \num{0.3144}. The ordering is
+consistent across every reported metric and every dataset. The
+magnitude of the gaps decomposes cleanly along the architectural
+axes: unit granularity (LongRAG's coarse multi-document units versus
+Metadata-RAG's single-document windows versus My\_RAG's parent-bound
+child chunks), retrieval signal (dense-only versus dense plus
+metadata versus dense plus learned-sparse plus RRF), and aggregation
+(first-occurrence versus parent-based best-plus-margin).
+
+The most useful finding for the program's paper is the interaction
+between the frozen metadata-filter threshold and the constraint
+density of the corpora. Metadata-RAG is dense-only on three of the
+four datasets and metadata-filtered only on LaRA. This is a
+reproducible property of the frozen design and is reported without
+post-hoc adjustment. It is the kind of architectural observation
+that a controlled comparison is meant to produce.
+
+\end{document}

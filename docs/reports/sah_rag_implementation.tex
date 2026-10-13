@@ -1,0 +1,2181 @@
+% =====================================================================
+% SAH-RAG: Architecture and Implementation Report
+% A Technical Deep-Dive into the Structure-Aware Hierarchical Hybrid
+% Retrieval System (rag_system)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={SAH-RAG Architecture and Implementation Report},
+  pdfauthor={RAG Architecture Readiness Program},
+}
+
+\sisetup{round-mode=places,round-precision=4,detect-weight=true}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codekw}{RGB}{0,90,160}
+\definecolor{codestr}{RGB}{160,50,20}
+\definecolor{codecom}{RGB}{110,110,110}
+
+\lstdefinelanguage{python}{
+  language=Python,
+  morekeywords={self,True,False,None},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecom}\itshape,
+  stringstyle=\color{codestr},
+}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+  numbers=left,
+  numberstyle=\tiny\color{black!40},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small My\_RAG --- Architecture \& Implementation}
+\lhead{\small rag\_system Technical Reference}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries My\_RAG (\texttt{rag\_system}):}\\[0.15cm]
+  {\large Architecture, Design Rationale, and Implementation\\ of a Structure-Aware Hierarchical Hybrid Retriever}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Technical Implementation Report
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+We present a complete technical description of \emph{My\_RAG}
+(\texttt{rag\_system}), the project-owned reference retrieval
+architecture of the RAG Architecture Readiness Program. The
+architecture is a \emph{structure-aware hierarchical hybrid} retriever
+that treats a canonical document as a composition of deterministic
+semantic parents and child chunks, indexes child chunks in a Qdrant
+collection that carries both a dense BGE-M3 vector and a learned-sparse
+BGE-M3 vector, retrieves candidates independently from both
+representations, and fuses their rankings with Reciprocal Rank Fusion
+before aggregating back to the parent and document levels. The present
+document describes the architecture at implementation granularity: the
+exact data models and their field-level constraints, the algorithms
+that produce each artifact, the deterministic identity schemes that
+make every layer content-addressable, and the invariants that each
+layer is required to maintain. We do not report experimental results;
+those are documented separately in the program's comparison and
+operating-point reports. The report is organized as a code-adjacent
+walkthrough of the nine subpackages of \texttt{rag\_system}
+(\texttt{canonical}, \texttt{parsing}, \texttt{chunking},
+\texttt{embedding}, \texttt{storage}, \texttt{retrieval},
+\texttt{evaluation}, \texttt{artifacts}, and the top-level
+orchestration modules), with cross-references to the specific
+classes, functions, and configuration fields that define each stage.
+The goal of this document is to make every design decision and every
+implementation detail of My\_RAG legible to a reader who has not
+seen the source code.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} retrieval-augmented generation;
+hierarchical chunking; semantic parents; learned-sparse retrieval;
+reciprocal rank fusion; deterministic artifacts; content-addressable
+identity; Pydantic data models; Qdrant hybrid collections.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}\label{sec:intro}
+
+\subsection{Purpose of this document}
+This document is a \emph{technical implementation report} for My\_RAG,
+the project-owned retrieval architecture of the RAG Architecture
+Readiness Program. It is the companion document to:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the My\_RAG baseline report, which establishes the
+    architecture's place in the program and reports its retrieval
+    quality against the shared evaluation protocol;
+  \item the My\_RAG optimal-operation study, which characterizes
+    the architecture's parameter-response behavior and freezes a
+    validated operating configuration;
+  \item the LongRAG vs.\ My\_RAG comparison report, which places
+    My\_RAG's numbers beside an external baseline.
+\end{itemize}
+
+What those reports do \emph{not} do is describe \emph{how} the
+architecture is built. The present report is that description. It
+contains no experimental results, no metric tables, and no
+cross-architecture comparisons. Its purpose is to make every design
+decision and every implementation detail of My\_RAG legible to a
+reader who has not seen the source code.
+
+\subsection{Scope and audience}
+The intended reader is a retrieval engineer or researcher who wants
+to understand:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item what data models My\_RAG uses and what invariants those
+    models enforce;
+  \item what algorithms transform the input at each stage and what
+    those algorithms guarantee;
+  \item why each design decision was made and what alternatives
+    were considered;
+  \item how reproducibility is enforced at every layer.
+\end{itemize}
+
+The report is organized as a code-adjacent walkthrough. Each section
+corresponds to a subpackage or module of the codebase, presents the
+data models that the module exposes, describes the algorithms that
+operate on those models, and states the invariants the module is
+responsible for maintaining.
+
+\subsection{How to read this report}
+Section~\ref{sec:principles} states the five design principles that
+govern the architecture. Section~\ref{sec:architecture} gives a
+system-level overview. Sections~\ref{sec:canonical}
+through~\ref{sec:evaluation} descend into each pipeline layer in
+order. Section~\ref{sec:artifacts} covers the artifact infrastructure
+that every layer depends on. Section~\ref{sec:determinism}
+summarizes the determinism and reproducibility guarantees that the
+architecture as a whole provides. Section~\ref{sec:packages}
+catalogs the package structure and entry points.
+
+% =====================================================================
+\section{Design Principles}\label{sec:principles}
+
+My\_RAG is governed by five design principles. Every implementation
+decision in this report traces back to one or more of them.
+
+\subsection{Preserve source structure}
+The architecture must never silently discard or blur the structural
+organization of a source document. A document's sections, clauses,
+and paragraphs are not an accident of formatting; they are evidence
+of how the document's author intended the material to be read. Any
+retrieval unit that crosses a section boundary mixes evidence that
+the author deliberately separated.
+
+This principle is implemented at two levels. First, the structural
+parser produces \emph{semantic parents} that are guaranteed to be
+contiguous, non-overlapping spans of the normalized document text.
+Second, the child chunker never emits a chunk that crosses a parent
+boundary. Together, these two invariants mean that every child chunk
+in the system is a fragment of exactly one semantic parent, and every
+semantic parent is a fragment of exactly one canonical document.
+
+\subsection{Retrieve fine, rank coarse}
+The granularity at which evidence is best matched to a query is not
+the granularity at which the user wants results. Retrieval works
+well on small, semantically focused units: a query is compared to a
+fragment of text, and the fragment's meaning is measured by its
+embedding. But the user wants to see documents, not fragments.
+
+My\_RAG therefore retrieves at the child-chunk level and ranks at
+the document level. Between the two, an intermediate parent level
+aggregates child evidence into coherent parent scores. The two-step
+aggregation (child $\to$ parent $\to$ document) preserves the fine
+granularity of the match while returning results at the granularity
+of interest.
+
+\subsection{Combine complementary signals}
+Dense and learned-sparse retrieval have different failure modes.
+Dense retrieval captures semantic similarity but can miss exact
+lexical matches in technical or domain-specific queries. Learned-sparse
+retrieval captures lexical evidence but cannot generalize across
+paraphrases. Neither alone is best on every query.
+
+The architecture retrieves independently from both representations
+and fuses their rankings. Because both representations are produced
+by the same model (BGE-M3), they share the same vocabulary and
+tokenizer, which makes the fusion cleaner than fusing two independently
+trained signals.
+
+The fusion uses Reciprocal Rank Fusion (RRF), which is rank-based
+rather than score-based. This is a deliberate choice: RRF does not
+require the two representations' scores to be on the same scale, and
+it does not privilege whichever representation happens to produce
+larger raw scores.
+
+\subsection{Be deterministic everywhere}
+Every identity, every tie-break, every serialization format, and
+every aggregation rule is a deterministic function of the input. Two
+executions of the same pipeline on the same inputs produce byte-identical
+artifacts (modulo floating-point nondeterminism in the embedder, which
+is isolated to the embedding layer).
+
+Determinism matters for three reasons. First, it makes the architecture
+auditable: any artifact can be regenerated from its inputs and
+verified against a checksum. Second, it makes the architecture
+resumable: an interrupted run can be restarted without producing
+inconsistent state. Third, it makes the architecture fair to compare
+against other architectures: no cross-run variance can be attributed
+to the architecture's own behavior.
+
+\subsection{Enforce invariants loudly}
+Where a property is required for correctness, the architecture
+enforces it at the earliest possible layer and raises an exception
+if it is violated. Silent data loss is treated as a bug. Examples
+include:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item a \texttt{SemanticParent} whose text does not equal the
+    slice of the canonical normalized text at its character span is
+    rejected;
+  \item a \texttt{ChildChunk} whose normalized span is not contained
+    inside its parent's normalized span is rejected;
+  \item a chunked document whose chunk indices are not contiguous
+    from zero is rejected;
+  \item a Qdrant ingestion batch that contains a duplicate point ID
+    is rejected;
+  \item an embedding shard whose records do not cover the full set
+    of source chunks is rejected.
+\end{itemize}
+
+The principle is that any invariant violation is a signal that
+something upstream has gone wrong, and it is better to fail at the
+violating layer than to propagate corrupted data downstream.
+
+% =====================================================================
+\section{System Architecture}\label{sec:architecture}
+
+\subsection{Dataflow}
+Figure~\ref{fig:pipeline} shows the architecture's end-to-end
+dataflow. The offline portion reads canonical documents and produces
+a Qdrant hybrid collection. The online portion reads a query and
+produces a ranked document list.
+
+\begin{figure}[h]
+\centering
+\small
+\begin{tabular}{l}
+\hline
+\textbf{Offline}\\
+\hline
+\texttt{CanonicalDocument}\\
+$\downarrow$ \texttt{DeterministicStructuralParser.parse()} \\
+\texttt{ParsedDocument} containing a tuple of \texttt{SemanticParent} \\
+$\downarrow$ \texttt{HierarchicalChildChunker.chunk\_document()} \\
+tuple of \texttt{ChildChunk} \\
+$\downarrow$ BGE-M3 (dense + learned sparse) \\
+\texttt{ChunkEmbeddingRecord} per child chunk \\
+$\downarrow$ \texttt{ingest\_embedding\_records()} \\
+Qdrant hybrid collection (named vectors \texttt{dense} and \texttt{sparse}) \\
+\hline
+\textbf{Online}\\
+\hline
+query text\\
+$\downarrow$ BGE-M3 (dense + learned sparse) \\
+query dense vector, query sparse vector \\
+$\downarrow$ \texttt{retrieve\_dense()} / \texttt{retrieve\_sparse()} / \texttt{retrieve\_hybrid\_rrf()} \\
+ranked \texttt{RetrievedChunk} \\
+$\downarrow$ \texttt{aggregate\_chunks\_to\_parents()} \\
+ranked \texttt{RetrievedParent} \\
+$\downarrow$ \texttt{resolve\_parents\_to\_documents()} \\
+ranked \texttt{RetrievedDocument} \\
+\hline
+\end{tabular}
+\caption{My\_RAG end-to-end dataflow.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Layer responsibilities}
+Table~\ref{tab:layers} summarizes the responsibility of each layer and
+the module that implements it.
+
+\begin{table}[h]
+\centering
+\caption{Subpackage responsibilities.}
+\label{tab:layers}
+\small
+\begin{tabular}{p{3.2cm} p{11cm}}
+\toprule
+\textbf{Subpackage} & \textbf{Responsibility} \\
+\midrule
+\texttt{canonical} & Typed canonical document and example models; loaders; path resolution. \\
+\texttt{parsing} & Deterministic structural parser producing semantic parents. \\
+\texttt{chunking} & Parent-aware token chunker producing child chunks. \\
+\texttt{embedding} & Dense and learned-sparse embedding record models; shard I/O; catalog. \\
+\texttt{storage} & Qdrant collection creation and hybrid ingestion. \\
+\texttt{retrieval} & Dense, sparse, and RRF retrieval; parent aggregation; document resolution. \\
+\texttt{evaluation} & Ranked-retrieval metrics; evaluation case construction; manifest writing. \\
+\texttt{artifacts} & Base Pydantic model; deterministic identities; sidecar manifests; atomic I/O. \\
+\texttt{generation} & (present but optional; disabled in retrieval-only execution). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Canonical Input Layer}\label{sec:canonical}
+
+The \texttt{canonical} subpackage defines the input data models and
+the streaming loaders that read them from disk. It contains five
+modules: \texttt{models.py}, \texttt{loaders.py}, \texttt{paths.py},
+\texttt{jsonl.py}, and \texttt{inspection.py}.
+
+\subsection{Data models}
+The two principal models are \texttt{CanonicalDocument} and
+\texttt{CanonicalExample}.
+
+\subsubsection{CanonicalDocument}
+\begin{lstlisting}[language=python]
+class CanonicalDocument(CanonicalBaseModel):
+    doc_id: str
+    dataset: str
+    text_raw: str
+    text_normalized: str
+    title: str | None = None
+    source_path: str | None = None
+    source_row: int | str | None = None
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+The model has \texttt{extra="allow"} (inherited from
+\texttt{CanonicalBaseModel}), which means that additional fields
+present in a canonical file are preserved rather than rejected. It
+has \texttt{frozen=True}, so instances are immutable once created.
+Field validators require that \texttt{doc_id} and \texttt{dataset}
+are non-empty after stripping whitespace.
+
+Both \texttt{text\_raw} and \texttt{text\_normalized} are carried.
+The raw text is the exact source bytes; the normalized text is the
+result of whitespace normalization applied during canonical dataset
+construction. The parser and chunker operate exclusively on the
+normalized text, but the raw text is preserved so that character
+offsets in the normalized text can be mapped back to the raw text
+in principle (though the mapping is only exact when the two texts
+are identical; the parser handles the case where they are not by
+setting \texttt{raw\_char\_span} to \texttt{None} for the affected
+artifacts).
+
+\subsubsection{CanonicalExample, CanonicalQuery, CanonicalGroundTruth}
+An example bundles a query and its ground truth:
+\begin{lstlisting}[language=python]
+class CanonicalQuery(CanonicalBaseModel):
+    query_id: str
+    dataset: str
+    question: str
+    task_type: str | None = None
+    split: str | None = None
+    doc_ids: list[str] = Field(default_factory=list)
+    metadata: JsonObject = Field(default_factory=dict)
+
+class CanonicalGroundTruth(CanonicalBaseModel):
+    ground_truth_type: GroundTruthType
+    dataset: str
+    query_id: str
+    answers: list[Any] = Field(default_factory=list)
+    relevant_ids: list[str] = Field(default_factory=list)
+    choice: Any | None = None
+    spans: list[Any] = Field(default_factory=list)
+    metadata: JsonObject = Field(default_factory=dict)
+
+class CanonicalExample(CanonicalBaseModel):
+    query: CanonicalQuery
+    ground_truth: CanonicalGroundTruth
+    supplied_context: Any | None = None
+    options: Any | None = None
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+The \texttt{GroundTruthType} enum has five values:
+\textsc{Composite}, \textsc{SpanSet}, \textsc{FreeText},
+\textsc{MultipleChoice}, and \textsc{Deterministic}. The enum is used
+to signal to downstream consumers which ground-truth fields are
+populated; the program's retrieval-only evaluator uses
+\texttt{relevant\_ids} regardless of type.
+
+\texttt{CanonicalExample} enforces an identity consistency check at
+\texttt{model\_post\_init}: the query's \texttt{query\_id} must equal
+the ground truth's \texttt{query\_id}, and the query's
+\texttt{dataset} must equal the ground truth's \texttt{dataset}. This
+prevents constructing an example whose query and ground truth refer
+to different benchmarks.
+
+\subsection{Loaders}
+The \texttt{loaders.py} module provides two public streaming
+functions:
+
+\begin{lstlisting}[language=python]
+def iter_canonical_documents(
+    dataset: str | CanonicalDatasetPaths,
+) -> Iterator[CanonicalDocument]
+
+def iter_canonical_examples(
+    dataset: str | CanonicalDatasetPaths,
+) -> Iterator[CanonicalExample]
+\end{lstlisting}
+
+Both functions are true iterators: they stream records from JSONL,
+validating each record against its Pydantic model before yielding it.
+A record that fails validation raises a
+\texttt{CanonicalModelValidationError} that carries the file path,
+the record number within the file, the model name, and the underlying
+Pydantic \texttt{ValidationError}. This structured error is what
+allows the pipeline to abort loudly and specifically when a canonical
+file is corrupted.
+
+The loaders do not load the full dataset into memory. They are safe
+to use on the largest canonical files in the suite, which exceed
+\SI{800}{MB}.
+
+\subsection{Paths}
+The \texttt{paths.py} module resolves a dataset name to a
+\texttt{CanonicalDatasetPaths} dataclass containing:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{documents} --- the path to \texttt{documents.jsonl};
+  \item \texttt{examples} --- the path to \texttt{examples.jsonl};
+  \item \texttt{validation} --- the path to \texttt{validation.json};
+  \item \texttt{manifest} --- the path to \texttt{manifest.json}.
+\end{itemize}
+
+The root directory for a dataset is determined by the
+\texttt{get\_canonical\_root()} function, which reads from a
+project-level configuration or environment variable. This indirection
+is what allows the canonical suite to be relocated without code
+changes.
+
+% =====================================================================
+\section{Structural Parsing}\label{sec:parsing}
+
+The \texttt{parsing} subpackage converts a \texttt{CanonicalDocument}
+into a \texttt{ParsedDocument}, which is a structured representation
+containing zero or more \texttt{SemanticParent} objects. The parser
+is deterministic: the same input text always produces the same parent
+sequence, with the same parent identities.
+
+\subsection{The \texttt{SemanticParent} model}
+\begin{lstlisting}[language=python]
+class SemanticParent(ArtifactBaseModel):
+    parent_id: str
+    doc_id: str
+    dataset: str
+
+    parent_parent_id: str | None = None
+    hierarchy_level: int = Field(ge=0)
+    sibling_index: int = Field(ge=0)
+
+    title: str | None = None
+    text_normalized: str
+    text_raw: str | None = None
+
+    normalized_char_span: OffsetSpan
+    raw_char_span: OffsetSpan | None = None
+
+    token_span: OffsetSpan | None = None
+    token_count: int | None = Field(default=None, ge=0)
+
+    start_boundary: tuple[BoundaryEvidence, ...] = ()
+    end_boundary: tuple[BoundaryEvidence, ...] = ()
+
+    parser_id: str
+    parser_version: str
+    parser_config_hash: str
+
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+The model carries three kinds of information:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Identity}: \texttt{parent\_id}, \texttt{doc\_id},
+    \texttt{dataset}. All three must be non-empty.
+  \item \textbf{Content}: \texttt{text\_normalized} and
+    \texttt{text\_raw}, together with the character spans
+    (\texttt{normalized\_char\_span}, \texttt{raw\_char\_span}) that
+    locate the parent inside its canonical document.
+  \item \textbf{Provenance}: \texttt{start\_boundary} and
+    \texttt{end\_boundary} are tuples of \texttt{BoundaryEvidence}
+    objects, each carrying a \texttt{method} (from the
+    \texttt{BoundaryMethod} enum), an optional \texttt{confidence},
+    and optional \texttt{details}. This design allows a boundary to
+    be justified by multiple independent pieces of evidence.
+\end{enumerate}
+
+The model validators enforce the following invariants:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item a parent cannot be its own parent
+    (\texttt{parent\_parent\_id != parent\_id});
+  \item if the normalized character span is non-empty, the normalized
+    text must also be non-empty.
+\end{itemize}
+
+The \texttt{BoundaryMethod} enum enumerates the ways a boundary can
+be justified. The parser's own methods are
+\textsc{DocumentStart}, \textsc{DocumentEnd}, \textsc{ExplicitHeading},
+and \textsc{DocumentPreamble}; other methods exist in the enum for
+compatibility with parsers that use different signals.
+
+\subsection{The parsing algorithm}
+The parser's entry point is:
+
+\begin{lstlisting}[language=python]
+class DeterministicStructuralParser:
+    def __init__(
+        self,
+        config: DeterministicParserConfig | None = None,
+    ) -> None: ...
+
+    def parse(
+        self,
+        document: CanonicalDocument,
+    ) -> ParsedDocument: ...
+\end{lstlisting}
+
+The \texttt{parse()} method executes four steps: segmentation,
+heading detection, grouping, and parent construction. Each step is
+described below.
+
+\subsubsection{Step 1: Paragraph segmentation}
+The function \texttt{iter\_paragraph\_spans()} in
+\texttt{parsing/segmentation.py} splits the normalized text into
+blocks using the regular expression
+\texttt{(?:\textbackslash r?\textbackslash n[ \textbackslash t]*)\{2,\}},
+which matches two or more newlines (with optional intervening
+whitespace). Each block is trimmed of leading and trailing
+whitespace, and its \texttt{start} and \texttt{end} offsets in the
+original text are preserved exactly.
+
+Empty blocks are discarded. The result is a tuple of \texttt{TextBlock}
+dataclasses, each carrying a \texttt{block\_index}, \texttt{text},
+\texttt{start}, and \texttt{end}. The \texttt{TextBlock} dataclass
+validates that \texttt{len(text) == end - start} and that the text is
+non-empty.
+
+\subsubsection{Step 2: Heading detection}
+The function \texttt{detect\_heading\_reason()} in
+\texttt{parsing/headings.py} classifies a block as a heading using a
+conservative three-tier scheme. The function returns a
+\texttt{HeadingReason} enum value (\textsc{Numbered}, \textsc{Named},
+or \textsc{Uppercase}) or \texttt{None}.
+
+Before any of the tier-specific rules are applied, the block must
+pass a set of basic filters:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the text must be non-empty;
+  \item it must not contain a newline;
+  \item it must be at most \texttt{maximum\_heading\_characters} long
+    (default \num{120});
+  \item it must be at most \texttt{maximum\_heading\_words} words
+    (default \num{14});
+  \item it must contain at least
+    \texttt{minimum\_heading\_alphabetic\_characters} alphabetic
+    characters (default \num{4});
+  \item it must not contain URL-like or equation-like patterns;
+  \item it must not consist solely of numeric/table fragments;
+  \item it must contain at most
+    \texttt{maximum\_heading\_terminal\_punctuation} terminal
+    punctuation marks (default \num{1}).
+\end{itemize}
+
+After the basic filters, the tier-specific rules are applied in
+order:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{Named headings}: the block matches the
+    \texttt{\_NAMED\_HEADING} regex, which accepts English words
+    such as \texttt{chapter}, \texttt{section}, \texttt{article},
+    \texttt{part}, \texttt{title}, \texttt{appendix}, \texttt{annex},
+    \texttt{exhibit}, \texttt{schedule}, as well as Greek equivalents.
+    The match is case-insensitive.
+  \item \textbf{Numbered headings}: the block starts with a numbered
+    prefix matching \texttt{\_SECTION\_NUMBER} (patterns like
+    \texttt{1.}, \texttt{1.2.3}, \texttt{(1)}, \texttt{IV.}, or
+    \texttt{A.}) and additionally passes
+    \texttt{\_looks\_like\_numbered\_heading()}, which rejects
+    single-token blocks, blocks whose remainder has no alphabetic
+    content, and blocks ending with sentence-like punctuation.
+  \item \textbf{Uppercase headings}: the block's alphabetic
+    characters are at least \num{90}\% uppercase and it does not
+    consist of a single very short word.
+\end{itemize}
+
+The three-tier approach is deliberately conservative. The cost of
+misclassifying a heading is that a section boundary is placed where
+the author did not intend one; the cost of missing a heading is that
+two intended sections are merged into one parent. Both are less
+harmful than over-eager heading detection, which is why the rules
+require multiple affirmative signals.
+
+\subsubsection{Step 3: Grouping}
+The grouping step partitions the block sequence into sections, each
+beginning at a heading block (or at the first block of the document
+if the document starts with a preamble). Concretely:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Identify all blocks classified as headings.
+  \item If there are no headings, return the entire block sequence
+    as a single group.
+  \item Otherwise, if the first heading is not the first block,
+    emit the preamble as its own group.
+  \item For each heading index $i$, emit the group consisting of
+    blocks $i$ through the next heading index minus one (or through
+    the end of the sequence for the final heading).
+\end{enumerate}
+
+If \texttt{merge\_small\_structural\_groups} is enabled (the default),
+the grouping step then merges any group whose character length is
+below \texttt{minimum\_parent\_characters} (default \num{20}) into
+its successor, or into its predecessor if it has no successor. This
+prevents the parser from emitting tiny orphan parents that are too
+small to be useful retrieval units.
+
+\subsubsection{Step 4: Parent construction}
+For each group, the parser builds one \texttt{SemanticParent}. The
+parent's character span is from the first block's \texttt{start} to
+the last block's \texttt{end}. The parent's normalized text is the
+slice of the canonical normalized text at that span. If the canonical
+document's \texttt{text\_raw} equals its
+\texttt{text\_normalized} (which is the common case), the raw span
+and raw text are also populated.
+
+The parent's \texttt{parent\_id} is built by
+\texttt{build\_parent\_id()}, which takes the dataset, document ID,
+parser configuration hash, and parent index and produces a
+content-addressable identifier of the form
+\texttt{parent-\{dataset\}-\{index:06d\}-\{fingerprint\}}, where the
+fingerprint is the first twelve hex characters of the SHA-256 hash of
+a canonical JSON serialization of the identity tuple.
+
+The parent's boundary evidence is set as follows:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the first parent's start boundary is
+    \textsc{DocumentStart};
+  \item a parent whose first block is a heading has a start boundary
+    of \textsc{ExplicitHeading};
+  \item any other parent has a start boundary of
+    \textsc{DocumentPreamble};
+  \item the last parent's end boundary is \textsc{DocumentEnd};
+  \item any other parent's end boundary is \textsc{ParagraphBreak}.
+\end{itemize}
+
+\subsection{Invariants maintained by the parser}
+The parser's output is a \texttt{ParsedDocument} whose
+\texttt{parents} tuple satisfies:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item each parent's text equals the exact slice of the canonical
+    normalized text at the parent's character span;
+  \item parent spans are disjoint and their union covers the
+    document's non-whitespace content;
+  \item parent IDs are unique within the document;
+  \item each parent's \texttt{doc\_id} and \texttt{dataset} match the
+    document's;
+  \item each parent's parser identity fields match the parser that
+    produced it.
+\end{enumerate}
+
+The parser's \texttt{parse()} method also computes a
+\texttt{source\_fingerprint} that combines the document ID, dataset,
+raw text, and normalized text into a single SHA-256 hash. This
+fingerprint is used by downstream layers to detect any drift between
+the document that was parsed and the document that is currently on
+disk.
+
+% =====================================================================
+\section{Hierarchical Child Chunking}\label{sec:chunking}
+
+The \texttt{chunking} subpackage converts a \texttt{ParsedDocument}
+into a tuple of \texttt{ChildChunk} objects. Like the parser, it is
+deterministic: the same parsed document with the same chunker
+configuration always produces the same chunks with the same
+identities.
+
+\subsection{The \texttt{ChildChunk} model}
+\begin{lstlisting}[language=python]
+class ChildChunk(ArtifactBaseModel):
+    artifact_type: str = "child_chunk"
+    artifact_version: str = "1.0"
+
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+
+    chunk_index: int = Field(ge=0)
+    parent_chunk_index: int = Field(ge=0)
+
+    text_normalized: str
+    text_raw: str | None = None
+
+    normalized_char_span: OffsetSpan
+    parent_normalized_char_span: OffsetSpan
+
+    raw_char_span: OffsetSpan | None = None
+    token_span: OffsetSpan | None = None
+    token_count: int = Field(ge=0)
+
+    parser_id: str
+    parser_version: str
+    parser_config_hash: str
+
+    chunker_id: str
+    chunker_version: str
+    chunker_config_hash: str
+
+    tokenizer_id: str
+    chunk_size: int = Field(gt=0)
+    chunk_overlap: int = Field(ge=0)
+
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+The model distinguishes between two indices:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{chunk\_index} is the chunk's position in the
+    document-wide sequence of chunks, starting at zero and
+    incrementing contiguously across all parents;
+  \item \texttt{parent\_chunk\_index} is the chunk's position within
+    its parent, starting at zero for each new parent.
+\end{itemize}
+
+Two character spans are carried: \texttt{normalized\_char\_span} is
+the chunk's absolute span in the canonical normalized text, and
+\texttt{parent\_normalized\_char\_span} is the containing parent's
+span. Both are needed: the former for exact source reconstruction,
+the latter for verifying that the chunk is contained inside its
+parent.
+
+The model validators enforce:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item all identity fields are non-empty;
+  \item \texttt{chunk\_overlap < chunk\_size};
+  \item the chunk's normalized span is contained inside the parent's
+    normalized span;
+  \item a chunk with a positive token count has non-empty text;
+  \item if \texttt{token\_span} is set, its length equals
+    \texttt{token\_count}.
+\end{itemize}
+
+\subsection{Tokenizer abstraction}
+The chunker does not depend on any specific tokenizer. It depends on
+the \texttt{OffsetTokenizer} protocol defined in
+\texttt{chunking/tokenization.py}:
+
+\begin{lstlisting}[language=python]
+@runtime_checkable
+class OffsetTokenizer(Protocol):
+    @property
+    def tokenizer_id(self) -> str: ...
+
+    @property
+    def special_tokens_count(self) -> int: ...
+
+    def tokenize_with_offsets(
+        self,
+        text: str,
+    ) -> tuple[TokenSpan, ...]: ...
+\end{lstlisting}
+
+The protocol requires that the tokenizer produce \texttt{TokenSpan}
+objects with exact character offsets. This is the property that
+allows the chunker to produce chunks whose text is exactly the slice
+of the source text covered by the chunk's token window.
+
+Two concrete implementations are provided:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{RegexOffsetTokenizer} is a dependency-free
+    tokenizer used for tests. It splits on the pattern
+    \texttt{\textbackslash w+|[^\textbackslash w\textbackslash s]}
+    with Unicode support.
+  \item \texttt{HuggingFaceOffsetTokenizer} adapts a fast Hugging
+    Face tokenizer to the protocol. It requires that the wrapped
+    tokenizer expose \texttt{is\_fast = True} and produce
+    \texttt{offset\_mapping}; it raises \texttt{ValueError} if either
+    precondition fails.
+\end{itemize}
+
+The Hugging Face adapter's \texttt{tokenizer\_id} is a structured
+string of the form
+\texttt{huggingface:\{model\_id\}@\{revision\}:fast}, which pins the
+tokenizer identity to both the model and the revision used. This is
+what makes the chunker's \texttt{config\_hash} stable across
+different runs that happen to use the same tokenizer.
+
+The adapter's \texttt{tokenize\_with\_offsets()} method encodes the
+text with \texttt{add\_special\_tokens=False}, so the resulting token
+sequence contains only content tokens; the special tokens that BGE-M3
+would add when embedding are accounted for separately via
+\texttt{special\_tokens\_count}. Any token whose offset has
+\texttt{end <= start} (which can happen for special tokens or
+zero-width markers) is skipped.
+
+\subsection{Chunker configuration}
+\begin{lstlisting}[language=python]
+class ChildChunkerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    chunker_id: str = "hierarchical_token_chunker"
+    chunker_version: str = "0.3.0"
+
+    chunk_size: int = Field(default=256, gt=0)
+    chunk_overlap: int = Field(default=32, ge=0)
+
+    minimum_final_chunk_tokens: int | None = Field(
+        default=None, gt=0,
+    )
+
+    preserve_parent_boundaries: bool = True
+    include_empty_parents: bool = False
+\end{lstlisting}
+
+The configuration has two derived properties. The
+\texttt{content\_chunk\_size()} method computes the number of content
+tokens available per chunk, which is \texttt{chunk\_size} minus the
+tokenizer's \texttt{special\_tokens\_count}. The
+\texttt{effective\_minimum\_final\_chunk\_tokens()} method returns
+\texttt{minimum\_final\_chunk\_tokens} if it is set, or half the
+content chunk size (floored to an integer) otherwise.
+
+The model validator enforces \texttt{chunk\_overlap < chunk\_size}
+and \texttt{minimum\_final\_chunk\_tokens <= chunk\_size}, and it
+rejects any attempt to set
+\texttt{preserve\_parent\_boundaries = False}. The last constraint is
+what guarantees that the chunker will never produce a chunk that
+crosses a parent boundary.
+
+\subsection{The chunking algorithm}
+The chunker's entry point is:
+
+\begin{lstlisting}[language=python]
+class HierarchicalChildChunker:
+    def __init__(
+        self,
+        *,
+        tokenizer: OffsetTokenizer,
+        config: ChildChunkerConfig | None = None,
+    ) -> None: ...
+
+    def chunk_document(
+        self,
+        parsed_document: ParsedDocument,
+    ) -> tuple[ChildChunk, ...]: ...
+\end{lstlisting}
+
+The constructor computes the chunker's \texttt{config\_hash} from the
+configuration fields plus the tokenizer's identity and special-token
+count. This hash is what makes the chunker's output content-addressable
+in the same sense as the parser's.
+
+The \texttt{chunk\_document()} method iterates over the parsed
+document's parents and calls \texttt{\_chunk\_parent()} on each. Each
+parent's chunks are appended to a document-wide list, and the
+\texttt{global\_start\_index} is advanced by the number of chunks
+produced for that parent. After all parents have been processed, the
+method calls \texttt{\_validate\_document\_chunks()} to verify the
+document-level invariants (unique chunk IDs, contiguous global
+indices, valid parent references, matching document and dataset
+identifiers).
+
+\subsubsection{Chunking one parent}
+The \texttt{\_chunk\_parent()} method:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item tokenizes the parent's normalized text using the tokenizer;
+  \item if the tokenizer returns no tokens, either returns a single
+    empty chunk (if \texttt{include\_empty\_parents} is set) or
+    returns an empty tuple;
+  \item otherwise, calls \texttt{build\_token\_windows()} to determine
+    the token windows for the parent's content;
+  \item for each window, calls \texttt{\_build\_chunk()} to construct
+    a \texttt{ChildChunk}.
+\end{enumerate}
+
+\subsubsection{Token windows}
+The function \texttt{build\_token\_windows()} in
+\texttt{chunking/windows.py} is where the chunking policy is
+implemented. It takes the total token count, the content chunk size,
+the chunk overlap, and the minimum final chunk size, and returns a
+tuple of \texttt{TokenWindow} half-open intervals.
+
+The algorithm has three characteristics that matter:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \textbf{It never produces a window shorter than the minimum
+    final chunk size as a trailing residue.} When the natural
+    next window would produce a final chunk shorter than the
+    minimum, the algorithm instead slides the window backward so
+    that it is anchored at the end of the parent. This
+    \emph{anchored final window} guarantees that the last chunk is
+    large enough to be useful.
+  \item \textbf{It never produces two identical adjacent windows.}
+    The final deduplication step removes any window that is
+    identical to its predecessor, which can happen in edge cases
+    where the anchor logic produces a window that coincides with
+    the previous window.
+  \item \textbf{It is deterministic.} Given the same inputs, it
+    always produces the same sequence of windows. This is what makes
+    the chunker's output reproducible.
+\end{enumerate}
+
+\subsubsection{Building a chunk}
+The \texttt{\_build\_chunk()} method takes the window's first and
+last \texttt{TokenSpan} and uses their character offsets to compute
+the chunk's text and span:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{relative\_start} and \texttt{relative\_end} are the
+    first and last token's offsets relative to the parent's
+    normalized text;
+  \item \texttt{text\_normalized} is the slice of the parent's
+    normalized text at those offsets;
+  \item \texttt{normalized\_char\_span} is computed by adding the
+    parent's \texttt{normalized\_char\_span.start} to the relative
+    offsets;
+  \item if the parent has a raw span and raw text, the chunk's raw
+    span and raw text are computed analogously.
+\end{enumerate}
+
+The chunk's \texttt{chunk\_id} is built by
+\texttt{build\_chunk\_id()}, which combines the dataset, document ID,
+parent ID, chunker configuration hash, and \texttt{parent\_chunk\_index}.
+The identifier has the form
+\texttt{chunk-\{dataset\}-\{index:06d\}-\{fingerprint\}}.
+
+The chunk's metadata block records a set of computed values that
+downstream layers use for verification and reporting:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the relative character start and end offsets within the
+    parent;
+  \item whether this is the first and/or last chunk of its parent;
+  \item the model-input token budget;
+  \item the content-token capacity per chunk;
+  \item the special-token count;
+  \item the estimated model-input token count for the chunk
+    (\texttt{token\_count + special\_tokens\_count}).
+\end{itemize}
+
+\subsection{Invariants maintained by the chunker}
+The chunker's output is a tuple of \texttt{ChildChunk} objects that
+satisfy:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item chunk IDs are unique within the document;
+  \item global chunk indices are contiguous from zero;
+  \item every chunk's parent ID is a known parent of the parsed
+    document;
+  \item every chunk's document ID and dataset match the parsed
+    document's;
+  \item every chunk's normalized span is contained inside its
+    parent's;
+  \item every chunk's text equals the exact slice of its parent's
+    text at the chunk's relative span.
+\end{enumerate}
+
+% =====================================================================
+\section{Embedding Layer}\label{sec:embedding}
+
+The \texttt{embedding} subpackage defines the models that carry
+embeddings, the shard-writer that produces embedding artifacts, and
+the catalog that validates a complete embedding run.
+
+\subsection{Embedding models}
+Three models are defined in \texttt{embedding/models.py}:
+
+\subsubsection{EmbeddingKind and VectorPrecision}
+Two enums classify embeddings:
+
+\begin{lstlisting}[language=python]
+class EmbeddingKind(StrEnum):
+    DENSE = "dense"
+    LEARNED_SPARSE = "learned_sparse"
+    HYBRID = "hybrid"
+
+class VectorPrecision(StrEnum):
+    FLOAT16 = "float16"
+    FLOAT32 = "float32"
+\end{lstlisting}
+
+\texttt{EmbeddingKind} distinguishes dense vectors, learned-sparse
+vectors, and shards that carry both. \texttt{VectorPrecision}
+distinguishes FP16 and FP32 dense vectors.
+
+\subsubsection{SparseVector}
+\begin{lstlisting}[language=python]
+class SparseVector(ArtifactBaseModel):
+    indices: tuple[int, ...]
+    values: tuple[float, ...]
+\end{lstlisting}
+
+The validators require that \texttt{indices} and \texttt{values} have
+the same length, that all indices are non-negative, that indices are
+unique, that indices are sorted in ascending order, and that all
+values are finite. The sorted-indices requirement is what allows the
+storage layer to serialize sparse vectors as a compact pair of arrays
+without additional sorting at write time.
+
+\subsubsection{ChunkEmbeddingRecord}
+\begin{lstlisting}[language=python]
+class ChunkEmbeddingRecord(ArtifactBaseModel):
+    artifact_type: str = "chunk_embedding"
+    artifact_version: str = "1.0"
+
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+
+    model_id: str
+    model_revision: str
+    tokenizer_id: str
+    embedding_config_hash: str
+
+    dense_vector: tuple[float, ...] | None = None
+    sparse_vector: SparseVector | None = None
+
+    dense_dimension: int | None = Field(default=None, gt=0)
+    dense_precision: VectorPrecision | None = None
+    dense_normalized: bool | None = None
+
+    source_chunk_sha256: str | None = None
+\end{lstlisting}
+
+The record requires at least one of the two representations to be
+present. If the dense vector is present, all three of
+\texttt{dense\_dimension}, \texttt{dense\_precision}, and
+\texttt{dense\_normalized} are required, and the vector length must
+equal \texttt{dense\_dimension}. If the dense vector is absent, all
+three of those fields must also be absent. If
+\texttt{source\_chunk\_sha256} is set, it must be exactly sixty-four
+hexadecimal characters.
+
+\subsubsection{EmbeddingShardHeader}
+\begin{lstlisting}[language=python]
+class EmbeddingShardHeader(ArtifactBaseModel):
+    artifact_type: str = "embedding_shard_header"
+    artifact_version: str = "1.0"
+
+    shard_id: str
+    shard_index: int = Field(ge=0)
+
+    dataset: str
+    model_id: str
+    model_revision: str
+    tokenizer_id: str
+    embedding_config_hash: str
+
+    embedding_kind: EmbeddingKind
+
+    dense_dimension: int | None = Field(default=None, gt=0)
+    dense_precision: VectorPrecision | None = None
+    dense_normalized: bool | None = None
+
+    maximum_records: int = Field(gt=0)
+\end{lstlisting}
+
+The header carries the identity and configuration of one shard. Its
+validators require that dense metadata be present if and only if the
+embedding kind is \textsc{Dense} or \textsc{Hybrid}.
+
+\subsection{Embedding configuration}
+\begin{lstlisting}[language=python]
+class EmbeddingConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    embedder_id: str = "bge_m3_embedder"
+    embedder_version: str = "0.1.0"
+
+    model_id: str = "BAAI/bge-m3"
+    model_revision: str
+
+    tokenizer_id: str
+
+    embedding_kind: EmbeddingKind = EmbeddingKind.HYBRID
+
+    dense_dimension: int | None = Field(default=1024, gt=0)
+    dense_precision: VectorPrecision | None = VectorPrecision.FLOAT32
+    dense_normalized: bool | None = True
+
+    device: str = "cpu"
+    use_fp16: bool = False
+
+    batch_size: int = Field(default=2, gt=0)
+    maximum_model_input_tokens: int = Field(default=8192, gt=0)
+    shard_maximum_records: int = Field(default=10000, gt=0)
+\end{lstlisting}
+
+The configuration's validators enforce that all identity fields are
+non-empty, that dense metadata is present if and only if the kind is
+dense or hybrid, and that \texttt{use\_fp16} is not combined with
+\texttt{device = "cpu"}. The last check exists because the initial
+CPU profile of the pipeline does not enable FP16; a future profile
+that does would need to loosen this constraint.
+
+\subsection{Shard I/O}
+The \texttt{embedding/shards.py} module provides the
+\texttt{write\_embedding\_shard()} function, which is the canonical
+way to write embedding records to disk:
+
+\begin{lstlisting}[language=python]
+def write_embedding_shard(
+    *,
+    root: Path,
+    header: EmbeddingShardHeader,
+    records: Iterable[ChunkEmbeddingRecord],
+    source_chunks_path: Path,
+    source_chunks_manifest_path: Path | None = None,
+    overwrite: bool = False,
+    execution_profile: str | None = None,
+    experiment_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> EmbeddingShardWriteSummary: ...
+\end{lstlisting}
+
+The function performs the following operations:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Resolves the shard's conventional file paths
+    (\texttt{header.json}, \texttt{records.jsonl},
+    \texttt{shard.manifest.json}).
+  \item Loads the source chunk IDs from the source chunk JSONL file
+    to use for membership validation.
+  \item Writes the records through an \texttt{AtomicJsonlWriter},
+    validating each record against the header and against the source
+    chunk ID set.
+  \item Writes the header atomically.
+  \item Builds and writes a sidecar manifest that records the SHA-256
+    of the header, the records file, and every input.
+\end{enumerate}
+
+If any step fails, the previously written files are deleted before
+the exception propagates. This is what makes the writer atomic: a
+failed write leaves no partial artifacts.
+
+The record-writer's validation checks every record against the
+header's identity fields (\texttt{dataset}, \texttt{model\_id},
+\texttt{model\_revision}, \texttt{tokenizer\_id},
+\texttt{embedding\_config\_hash}), against the header's
+representation kind (dense vs.\ sparse vs.\ hybrid), and against the
+header's dense metadata (dimension, precision, normalization). It also
+verifies that the record's \texttt{chunk\_id} is present in the source
+chunk ID set.
+
+\subsection{Embedding catalog}
+The \texttt{embedding/catalog.py} module defines the
+\texttt{EmbeddingRunCatalog} model, which describes a complete
+embedding run across multiple shards, and the
+\texttt{validate\_embedding\_catalog\_files()} function, which
+verifies the catalog against the files on disk.
+
+The catalog's validators enforce:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item shard indices are contiguous from zero;
+  \item the sum of shard record counts equals the catalog's total
+    record count;
+  \item the shards' source ranges are contiguous and cover the full
+    record count.
+\end{itemize}
+
+The file-level validator additionally verifies that each shard's
+header and manifest match the catalog entry's checksums, that each
+shard's record count matches the catalog entry's, and that no chunk
+ID appears in more than one shard.
+
+% =====================================================================
+\section{Storage Layer}\label{sec:storage}
+
+The \texttt{storage} subpackage provides Qdrant collection creation
+and hybrid-vector ingestion.
+
+\subsection{Collection creation}
+\begin{lstlisting}[language=python]
+def create_hybrid_collection(
+    *,
+    client: QdrantClient,
+    collection_name: str,
+    dense_dimension: int,
+    recreate: bool = False,
+) -> None:
+\end{lstlisting}
+
+The function creates a Qdrant collection with two named vectors:
+\texttt{dense} (the dense BGE-M3 vector, COSINE distance,
+unquantized) and \texttt{sparse} (the learned-sparse vector,
+in-memory index, unquantized). Both vector names are module-level
+constants (\texttt{DENSE\_VECTOR\_NAME = "dense"} and
+\texttt{SPARSE\_VECTOR\_NAME = "sparse"}) that are also exported
+from the storage package's \texttt{\_\_init\_\_}.
+
+The function refuses to overwrite an existing collection unless
+\texttt{recreate=True} is passed explicitly. This is a deliberate
+safety measure: accidental collection replacement is a common source
+of silent data loss in retrieval systems.
+
+\subsection{Deterministic point identity}
+\begin{lstlisting}[language=python]
+def build_qdrant_point_id(chunk_id: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"rag-chunk:{chunk_id}"))
+\end{lstlisting}
+
+Qdrant point IDs are computed from the chunk ID using UUID version 5
+with the URL namespace. This makes the point identity a deterministic
+function of the chunk identity: the same chunk always maps to the
+same point ID, regardless of ingestion order or Qdrant instance. This
+is what makes Qdrant ingestion idempotent.
+
+\subsection{Payload construction}
+The \texttt{build\_payload()} function constructs the searchable
+payload for a Qdrant point. The payload includes:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the chunk's identity (\texttt{chunk\_id}, \texttt{parent\_id},
+    \texttt{doc\_id}, \texttt{dataset});
+  \item the chunk's indices (\texttt{chunk\_index},
+    \texttt{parent\_chunk\_index});
+  \item the chunk's normalized text;
+  \item the chunk's character and token spans;
+  \item the model and embedding identity (\texttt{model\_id},
+    \texttt{model\_revision}, \texttt{embedding\_config\_hash});
+  \item the shard ID.
+\end{itemize}
+
+The payload is checked before construction: the chunk's and record's
+chunk IDs must match, and the record's dense vector length must match
+the header's declared dimension.
+
+\subsection{Ingestion}
+\begin{lstlisting}[language=python]
+def ingest_embedding_records(
+    *,
+    client: QdrantClient,
+    collection_name: str,
+    header: EmbeddingShardHeader,
+    records: Iterable[ChunkEmbeddingRecord],
+    chunks: Iterable[ChildChunk],
+    batch_size: int = 64,
+) -> QdrantIngestionSummary:
+\end{lstlisting}
+
+The function indexes the chunks by chunk ID, iterates over the
+records, builds a Qdrant point for each, and upserts points in
+batches of \texttt{batch\_size}. It validates that every record
+references a known chunk, that no two points in the same batch have
+the same ID, and that the header's dense dimension is present (since
+hybrid ingestion requires it).
+
+The return value is a \texttt{QdrantIngestionSummary} that records
+the collection name, the number of points ingested, the dense
+dimension, and both named-vector names.
+
+\subsection{Collection manifest}
+The \texttt{QdrantCollectionManifest} model describes a completed
+collection. Its validators enforce that all identity fields are
+non-empty, that the catalog and configuration hashes are valid
+SHA-256 strings, and that the manifest's \texttt{complete} flag is
+consistent with its point counts.
+
+% =====================================================================
+\section{Retrieval Layer}\label{sec:retrieval}
+
+The \texttt{retrieval} subpackage implements the online retrieval
+path: dense retrieval, sparse retrieval, RRF fusion, parent
+aggregation, and document resolution.
+
+\subsection{Retrieval models}
+Two models are defined in \texttt{retrieval/models.py}:
+
+\subsubsection{RetrievedChunk}
+\begin{lstlisting}[language=python]
+class RetrievedChunk(ArtifactBaseModel):
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+
+    rank: int = Field(ge=1)
+    score: float
+
+    text_normalized: str
+    retrieval_method: str
+
+    payload: dict[str, object] = Field(default_factory=dict)
+\end{lstlisting}
+
+The model carries one child chunk with its score and rank. Its
+validators require that all identity fields are non-empty.
+
+\subsubsection{RetrievedParent}
+\begin{lstlisting}[language=python]
+class RetrievedParent(ArtifactBaseModel):
+    parent_id: str
+    doc_id: str
+    dataset: str
+
+    rank: int = Field(ge=1)
+    score: float
+
+    best_chunk_rank: int = Field(ge=1)
+    matched_chunk_count: int = Field(ge=1)
+
+    chunk_ids: tuple[str, ...]
+    child_scores: tuple[float, ...]
+\end{lstlisting}
+
+The parent model carries the aggregated score, the best contributing
+child's rank, and the count of contributing children, plus the
+contributing chunk IDs and their individual scores. Its validators
+enforce that the chunk IDs and child scores are aligned, that
+\texttt{matched\_chunk\_count} equals the number of contributing
+children, and that no chunk ID appears twice.
+
+\subsection{Dense retrieval}
+\begin{lstlisting}[language=python]
+def retrieve_dense(
+    *,
+    client: QdrantClient,
+    collection_name: str,
+    dense_vector: Sequence[float],
+    limit: int,
+) -> tuple[RetrievedChunk, ...]:
+\end{lstlisting}
+
+The function issues a Qdrant query against the collection's
+\texttt{dense} named vector, with \texttt{limit} set to the number
+of candidates requested. The Qdrant response is converted to a tuple
+of \texttt{RetrievedChunk} objects, with the rank assigned
+sequentially starting at one.
+
+The conversion function \texttt{\_convert\_points()} validates that
+each Qdrant payload has the required fields
+(\texttt{chunk\_id}, \texttt{parent\_id}, \texttt{doc\_id},
+\texttt{dataset}, \texttt{text\_normalized}) before constructing the
+typed result. A payload that is missing any of these fields raises a
+\texttt{ValueError} with the names of the missing fields.
+
+\subsection{Sparse retrieval}
+\begin{lstlisting}[language=python]
+def retrieve_sparse(
+    *,
+    client: QdrantClient,
+    collection_name: str,
+    sparse_indices: Sequence[int],
+    sparse_values: Sequence[float],
+    limit: int,
+) -> tuple[RetrievedChunk, ...]:
+\end{lstlisting}
+
+The function issues a Qdrant query against the collection's
+\texttt{sparse} named vector, passing the query's sparse vector
+constructed from the given indices and values. Its return value is
+analogous to the dense case.
+
+\subsection{Hybrid RRF retrieval}
+\begin{lstlisting}[language=python]
+def retrieve_hybrid_rrf(
+    *,
+    client: QdrantClient,
+    collection_name: str,
+    dense_vector: Sequence[float],
+    sparse_indices: Sequence[int],
+    sparse_values: Sequence[float],
+    candidate_limit: int,
+    result_limit: int,
+) -> tuple[RetrievedChunk, ...]:
+\end{lstlisting}
+
+The function issues a Qdrant query with two \texttt{Prefetch}
+clauses, one against the \texttt{dense} vector and one against the
+\texttt{sparse} vector, each with \texttt{limit = candidate\_limit}.
+The outer query uses \texttt{FusionQuery(fusion=Fusion.RRF)} and
+returns \texttt{result\_limit} results.
+
+The function validates that \texttt{candidate\_limit >= result\_limit},
+that \texttt{result\_limit > 0}, and that the sparse indices and
+values are aligned in length.
+
+The use of Qdrant's native RRF is deliberate: it keeps the fusion
+step inside the database, avoids transferring candidate sets back to
+Python for fusion, and guarantees that the fusion is performed on the
+full ranked lists rather than on truncated lists.
+
+\subsection{Parent aggregation}
+\begin{lstlisting}[language=python]
+def aggregate_chunks_to_parents(
+    chunks: tuple[RetrievedChunk, ...],
+    *,
+    additional_child_weight: float = 0.05,
+    limit: int | None = None,
+) -> tuple[RetrievedParent, ...]:
+\end{lstlisting}
+
+The aggregation rule is:
+
+\[
+\mathrm{score}(P) = \max_{c \in P} \mathrm{score}(c)
+  + w \sum_{c \in P \setminus \{c^\star\}} \mathrm{score}(c)
+\]
+
+where $c^\star$ is the highest-scoring child of parent $P$ and
+$w = \texttt{additional\_child\_weight}$.
+
+The algorithm:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Groups the retrieved chunks by \texttt{parent\_id}.
+  \item For each parent, sorts the group's members by rank and by
+    descending score, producing two views.
+  \item Computes the parent's score as the best score plus the
+    weighted sum of the remaining scores.
+  \item Records the best chunk's rank as the parent's
+    \texttt{best\_chunk\_rank}, and the number of contributing
+    children as \texttt{matched\_chunk\_count}.
+  \item Sorts parents by descending score, then by best chunk rank,
+    then by parent ID.
+  \item If \texttt{limit} is set, truncates to the first \texttt{limit}
+    parents.
+\end{enumerate}
+
+The weight $w$ is a hyperparameter. A value of zero reduces the rule
+to best-only; a value of one would sum all children's scores. The
+default of \num{0.05} was chosen to credit additional evidence
+without over-rewarding parents that simply have more children.
+
+\subsection{Document resolution}
+\begin{lstlisting}[language=python]
+def resolve_parents_to_documents(
+    parents: Sequence[RetrievedParent],
+    *,
+    query_id: str,
+    limit: int | None = None,
+) -> tuple[RetrievedDocument, ...]:
+\end{lstlisting}
+
+The document resolution rule is: a document's score is the score of
+its highest-scoring parent.
+
+The algorithm:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Groups parents by \texttt{doc\_id}.
+  \item For each document, sorts its parents by rank and by descending
+    score, producing two views.
+  \item The document's score is the highest parent's score; the
+    document's \texttt{best\_parent\_rank} is the best-ranked parent's
+    rank.
+  \item Accumulates all contributing parent IDs and chunk IDs,
+    deduplicated, in the order in which they first appear.
+  \item Sorts documents by descending score, then by best parent
+    rank, then by document ID.
+  \item If \texttt{limit} is set, truncates to the first \texttt{limit}
+    documents.
+\end{enumerate}
+
+The resulting \texttt{RetrievedDocument} carries the document ID, its
+rank, its score, its best parent rank, its contributing parent and
+chunk IDs, and a metadata block. The metadata block is validated
+against a set of prohibited keys that includes \texttt{generated\_answer},
+\texttt{reference\_answer}, \texttt{answer\_text}, \texttt{relevance},
+\texttt{judgment}, and similar terms. The purpose of this prohibition
+is to make it impossible to accidentally leak ground truth into the
+retrieval artifact.
+
+% =====================================================================
+\section{Evaluation Layer}\label{sec:evaluation}
+
+The \texttt{evaluation} subpackage defines the ranked-retrieval metric
+set, the evaluation case model, the pipeline that writes evaluation
+artifacts, and the paired-bootstrap helper.
+
+\subsection{Evaluation case}
+\begin{lstlisting}[language=python]
+class RetrievalJudgment(ArtifactBaseModel):
+    item_id: str
+    relevance: int = Field(ge=0)
+
+class RetrievalEvaluationCase(ArtifactBaseModel):
+    query_id: str
+    query_text: str
+    retrieval_method: str
+    evaluation_level: str
+
+    judgments: tuple[RetrievalJudgment, ...]
+    retrieved_ids: tuple[str, ...]
+
+    metadata: dict[str, object] = Field(default_factory=dict)
+\end{lstlisting}
+
+A case bundles a query, its relevance judgments, and the ranked
+retrieved IDs for one retrieval method. The validators require that
+judgment IDs are unique and that retrieved IDs are unique.
+
+The separation of judgments from the retrieval call is deliberate:
+it is what allows the program to enforce that ground truth is
+loaded only during evaluation and never during retrieval.
+
+\subsection{Metrics}
+The \texttt{evaluation/metrics.py} module implements the standard
+ranked-retrieval metric set:
+
+\begin{lstlisting}[language=python]
+def recall_at_k(
+    *, retrieved_ids: Sequence[str],
+    relevance_by_id: Mapping[str, int],
+    cutoff: int,
+) -> float
+
+def precision_at_k(
+    *, retrieved_ids: Sequence[str],
+    relevance_by_id: Mapping[str, int],
+    cutoff: int,
+) -> float
+
+def reciprocal_rank(
+    *, retrieved_ids: Sequence[str],
+    relevance_by_id: Mapping[str, int],
+    cutoff: int,
+) -> float
+
+def ndcg_at_k(
+    *, retrieved_ids: Sequence[str],
+    relevance_by_id: Mapping[str, int],
+    cutoff: int,
+) -> float
+\end{lstlisting}
+
+The metrics are binary recall, fixed-cutoff precision, first-relevant
+reciprocal rank, and graded nDCG with gain formula
+$2^{\mathrm{rel}} - 1$ and discount $1 / \log_2(\mathrm{rank} + 1)$.
+
+\texttt{evaluate\_case()} evaluates one case at one cutoff,
+constructing a \texttt{RetrievalMetrics} record with the query ID,
+retrieval method, evaluation level, cutoff, relevant count, retrieved
+count, relevant-retrieved count, and the five metric values (recall,
+precision, reciprocal rank, nDCG, hit).
+
+\texttt{aggregate\_metrics()} computes macro averages over a sequence
+of metrics records that share the same retrieval method, evaluation
+level, and cutoff. It rejects mixed batches.
+
+\subsection{Pipeline}
+The \texttt{write\_retrieval\_evaluation()} function writes the
+artifacts of an evaluation run:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{cases.jsonl}: the evaluated cases;
+  \item \texttt{metrics.jsonl}: one metrics record per case per
+    cutoff;
+  \item \texttt{aggregates.jsonl}: one aggregate per (method, level,
+    cutoff) group;
+  \item \texttt{run.json}: the run identity and metadata;
+  \item \texttt{evaluation.manifest.json}: a sidecar manifest with
+    checksums and inputs.
+\end{itemize}
+
+The run's \texttt{run\_id} is built deterministically from the
+dataset ID, evaluation level, retrieval methods, cutoffs, and a
+configuration hash.
+
+\subsection{Paired bootstrap}
+The \texttt{evaluation/statistics.py} module provides a
+paired-bootstrap helper used for uncertainty estimates in the
+operating-point study. It is not part of the retrieval pipeline
+itself.
+
+% =====================================================================
+\section{Artifact Infrastructure}\label{sec:artifacts}
+
+The \texttt{artifacts} subpackage provides the base Pydantic model,
+the deterministic identity functions, the sidecar manifest model,
+the atomic JSON writer, and the file-fingerprinting helpers that
+every other subpackage depends on.
+
+\subsection{Base model}
+\begin{lstlisting}[language=python]
+class ArtifactBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        str_strip_whitespace=False,
+    )
+\end{lstlisting}
+
+All derived artifacts inherit from \texttt{ArtifactBaseModel}. The
+three configurations are:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{extra="forbid"} rejects any field not declared on the
+    model. This is what catches schema drift early.
+  \item \texttt{frozen=True} makes instances immutable.
+  \item \texttt{str\_strip\_whitespace=False} preserves the exact
+    string content, which matters for character-offset integrity.
+\end{itemize}
+
+\subsection{Deterministic identities}
+The \texttt{artifacts/identity.py} module provides:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{canonical\_json\_bytes()} serializes any
+    JSON-compatible value with sorted keys and no whitespace,
+    producing a canonical byte representation;
+  \item \texttt{sha256\_fingerprint()} hashes the canonical bytes;
+  \item \texttt{short\_fingerprint()} returns the first $n$
+    hex characters of the hash;
+  \item \texttt{normalize\_identifier()} lowercases and
+    alphanumeric-normalizes a string for inclusion in an ID;
+  \item \texttt{build\_parent\_id()}, \texttt{build\_chunk\_id()},
+    \texttt{build\_experiment\_id()}, and
+    \texttt{combine\_fingerprints()} construct the specific ID forms
+    used by the pipeline layers.
+\end{itemize}
+
+The ID construction pattern is consistent across all three:
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item build an identity dictionary with all the inputs;
+  \item compute the identity's SHA-256 fingerprint;
+  \item concatenate the type prefix, the normalized dataset, the
+    human-readable index, and the fingerprint suffix.
+\end{enumerate}
+
+\subsection{Sidecar manifest}
+\begin{lstlisting}[language=python]
+class ArtifactSidecarManifest(ArtifactBaseModel):
+    manifest_type: str = "artifact_sidecar_manifest"
+    manifest_version: str = "1.0"
+
+    artifact_type: str
+    artifact_path: str
+    artifact_sha256: str
+    artifact_size_bytes: int = Field(ge=0)
+    record_count: int = Field(ge=0)
+
+    dataset_id: str | None = None
+    experiment_id: str | None = None
+
+    component: ArtifactComponentReference
+    inputs: tuple[ArtifactInputReference, ...] = ()
+
+    code_revision: str | None = None
+    execution_profile: str | None = None
+
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(UTC)
+    )
+    completed: bool = True
+
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+The manifest records the artifact's identity, size, SHA-256,
+record count, and the component that produced it. It also records
+the code revision (from \texttt{get\_git\_revision()}) and an
+execution profile string.
+
+\texttt{ArtifactComponentReference} carries the component type,
+component ID, version, configuration hash, and the configuration
+dictionary itself.
+
+\texttt{ArtifactInputReference} carries the type, path, SHA-256,
+size, and optional record count of a consumed input artifact. Its
+validators check that the SHA-256 is exactly sixty-four hex
+characters.
+
+\subsection{Atomic JSON writing}
+\begin{lstlisting}[language=python]
+def write_json_model_atomic(
+    path: Path,
+    model: BaseModel,
+    *,
+    overwrite: bool = False,
+) -> None:
+\end{lstlisting}
+
+The function writes a Pydantic model to disk atomically. It creates
+a temporary file in the same directory, writes the model's JSON
+representation with sorted keys and newline-terminated output,
+\texttt{fsync}s the file, and then atomically renames the temporary
+file over the target path. If any step fails, the temporary file is
+removed before the exception propagates.
+
+The \texttt{read\_json\_model()} function reads a JSON file and
+validates it against a model type.
+
+\subsection{Fingerprints}
+The \texttt{artifacts/fingerprints.py} module provides three
+streaming helpers:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{sha256\_file()} computes a file's SHA-256 by
+    streaming it through a buffer, without loading it fully into
+    memory;
+  \item \texttt{file\_size\_bytes()} returns the exact size of an
+    existing file;
+  \item \texttt{count\_nonempty\_lines()} counts the non-empty lines
+    in a file by streaming.
+\end{itemize}
+
+All three raise \texttt{FileNotFoundError} if the path does not
+exist. They are used by the sidecar builders to construct manifests
+without ever loading a large artifact into memory.
+
+% =====================================================================
+\section{Determinism and Reproducibility}\label{sec:determinism}
+
+The architecture's determinism guarantees can be summarized at four
+levels.
+
+\subsection{Identity}
+Every artifact has a content-addressable identity that is a
+deterministic function of its inputs:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item a parent's identity depends on the dataset, document ID,
+    parser configuration hash, and parent index;
+  \item a chunk's identity depends on the dataset, document ID,
+    parent ID, chunker configuration hash, and parent-local chunk
+    index;
+  \item a Qdrant point's identity depends on the chunk ID;
+  \item an embedding shard's identity depends on the dataset, model
+    ID, embedding configuration hash, and shard index.
+\end{itemize}
+
+Because identities are deterministic, they are stable across runs,
+across machines, and across re-executions with the same inputs. This
+is what allows the pipeline to verify a resumed run's state by
+comparing identity sets.
+
+\subsection{Serialization}
+JSON and JSONL artifacts are written with \texttt{sort\_keys=True}
+and \texttt{separators=(",", ":")}. YAML artifacts are written with
+\texttt{safe\_dump(sort\_keys=True)}. Pydantic models are serialized
+in JSON mode with \texttt{exclude\_none=False}, so missing optional
+fields appear as \texttt{null} rather than being omitted.
+
+This combination means that two executions with the same inputs
+produce byte-identical artifacts.
+
+\subsection{Tie-breaking}
+Wherever multiple items could be ranked equally by score, the
+architecture breaks the tie by a deterministic secondary key:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item parent aggregation: descending score, then best chunk
+    rank, then parent ID;
+  \item document resolution: descending score, then best parent
+    rank, then document ID;
+  \item RRF fusion (numpy path): descending RRF score, then
+    ascending chunk index.
+\end{itemize}
+
+Tie-breaks are never left to chance. This is what makes the
+architecture's rankings fully reproducible.
+
+\subsection{Floating-point isolation}
+The only source of nondeterminism in the pipeline is
+floating-point arithmetic in the embedder. BGE-M3's FP16 forward
+pass may produce slightly different vectors on different hardware
+or in different library versions. This nondeterminism is isolated
+to the embedding layer: everything downstream of the embedding
+records is bit-exact given the same records.
+
+% =====================================================================
+\section{Package Structure and Entry Points}\label{sec:packages}
+
+\subsection{Subpackage inventory}
+Table~\ref{tab:packages} catalogs the subpackages of
+\texttt{rag\_system} and their principal modules.
+
+\begin{table}[h]
+\centering
+\caption{Subpackages of \texttt{rag\_system}.}
+\label{tab:packages}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Subpackage} & \textbf{Modules} \\
+\midrule
+\texttt{artifacts} & fingerprints, identity, jsonl, manifest, manifest\_io, models, revision, sidecar \\
+\texttt{canonical} & inspection, jsonl, loaders, models, paths, pilot\_adapter, pilot\_adapter\_persistence \\
+\texttt{chunking} & config, hierarchical, huggingface, pipeline, tokenization, windows \\
+\texttt{embedding} & catalog, config, identity, models, shards, synthetic \\
+\texttt{evaluation} & clerk, identity, metrics, models, pilot\_persistence, pipeline, statistics \\
+\texttt{generation} & (optional; disabled in retrieval-only execution) \\
+\texttt{orchestration} & planner \\
+\texttt{parsing} & blocks, config, deterministic, headings, pipeline, profiling, segmentation \\
+\texttt{retrieval} & aggregation, document\_resolution, models, pilot\_persistence, qdrant \\
+\texttt{storage} & models, qdrant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Entry points}
+Table~\ref{tab:entrypoints} lists the entry points that external
+code uses to invoke each stage of the pipeline.
+
+\begin{table}[h]
+\centering
+\caption{Principal entry points.}
+\label{tab:entrypoints}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Stage} & \textbf{Entry point} \\
+\midrule
+Canonical validation & \texttt{canonical.paths.resolve\_dataset\_paths} \\
+Canonical streaming & \texttt{canonical.loaders.iter\_canonical\_documents/examples} \\
+Parsing & \texttt{parsing.pipeline.parse\_canonical\_dataset} \\
+Chunking & \texttt{chunking.pipeline.chunk\_parsed\_artifacts} \\
+Embedding shard write & \texttt{embedding.shards.write\_embedding\_shard} \\
+Qdrant collection & \texttt{storage.qdrant.create\_hybrid\_collection} \\
+Qdrant ingestion & \texttt{storage.qdrant.ingest\_embedding\_records} \\
+Dense retrieval & \texttt{retrieval.qdrant.retrieve\_dense} \\
+Sparse retrieval & \texttt{retrieval.qdrant.retrieve\_sparse} \\
+Hybrid RRF retrieval & \texttt{retrieval.qdrant.retrieve\_hybrid\_rrf} \\
+Parent aggregation & \texttt{retrieval.aggregation.aggregate\_chunks\_to\_parents} \\
+Document resolution & \texttt{retrieval.document\_resolution.resolve\_parents\_to\_documents} \\
+Evaluation & \texttt{evaluation.pipeline.write\_retrieval\_evaluation} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Conclusion}
+
+We have described the architecture and implementation of My\_RAG at
+implementation granularity. The architecture is organized as a
+sequence of nine subpackages, each with a well-defined
+responsibility, a set of typed data models, and a set of invariants
+that its layer is responsible for maintaining. The pipeline is
+deterministic at every layer that produces artifacts, and the only
+source of nondeterminism is isolated to the embedder. Every stage
+publishes checksum-closed artifacts, and every stage is designed to
+abort loudly when an invariant is violated rather than silently
+propagate corrupted data.
+
+The document is intended as a reference for readers who want to
+understand the architecture from the source code without having to
+read the source code directly. It is not a substitute for the
+source, and it does not report the architecture's retrieval quality;
+those results are documented separately.
+
+% =====================================================================
+\appendix
+
+\section{Appendix A: Full Data Model Reference}
+
+\subsection{A.1 --- Canonical models}
+\begin{lstlisting}[language=python]
+class CanonicalDocument(CanonicalBaseModel):
+    doc_id: str
+    dataset: str
+    text_raw: str
+    text_normalized: str
+    title: str | None = None
+    source_path: str | None = None
+    source_row: int | str | None = None
+    metadata: JsonObject = Field(default_factory=dict)
+
+class CanonicalQuery(CanonicalBaseModel):
+    query_id: str
+    dataset: str
+    question: str
+    task_type: str | None = None
+    split: str | None = None
+    doc_ids: list[str] = Field(default_factory=list)
+    metadata: JsonObject = Field(default_factory=dict)
+
+class CanonicalGroundTruth(CanonicalBaseModel):
+    ground_truth_type: GroundTruthType
+    dataset: str
+    query_id: str
+    answers: list[Any] = Field(default_factory=list)
+    relevant_ids: list[str] = Field(default_factory=list)
+    choice: Any | None = None
+    spans: list[Any] = Field(default_factory=list)
+    metadata: JsonObject = Field(default_factory=dict)
+
+class CanonicalExample(CanonicalBaseModel):
+    query: CanonicalQuery
+    ground_truth: CanonicalGroundTruth
+    supplied_context: Any | None = None
+    options: Any | None = None
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+\subsection{A.2 --- Artifact models}
+\begin{lstlisting}[language=python]
+class OffsetSpan(ArtifactBaseModel):
+    start: int = Field(ge=0)
+    end: int = Field(ge=0)
+
+class SemanticParent(ArtifactBaseModel):
+    parent_id: str
+    doc_id: str
+    dataset: str
+    parent_parent_id: str | None = None
+    hierarchy_level: int = Field(ge=0)
+    sibling_index: int = Field(ge=0)
+    title: str | None = None
+    text_normalized: str
+    text_raw: str | None = None
+    normalized_char_span: OffsetSpan
+    raw_char_span: OffsetSpan | None = None
+    token_span: OffsetSpan | None = None
+    token_count: int | None = Field(default=None, ge=0)
+    start_boundary: tuple[BoundaryEvidence, ...] = ()
+    end_boundary: tuple[BoundaryEvidence, ...] = ()
+    parser_id: str
+    parser_version: str
+    parser_config_hash: str
+    metadata: JsonObject = Field(default_factory=dict)
+
+class ParsedDocument(ArtifactBaseModel):
+    artifact_type: str = "parsed_document"
+    artifact_version: str = "1.0"
+    doc_id: str
+    dataset: str
+    parser_id: str
+    parser_version: str
+    parser_config_hash: str
+    canonical_text_normalized_length: int = Field(ge=0)
+    canonical_text_raw_length: int = Field(ge=0)
+    parents: tuple[SemanticParent, ...]
+    source_fingerprint: str | None = None
+    metadata: JsonObject = Field(default_factory=dict)
+
+class ChildChunk(ArtifactBaseModel):
+    artifact_type: str = "child_chunk"
+    artifact_version: str = "1.0"
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+    chunk_index: int = Field(ge=0)
+    parent_chunk_index: int = Field(ge=0)
+    text_normalized: str
+    text_raw: str | None = None
+    normalized_char_span: OffsetSpan
+    parent_normalized_char_span: OffsetSpan
+    raw_char_span: OffsetSpan | None = None
+    token_span: OffsetSpan | None = None
+    token_count: int = Field(ge=0)
+    parser_id: str
+    parser_version: str
+    parser_config_hash: str
+    chunker_id: str
+    chunker_version: str
+    chunker_config_hash: str
+    tokenizer_id: str
+    chunk_size: int = Field(gt=0)
+    chunk_overlap: int = Field(ge=0)
+    metadata: JsonObject = Field(default_factory=dict)
+\end{lstlisting}
+
+\subsection{A.3 --- Retrieval models}
+\begin{lstlisting}[language=python]
+class RetrievedChunk(ArtifactBaseModel):
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+    rank: int = Field(ge=1)
+    score: float
+    text_normalized: str
+    retrieval_method: str
+    payload: dict[str, object] = Field(default_factory=dict)
+
+class RetrievedParent(ArtifactBaseModel):
+    parent_id: str
+    doc_id: str
+    dataset: str
+    rank: int = Field(ge=1)
+    score: float
+    best_chunk_rank: int = Field(ge=1)
+    matched_chunk_count: int = Field(ge=1)
+    chunk_ids: tuple[str, ...]
+    child_scores: tuple[float, ...]
+
+class RetrievedDocument(ArtifactBaseModel):
+    query_id: str
+    doc_id: str
+    dataset: str
+    rank: int = Field(ge=1)
+    score: float
+    best_parent_rank: int = Field(ge=1)
+    contributing_parent_ids: tuple[str, ...]
+    contributing_chunk_ids: tuple[str, ...]
+    metadata: dict[str, object] = Field(default_factory=dict)
+\end{lstlisting}
+
+\subsection{A.4 --- Embedding models}
+\begin{lstlisting}[language=python]
+class SparseVector(ArtifactBaseModel):
+    indices: tuple[int, ...]
+    values: tuple[float, ...]
+
+class ChunkEmbeddingRecord(ArtifactBaseModel):
+    artifact_type: str = "chunk_embedding"
+    artifact_version: str = "1.0"
+    chunk_id: str
+    parent_id: str
+    doc_id: str
+    dataset: str
+    model_id: str
+    model_revision: str
+    tokenizer_id: str
+    embedding_config_hash: str
+    dense_vector: tuple[float, ...] | None = None
+    sparse_vector: SparseVector | None = None
+    dense_dimension: int | None = Field(default=None, gt=0)
+    dense_precision: VectorPrecision | None = None
+    dense_normalized: bool | None = None
+    source_chunk_sha256: str | None = None
+
+class EmbeddingShardHeader(ArtifactBaseModel):
+    artifact_type: str = "embedding_shard_header"
+    artifact_version: str = "1.0"
+    shard_id: str
+    shard_index: int = Field(ge=0)
+    dataset: str
+    model_id: str
+    model_revision: str
+    tokenizer_id: str
+    embedding_config_hash: str
+    embedding_kind: EmbeddingKind
+    dense_dimension: int | None = Field(default=None, gt=0)
+    dense_precision: VectorPrecision | None = None
+    dense_normalized: bool | None = None
+    maximum_records: int = Field(gt=0)
+\end{lstlisting}
+
+\section{Appendix B: Configuration Reference}
+
+\subsection{B.1 --- DeterministicParserConfig}
+\begin{lstlisting}[language=python]
+class DeterministicParserConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    parser_id: str = "deterministic_structural_parser"
+    parser_version: str = "0.3.0"
+
+    detect_numbered_headings: bool = True
+    detect_named_headings: bool = True
+    detect_uppercase_headings: bool = True
+
+    maximum_heading_characters: int = Field(default=120, ge=10)
+    maximum_heading_words: int = Field(default=14, ge=1)
+    minimum_heading_alphabetic_characters: int = Field(
+        default=4, ge=1,
+    )
+    maximum_heading_terminal_punctuation: int = Field(
+        default=1, ge=0,
+    )
+
+    reject_equation_like_blocks: bool = True
+    reject_url_like_blocks: bool = True
+    reject_numeric_table_fragments: bool = True
+
+    minimum_parent_characters: int = Field(default=20, ge=1)
+    merge_small_structural_groups: bool = True
+    preserve_raw_text_when_identical: bool = True
+\end{lstlisting}
+
+\subsection{B.2 --- ChildChunkerConfig}
+\begin{lstlisting}[language=python]
+class ChildChunkerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    chunker_id: str = "hierarchical_token_chunker"
+    chunker_version: str = "0.3.0"
+    chunk_size: int = Field(default=256, gt=0)
+    chunk_overlap: int = Field(default=32, ge=0)
+    minimum_final_chunk_tokens: int | None = Field(
+        default=None, gt=0,
+    )
+    preserve_parent_boundaries: bool = True
+    include_empty_parents: bool = False
+\end{lstlisting}
+
+\subsection{B.3 --- EmbeddingConfig}
+\begin{lstlisting}[language=python]
+class EmbeddingConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    embedder_id: str = "bge_m3_embedder"
+    embedder_version: str = "0.1.0"
+    model_id: str = "BAAI/bge-m3"
+    model_revision: str
+    tokenizer_id: str
+    embedding_kind: EmbeddingKind = EmbeddingKind.HYBRID
+    dense_dimension: int | None = Field(default=1024, gt=0)
+    dense_precision: VectorPrecision | None = VectorPrecision.FLOAT32
+    dense_normalized: bool | None = True
+    device: str = "cpu"
+    use_fp16: bool = False
+    batch_size: int = Field(default=2, gt=0)
+    maximum_model_input_tokens: int = Field(default=8192, gt=0)
+    shard_maximum_records: int = Field(default=10000, gt=0)
+\end{lstlisting}
+
+\section{Appendix C: Determinism Guarantees Summary}
+
+\begin{center}
+\small
+\begin{tabular}{p{4cm} p{10.5cm}}
+\toprule
+\textbf{Guarantee} & \textbf{Implementation} \\
+\midrule
+Content-addressable IDs & \texttt{build\_parent\_id}, \texttt{build\_chunk\_id}, \texttt{build\_embedding\_shard\_id}, \texttt{build\_qdrant\_point\_id} \\
+Sorted-key JSON & \texttt{json.dumps(..., sort\_keys=True, separators=(",", ":"))} \\
+Atomic writes & \texttt{write\_json\_model\_atomic}, \texttt{AtomicJsonlWriter} \\
+Deterministic tie-breaks & Explicit secondary keys in aggregation and resolution \\
+Parser determinism & Fixed regex rules, no randomness \\
+Chunker determinism & Fixed token-window algorithm, no randomness \\
+Fingerprint chain & Every manifest records the SHA-256 of its inputs \\
+Floating-point isolation & Nondeterminism confined to embedder FP16 arithmetic \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

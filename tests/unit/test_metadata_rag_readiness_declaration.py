@@ -116,7 +116,7 @@ def test_results_block_present() -> None:
     assert set(results["three_track_comparison"]) == {
         "longrag",
         "metadata_rag",
-        "my_rag",
+        "sah_rag",
     }
 
 
