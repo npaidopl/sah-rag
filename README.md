@@ -116,7 +116,7 @@ sah-rag/
 │   │   ├── three_way_comparison.tex
 │   │   └── archived/              # Reports on non-executed architectures
 │   ├── pilot/                     # Infrastructure pilot design docs
-│   └── data/                      # Thesis PDF
+│   └── data/                      # Project PDF
 │       └── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
 │
 ├── scripts/                       # Execution & validation entry points
