@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "content_group_id": {
+      "title": "Content Group Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "source_text_sha256": {
+      "title": "Source Text Sha256",
+      "type": "string"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "text_normalized": {
+      "title": "Text Normalized",
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "doc_id",
+    "content_group_id",
+    "text",
+    "text_normalized",
+    "source_text_sha256",
+    "split"
+  ],
+  "title": "PilotCanonicalDocument",
+  "type": "object"
+}

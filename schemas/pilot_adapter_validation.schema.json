@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "answer_fields_absent": {
+      "title": "Answer Fields Absent",
+      "type": "boolean"
+    },
+    "document_count_valid": {
+      "title": "Document Count Valid",
+      "type": "boolean"
+    },
+    "duplicate_content_preserved": {
+      "title": "Duplicate Content Preserved",
+      "type": "boolean"
+    },
+    "example_count_valid": {
+      "title": "Example Count Valid",
+      "type": "boolean"
+    },
+    "relevant_document_mapping_valid": {
+      "title": "Relevant Document Mapping Valid",
+      "type": "boolean"
+    },
+    "source_chunk_reconstruction_valid": {
+      "title": "Source Chunk Reconstruction Valid",
+      "type": "boolean"
+    },
+    "source_immutable": {
+      "title": "Source Immutable",
+      "type": "boolean"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "document_count_valid",
+    "example_count_valid",
+    "duplicate_content_preserved",
+    "source_chunk_reconstruction_valid",
+    "relevant_document_mapping_valid",
+    "answer_fields_absent",
+    "source_immutable"
+  ],
+  "title": "PilotAdapterValidation",
+  "type": "object"
+}

@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "EmbeddingKind": {
+      "description": "Embedding representations supported by the pipeline.",
+      "enum": [
+        "dense",
+        "learned_sparse",
+        "hybrid"
+      ],
+      "title": "EmbeddingKind",
+      "type": "string"
+    },
+    "VectorPrecision": {
+      "description": "Supported dense-vector storage precision.",
+      "enum": [
+        "float16",
+        "float32"
+      ],
+      "title": "VectorPrecision",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Identity and configuration shared by one embedding shard.",
+  "properties": {
+    "artifact_type": {
+      "default": "embedding_shard_header",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "dataset": {
+      "title": "Dataset",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dense Dimension"
+    },
+    "dense_normalized": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dense Normalized"
+    },
+    "dense_precision": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VectorPrecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "embedding_kind": {
+      "$ref": "#/$defs/EmbeddingKind"
+    },
+    "maximum_records": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Records",
+      "type": "integer"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "shard_id": {
+      "title": "Shard Id",
+      "type": "string"
+    },
+    "shard_index": {
+      "minimum": 0,
+      "title": "Shard Index",
+      "type": "integer"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "shard_id",
+    "shard_index",
+    "dataset",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "embedding_config_hash",
+    "embedding_kind",
+    "maximum_records"
+  ],
+  "title": "EmbeddingShardHeader",
+  "type": "object"
+}

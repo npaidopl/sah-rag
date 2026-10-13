@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-architecture"
+version = "0.1.0"
+description = "A structure-aware hierarchical hybrid-retrieval RAG research framework."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "PAIDOPOULOS NIKOLAOS" }
+]
+
+dependencies = [
+    "pydantic>=2.10,<3",
+    "PyYAML>=6.0,<7",
+    "python-dotenv>=1.0,<2",
+    "platformdirs>=4.3,<5",
+    "typing-extensions>=4.12,<5"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-cov>=6,<7",
+    "ruff>=0.11,<1",
+    "mypy>=1.15,<2",
+    "jsonschema>=4.23,<5",
+    "types-PyYAML>=6.0,<7"
+]
+
+data = [
+    "orjson>=3.10,<4",
+    "pandas>=2.2,<3",
+    "pyarrow>=19,<24"
+]
+
+storage = [
+    "qdrant-client>=1.13,<2",
+    "duckdb>=1.2,<2"
+]
+
+tokenizer = [
+    "transformers>=4.48,<6",
+    "tokenizers>=0.21,<1",
+    "huggingface-hub>=0.28,<2",
+    "safetensors>=0.5,<1"
+]
+
+embedding = [
+    "torch",
+    "transformers>=4.48,<6",
+    "accelerate",
+    "FlagEmbedding"
+]
+
+all = [
+    "rag-architecture[dev,data,storage,tokenizer,embedding]"
+]
+
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config"
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = [
+    "external/baselines",
+]
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+mypy_path = "src"
+packages = ["rag_system"]
+
+[tool.coverage.run]
+branch = true
+source = ["rag_system"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+

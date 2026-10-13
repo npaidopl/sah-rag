@@ -1,0 +1,267 @@
+artifact_type: metadata_rag_readiness_declaration
+artifact_version: '1.1'
+declaration:
+  id: metadata_rag_readiness_declaration
+  version: 0.2.0
+  status: REAL_DATASET_EXECUTED
+architecture:
+  architecture_id: metadata_rag
+  display_name: Metadata-RAG
+  family: metadata_driven_multistage_retrieval
+  paper:
+    title: Metadata-Driven Retrieval-Augmented Generation for Financial Question Answering
+    arxiv_id: '2510.24402'
+    year: 2025
+    venue: Preprint under major revision
+    verification: PAPER_VERIFIED
+  implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+  fidelity_class: PAPER_DERIVED_COMPARATOR
+  classification:
+    architecture_class: ARCHITECTURAL_COMPARATOR
+    foreign_execution_decision: NOT_APPLICABLE
+    project_owned_implementation_decision: CONDITIONAL_GO
+tracks:
+  controlled:
+    eligible: true
+    purpose: Primary comparison track under the frozen clean-room spec.
+  native:
+    eligible: false
+    reason: DEFERRED_WITH_REASON
+    reason_detail: 'No foreign source exists and the paper does not pin a native embedder, tokenizer, storage backend, or metadata schema. Native-fidelity execution cannot be defined without inventing components not present in the paper, which is prohibited by the master guidance.
+
+      '
+artifact_registry:
+- path: baseline_audit/metadata_rag_clean_room_spec.yaml
+  role: frozen_clean_room_spec
+  sha256: A02DBA61EE1DD922F3B2DE0CED932E7E20E748C381E8AACC655A070BEC50DB02
+- path: baseline_audit/metadata_rag_clean_room_spec_amendment_01.yaml
+  role: amendment
+  sha256: D060659900D62D27F9CA1ED357E6EB8DC8326F72599EC04F81774073F8970E08
+- path: baseline_audit/metadata_rag_clean_room_spec_amendment_02.yaml
+  role: amendment
+  sha256: C461FD5CD590FFF2D79AD27C311EE196864AE7F42AD1B05641CB6274B6345E63
+- path: baseline_audit/metadata_rag_clean_room_spec_amendment_03.yaml
+  role: amendment
+  sha256: 44C85FD8C5AA4A592592FE043714C399AEEECD78695F726E90FFE1EC24308241
+- path: baseline_audit/metadata_rag_clean_room_spec_amendment_04.yaml
+  role: amendment
+  sha256: 4BCCAB5B68105F6F8AC1B8D66F4FCE0E115A3D8B13E258C6D28C4D0906C7F661
+- path: src/rag_system/baselines/metadata_rag_metadata.py
+  role: production_module
+  sha256: E9A390618E98F38AE9C43B5C27808130CAB50B1A5538A17AF0D366A6B6912FEB
+- path: src/rag_system/baselines/metadata_rag_adapter.py
+  role: production_module
+  sha256: EFE7038D7A7A4B013C369A4EFFAB4B4A47D349B34D01B0E89C8C68D9CCA5D9E7
+- path: src/rag_system/baselines/metadata_rag_state.py
+  role: production_module
+  sha256: BADF0B62C4EE4E24712ED313586BBD3971489A01F675AB17CA1E22F8551314DD
+- path: src/rag_system/baselines/metadata_rag_persistence.py
+  role: production_module
+  sha256: E7F07EA9F680A500613B0F93AB27543714140E4D957F6277B63146E9C51BF9AC
+- path: src/rag_system/baselines/metadata_rag_embedder.py
+  role: production_module
+  sha256: CA2E480938782E4FE3359DF5F28FAF29D0684683B5F2D9E9786F589B5F51593B
+- path: src/rag_system/baselines/metadata_rag_reference_index.py
+  role: production_module
+  sha256: BC7DC670032802AD155026C737AD3913E68F8B47CC446B995BF37FABC1E3640D
+- path: src/rag_system/baselines/metadata_rag_retrieval.py
+  role: production_module
+  sha256: 4BCABA8DAA0CC1F8C756EAB17530EB4FC9EED16E2C93B0E0265E2BD01CC9C65E
+- path: src/rag_system/baselines/metadata_rag_expansion.py
+  role: production_module
+  sha256: F868C19B53FE57374ABBABF8D7668D6CBC350C552F6E18A113744BEA90AE30E8
+- path: src/rag_system/baselines/metadata_rag_evaluation_case.py
+  role: production_module
+  sha256: 620428CCDECD9601E8DC444BE5710DF0DE694FB4F66981DFDAE1D252BED9A3A0
+- path: src/rag_system/baselines/metadata_rag_windowing.py
+  role: production_module
+  sha256: 24EA0B187F04915827AF89AAB431DDD7248E1348E16B6EAE88E093F41BC5E72A
+- path: scripts/validate_metadata_rag_clean_room_spec.py
+  role: validator
+  sha256: 9229119B289D57F2D8D7A9992F0C8F5B65D879C8D5B4CE038BFDD77BBD06208C
+- path: scripts/run_metadata_rag_synthetic_acceptance.py
+  role: acceptance_runner
+  sha256: 2EB45FE74BD2F7880C9F144BD5D0FBC9516F8A974963E4596D6EBA78C2F4F1F4
+- path: tests/unit/test_metadata_rag_paper_spec_audit.py
+  role: test
+  sha256: 8D8BA0F4E9CA95C973EFDCCB9D342885EC92E8E87B7FC6EE9112DDA6404E8FDC
+- path: tests/unit/test_metadata_rag_metadata.py
+  role: test
+  sha256: BFBD17E822F1D41495CF795598CB80A6D790B5A2E291A90A114C8D01B9E8942A
+- path: tests/unit/test_metadata_rag_adapter.py
+  role: test
+  sha256: 96DB276E32AC19868CCF93EC48C81DD307AB2FF14628B5569A0CC64F301A14A0
+- path: tests/unit/test_metadata_rag_persistence.py
+  role: test
+  sha256: 5FC9AE32BEFC311F3E5C926DE437EBAB83CD3D14670288CB466CE4D77C3913E0
+- path: tests/unit/test_metadata_rag_clean_room_spec.py
+  role: test
+  sha256: 158B400FFFE9B3DB9CB8346CF22C7CF5808153920314587C4536AFA3EB0AD64D
+- path: tests/unit/test_metadata_rag_embedder.py
+  role: test
+  sha256: A062570E6E9A4E9412E879983E49E9B2404CB5FE650AABC1F5BFB387EDBE699A
+- path: tests/unit/test_metadata_rag_reference_index.py
+  role: test
+  sha256: FA2C024CB8B6371216296DB2771B8D6DB815B39682CD3885F2E83E96DEA94FE6
+- path: tests/unit/test_metadata_rag_retrieval.py
+  role: test
+  sha256: B2E8792988D79CF0223FB55293C0AC46745AE422F4EBC9056F0D8ABDC65605D1
+- path: tests/unit/test_metadata_rag_expansion.py
+  role: test
+  sha256: F5E5C6012B6C77F2904008F2C84E09DE5493D24C1D5004471F8E06909A1F6C86
+- path: tests/unit/test_metadata_rag_evaluation_case.py
+  role: test
+  sha256: 3E0C5C495972A0902862FEDE8B27E58B7487FC190594B57080B9DBE3DB0C2BFC
+- path: tests/unit/test_metadata_rag_synthetic_acceptance.py
+  role: test
+  sha256: F98AE5F0272ECA88B311E0D553EC415CF642D1F0B611BAD560A0FDC99E91502C
+- path: tests/unit/test_metadata_rag_windowing.py
+  role: test
+  sha256: 87987E771DEE517DD7ADDC00F481A104E74A2550048EF673EA69012322C7946D
+- path: scripts/validate_metadata_rag_readiness_declaration.py
+  role: validator
+  sha256: AF470A6A58DB735917E0AC0372D73413F3FD6BA464D039201CE93555D4804B71
+- path: scripts/run_metadata_rag_state_materialization.py
+  role: pipeline_stage
+  sha256: EC6F2A31DA16F9F80DAEE784888D23AB39DC76FCA3AA118FC219092B16B373FD
+- path: scripts/colab_metadata_rag_encode.py
+  role: pipeline_stage
+  sha256: 59423616386F8803EBFC4564711104DC820A55A1D09F71E6FABE22710D56DE4E
+- path: scripts/import_metadata_rag_colab_embeddings.py
+  role: pipeline_stage
+  sha256: 97ABED8DBB74DD3CDC0D789485CCCBAED2DC079A2A96F1B9BBEB38FA3B8291C0
+- path: scripts/run_metadata_rag_full_retrieval.py
+  role: pipeline_stage
+  sha256: 6ABA1B96B3221AEE2499ABB0E8DAC2B17CE27F89F479A76FC5CA74822F49178D
+- path: scripts/run_metadata_rag_evaluation.py
+  role: pipeline_stage
+  sha256: ADB92A3B6DB7AFFD9BE15CEAAF40FF7EEB084F2B1B22C1163E3309611A019EB6
+- path: scripts/compare_metadata_rag_vs_baselines.py
+  role: analysis
+  sha256: 718605C26E9907DFB4DBD6CAD6DAED0181DEB6A3FADE6C21FAE307BB6519B2F1
+- path: tests/unit/test_metadata_rag_state_materialization.py
+  role: test
+  sha256: A034775106F03989B231F1B8FB8C4205ACAF887B18407284515489840A518B58
+- path: tests/unit/test_colab_metadata_rag_encode.py
+  role: test
+  sha256: CD254D8325580D792E520FE50C7144D0EC16AD62E2B829343660C3023A69BE89
+- path: tests/unit/test_import_metadata_rag_colab_embeddings.py
+  role: test
+  sha256: 3CE5DA1527B118F65934E31267C8E94A4DD2CB19120D7B2EAD1829768C916E05
+- path: tests/unit/test_run_metadata_rag_full_retrieval.py
+  role: test
+  sha256: 1DB5938045CA778ABB2B022C7F53A1D45211959CA2C03340F57986C06C8D57BE
+- path: tests/unit/test_run_metadata_rag_evaluation.py
+  role: test
+  sha256: C26E1A6635336B2E925E3E4DEA9EF275E376AFF083B9AB26E8F4EF94489738AF
+- path: tests/unit/test_compare_metadata_rag_vs_baselines.py
+  role: test
+  sha256: 6C433A315C632B42ACA86FD6959D415E27924898B57A30A711EFF51BF9DEAA9D
+synthetic_acceptance:
+  fixture: infrastructure-pilot-synthetic-v1
+  document_count: 12
+  query_count: 6
+  encoder_kind: DETERMINISTIC_CONTRACT_ENCODER
+  gates:
+    canonical_input_accepted: true
+    preprocessing_completed: true
+    query_count_matches: true
+    ranked_results_nonempty: true
+    canonical_ids_recovered: true
+    duplicate_ids_preserved: true
+    every_query_top2_matches_ground_truth: true
+    fallback_not_triggered_on_fixture: true
+    evaluation_case_created: true
+    generation_disabled: true
+    dataset_id_consistent: true
+    state_reopened: true
+    repeat_run_deterministic_or_classified: true
+real_dataset_execution:
+  status: EXECUTED
+  executed_on: '2026-10-12'
+  reason: 'Executed on all four datasets using the frozen BGE-M3 encoder (dense-only, FP16) via the Colab transfer protocol. Full retrieval and evaluation completed on the local host. No post-hoc tuning was applied.
+
+    '
+  executed_scope:
+  - clerk
+  - cuad
+  - greek_bar_bench
+  - lara
+  scope_rationale: 'Matches the executed scope of the LongRAG and My_RAG tracks, so that the three-way comparison is defined on the same four datasets.
+
+    '
+  embedder:
+    model_id: BAAI/bge-m3
+    model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+    mode: dense_only
+    precision: fp16
+    device: cuda
+  protocol:
+    query_projection:
+    - query_id
+    - query_text
+    ground_truth_visible_only_to_evaluator: true
+    generation_enabled: false
+    llm_judge_enabled: false
+    cutoffs:
+    - 1
+    - 5
+    - 10
+    - 20
+    - 50
+    - 100
+    primary_metric: macro_document_recall_at_10
+claims:
+  synthetic_validated: true
+  architecture_defining_components_preserved: true
+  controlled_adaptation: true
+  paper_derived_comparator: true
+  faithful_reproduction: false
+  paper_effectiveness_reproduced: false
+  native_equivalence: false
+  real_dataset_validated: true
+  publishable_result: false
+  synthetic_validation_is_paper_level_evidence: false
+leakage_policy:
+  judgments_as_metadata: prohibited
+  reference_answers_as_metadata: prohibited
+  evaluation_labels_as_metadata: prohibited
+  generated_answers_as_metadata: prohibited
+  post_retrieval_annotations_as_metadata: prohibited
+next_action:
+  class: PAPER_REPORT_WRITING
+  value: 'Write the comparative retrieval report for the four-dataset scope, including the three-track comparison (LongRAG, Metadata-RAG, My_RAG) and the architectural observation about the metadata-stage fallback rate. The report artifacts are under baseline_audit/reports/ (gitignored by design).
+
+    '
+results:
+  primary_metric: macro_document_recall_at_10
+  per_dataset:
+    clerk: 0.2726
+    cuad: 0.0294
+    greek_bar_bench: 0.2711
+    lara: 0.8874
+  macro: 0.3651
+  three_track_comparison:
+    longrag: 0.3144
+    metadata_rag: 0.3651
+    my_rag: 0.4049
+  relative_to_longrag_percent: 16.1
+  relative_to_my_rag_percent: -9.8
+  report_artifact_json: baseline_audit/reports/metadata_rag_vs_baselines.json
+  report_artifact_markdown: baseline_audit/reports/metadata_rag_vs_baselines.md
+architectural_observation:
+  summary: 'Metadata-RAG metadata stage did not activate on three of the four corpora under the frozen min_match_ratio of 0.5. The architecture was measured as a dense-only BGE-M3 retriever on clerk, cuad and greek_bar_bench, and as a metadata-filtered dense retriever on lara.
+
+    '
+  fallback_rate_by_dataset:
+    clerk: 0.999
+    cuad: 0.976
+    greek_bar_bench: 0.923
+    lara: 0.337
+  cause: 'Interaction between the frozen min_match_ratio of 0.5 and the constraint density of the corpora. Long judicial opinions in clerk produce 60+ constraints per query so no document reaches match_ratio >= 0.5; cuad queries are short templated prompts; greek_bar_bench queries are Greek while the frozen extractor is ASCII-only.
+
+    '
+  consequence: 'The comparison measures Metadata-RAG as a dense-only retriever on three corpora. No post-hoc threshold tuning is applied: the frozen specification is preserved exactly as declared.
+
+    '
+  post_hoc_tuning_applied: false

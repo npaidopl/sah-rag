@@ -1,0 +1,334 @@
+{
+  "$defs": {
+    "BoundaryEvidence": {
+      "additionalProperties": false,
+      "description": "Evidence supporting one predicted semantic boundary.",
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "method": {
+          "$ref": "#/$defs/BoundaryMethod"
+        },
+        "rule_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rule Id"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "title": "BoundaryEvidence",
+      "type": "object"
+    },
+    "BoundaryMethod": {
+      "description": "Supported semantic-boundary provenance values.",
+      "enum": [
+        "dpcument_preamble",
+        "document_start",
+        "document_end",
+        "explicit_heading",
+        "numbered_hierarchy",
+        "paragraph_break",
+        "structural_rule",
+        "semantic_drop",
+        "statistical_classifier",
+        "maximum_length_fallback",
+        "paragraph_group_fallback"
+      ],
+      "title": "BoundaryMethod",
+      "type": "string"
+    },
+    "OffsetSpan": {
+      "additionalProperties": false,
+      "description": "Half-open character or token span.",
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "OffsetSpan",
+      "type": "object"
+    },
+    "SemanticParent": {
+      "additionalProperties": false,
+      "description": "One parsed semantic entity derived from a canonical document.",
+      "properties": {
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "end_boundary": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BoundaryEvidence"
+          },
+          "title": "End Boundary",
+          "type": "array"
+        },
+        "hierarchy_level": {
+          "minimum": 0,
+          "title": "Hierarchy Level",
+          "type": "integer"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "normalized_char_span": {
+          "$ref": "#/$defs/OffsetSpan"
+        },
+        "parent_id": {
+          "title": "Parent Id",
+          "type": "string"
+        },
+        "parent_parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Parent Id"
+        },
+        "parser_config_hash": {
+          "title": "Parser Config Hash",
+          "type": "string"
+        },
+        "parser_id": {
+          "title": "Parser Id",
+          "type": "string"
+        },
+        "parser_version": {
+          "title": "Parser Version",
+          "type": "string"
+        },
+        "raw_char_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OffsetSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sibling_index": {
+          "minimum": 0,
+          "title": "Sibling Index",
+          "type": "integer"
+        },
+        "start_boundary": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BoundaryEvidence"
+          },
+          "title": "Start Boundary",
+          "type": "array"
+        },
+        "text_normalized": {
+          "title": "Text Normalized",
+          "type": "string"
+        },
+        "text_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Raw"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "token_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Count"
+        },
+        "token_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OffsetSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "parent_id",
+        "doc_id",
+        "dataset",
+        "hierarchy_level",
+        "sibling_index",
+        "text_normalized",
+        "normalized_char_span",
+        "parser_id",
+        "parser_version",
+        "parser_config_hash"
+      ],
+      "title": "SemanticParent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Complete parsed representation of one canonical document.",
+  "properties": {
+    "artifact_type": {
+      "default": "parsed_document",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "canonical_text_normalized_length": {
+      "minimum": 0,
+      "title": "Canonical Text Normalized Length",
+      "type": "integer"
+    },
+    "canonical_text_raw_length": {
+      "minimum": 0,
+      "title": "Canonical Text Raw Length",
+      "type": "integer"
+    },
+    "dataset": {
+      "title": "Dataset",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "parents": {
+      "items": {
+        "$ref": "#/$defs/SemanticParent"
+      },
+      "title": "Parents",
+      "type": "array"
+    },
+    "parser_config_hash": {
+      "title": "Parser Config Hash",
+      "type": "string"
+    },
+    "parser_id": {
+      "title": "Parser Id",
+      "type": "string"
+    },
+    "parser_version": {
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "source_fingerprint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Fingerprint"
+    }
+  },
+  "required": [
+    "doc_id",
+    "dataset",
+    "parser_id",
+    "parser_version",
+    "parser_config_hash",
+    "canonical_text_normalized_length",
+    "canonical_text_raw_length",
+    "parents"
+  ],
+  "title": "ParsedDocument",
+  "type": "object"
+}

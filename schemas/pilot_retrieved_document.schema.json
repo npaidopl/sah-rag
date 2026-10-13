@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "description": "A canonical-document ranking derived from ranked parents.",
+  "properties": {
+    "best_parent_rank": {
+      "minimum": 1,
+      "title": "Best Parent Rank",
+      "type": "integer"
+    },
+    "contributing_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Contributing Chunk Ids",
+      "type": "array"
+    },
+    "contributing_parent_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Contributing Parent Ids",
+      "type": "array"
+    },
+    "dataset": {
+      "title": "Dataset",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "rank": {
+      "minimum": 1,
+      "title": "Rank",
+      "type": "integer"
+    },
+    "score": {
+      "title": "Score",
+      "type": "number"
+    }
+  },
+  "required": [
+    "query_id",
+    "doc_id",
+    "dataset",
+    "rank",
+    "score",
+    "best_parent_rank",
+    "contributing_parent_ids",
+    "contributing_chunk_ids"
+  ],
+  "title": "RetrievedDocument",
+  "type": "object"
+}

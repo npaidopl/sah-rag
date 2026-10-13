@@ -1,0 +1,67 @@
+artifact_type: metadata_rag_clean_room_spec_amendment
+artifact_version: "1.0"
+
+amendment:
+  id: metadata_rag_clean_room_spec_amendment_03
+  version: "0.1.0"
+  status: FROZEN
+  applies_to:
+    artifact_type: metadata_rag_clean_room_spec
+    path: baseline_audit/metadata_rag_clean_room_spec.yaml
+    sha256: A02DBA61EE1DD922F3B2DE0CED932E7E20E748C381E8AACC655A070BEC50DB02
+    artifact_version: "1.0"
+  reason: >
+    The program's executed comparison runs (the My_RAG full-track
+    report and the LongRAG vs My_RAG comparative report) evaluate
+    document-level retrieval metrics at cutoffs [1, 5, 10, 20, 50]
+    and are aggregated with a macro-then-secondary-macro scheme.
+    The common_retrieval_evaluation_contract.yaml additionally
+    requires cutoff 100. The clean-room spec inherited only
+    [1, 5, 10, 100] from that common contract. To make the
+    Metadata-RAG evaluation directly comparable to the executed
+    runs, the effective cutoff set becomes the union
+    [1, 5, 10, 20, 50, 100], the primary metric is declared
+    explicitly as macro_document_recall_at_10, and the
+    zero-relevance policy is declared explicitly as
+    exclude_with_explicit_count. No primary metric is removed, no
+    threshold is tuned, and no architecture-defining surface is
+    affected.
+  reason_scope:
+    kind: evaluation_profile_alignment_only
+    post_retrieval_threshold_tuning: false
+    coefficient_changes: none
+    min_match_ratio_changes: none
+    fidelity_class_change: none
+    affects_architecture_defining_components: false
+  patch:
+    dataset_compatibility:
+      cutoffs: [1, 5, 10, 20, 50, 100]
+      primary_metric: macro_document_recall_at_10
+      zero_relevance_policy: exclude_with_explicit_count
+      evaluation_aggregation: macro_then_secondary
+      cutoffs_alignment_note: >
+        Superset of the common contract cutoffs and the executed
+        comparison runs' cutoffs, chosen so that a single Metadata-RAG
+        run reports every cutoff that any other program track uses.
+
+effective_spec:
+  composed_from:
+    - baseline_audit/metadata_rag_clean_room_spec.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_01.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_02.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_03.yaml
+  merge_rule: >
+    Amendments are applied in ascending numeric order. The patch of
+    each amendment is deep-merged into the accumulated effective
+    spec. Scalars and lists in the patch replace the corresponding
+    values in the spec. Unmentioned keys are unchanged.
+  merge_is_applied_at:
+    - scripts/validate_metadata_rag_clean_room_spec.py
+    - src/rag_system/baselines/metadata_rag_metadata.py
+    - src/rag_system/baselines/metadata_rag_reference_index.py
+
+claims:
+  silent_substitution: false
+  changes_outward_retrieval_contract: false
+  changes_fidelity_class: false
+  changes_architecture_defining_components: false

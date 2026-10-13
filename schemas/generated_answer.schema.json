@@ -1,0 +1,185 @@
+{
+  "$defs": {
+    "AnswerCitationValidation": {
+      "additionalProperties": false,
+      "description": "Citation-integrity report for one generated answer.",
+      "properties": {
+        "all_citations_known": {
+          "title": "All Citations Known",
+          "type": "boolean"
+        },
+        "available_citation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Available Citation Ids",
+          "type": "array"
+        },
+        "citation_occurrence_count": {
+          "minimum": 0,
+          "title": "Citation Occurrence Count",
+          "type": "integer"
+        },
+        "has_citations": {
+          "title": "Has Citations",
+          "type": "boolean"
+        },
+        "unknown_citation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unknown Citation Ids",
+          "type": "array"
+        },
+        "unused_citation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unused Citation Ids",
+          "type": "array"
+        },
+        "used_citation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Used Citation Ids",
+          "type": "array"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "available_citation_ids",
+        "used_citation_ids",
+        "unknown_citation_ids",
+        "unused_citation_ids",
+        "citation_occurrence_count",
+        "has_citations",
+        "all_citations_known",
+        "valid"
+      ],
+      "title": "AnswerCitationValidation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One generated answer with runtime provenance.",
+  "properties": {
+    "answer_id": {
+      "title": "Answer Id",
+      "type": "string"
+    },
+    "answer_text": {
+      "title": "Answer Text",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "generated_answer",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "citation_validation": {
+      "$ref": "#/$defs/AnswerCitationValidation"
+    },
+    "context_pack_id": {
+      "title": "Context Pack Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "finish_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Finish Reason"
+    },
+    "generation_model_id": {
+      "title": "Generation Model Id",
+      "type": "string"
+    },
+    "generation_model_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Generation Model Revision"
+    },
+    "generation_parameters": {
+      "additionalProperties": true,
+      "title": "Generation Parameters",
+      "type": "object"
+    },
+    "generation_runtime": {
+      "title": "Generation Runtime",
+      "type": "string"
+    },
+    "input_token_count": {
+      "minimum": 0,
+      "title": "Input Token Count",
+      "type": "integer"
+    },
+    "insufficient_context": {
+      "default": false,
+      "title": "Insufficient Context",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "output_token_count": {
+      "minimum": 0,
+      "title": "Output Token Count",
+      "type": "integer"
+    },
+    "prompt_id": {
+      "title": "Prompt Id",
+      "type": "string"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "refused": {
+      "default": false,
+      "title": "Refused",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "answer_id",
+    "prompt_id",
+    "context_pack_id",
+    "query_id",
+    "dataset_id",
+    "answer_text",
+    "generation_model_id",
+    "generation_runtime",
+    "input_token_count",
+    "output_token_count",
+    "citation_validation"
+  ],
+  "title": "GeneratedAnswer",
+  "type": "object"
+}

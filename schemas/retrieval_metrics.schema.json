@@ -1,0 +1,84 @@
+{
+  "additionalProperties": false,
+  "description": "Metrics for one evaluated retrieval case.",
+  "properties": {
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "retrieval_method": {
+      "title": "Retrieval Method",
+      "type": "string"
+    },
+    "evaluation_level": {
+      "title": "Evaluation Level",
+      "type": "string"
+    },
+    "cutoff": {
+      "exclusiveMinimum": 0,
+      "title": "Cutoff",
+      "type": "integer"
+    },
+    "relevant_count": {
+      "minimum": 0,
+      "title": "Relevant Count",
+      "type": "integer"
+    },
+    "retrieved_count": {
+      "minimum": 0,
+      "title": "Retrieved Count",
+      "type": "integer"
+    },
+    "relevant_retrieved_count": {
+      "minimum": 0,
+      "title": "Relevant Retrieved Count",
+      "type": "integer"
+    },
+    "recall_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Recall At K",
+      "type": "number"
+    },
+    "precision_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Precision At K",
+      "type": "number"
+    },
+    "reciprocal_rank": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Reciprocal Rank",
+      "type": "number"
+    },
+    "ndcg_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Ndcg At K",
+      "type": "number"
+    },
+    "hit_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Hit At K",
+      "type": "number"
+    }
+  },
+  "required": [
+    "query_id",
+    "retrieval_method",
+    "evaluation_level",
+    "cutoff",
+    "relevant_count",
+    "retrieved_count",
+    "relevant_retrieved_count",
+    "recall_at_k",
+    "precision_at_k",
+    "reciprocal_rank",
+    "ndcg_at_k",
+    "hit_at_k"
+  ],
+  "title": "RetrievalMetrics",
+  "type": "object"
+}

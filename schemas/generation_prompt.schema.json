@@ -1,0 +1,123 @@
+{
+  "additionalProperties": false,
+  "description": "A deterministic prompt rendered from one context pack.",
+  "properties": {
+    "artifact_type": {
+      "default": "generation_prompt",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "citation_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Citation Ids",
+      "type": "array"
+    },
+    "context_pack_id": {
+      "title": "Context Pack Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "maximum_prompt_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Prompt Tokens",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "prompt_id": {
+      "title": "Prompt Id",
+      "type": "string"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "rendered_context": {
+      "title": "Rendered Context",
+      "type": "string"
+    },
+    "rendered_prompt_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Rendered Prompt Tokens",
+      "type": "integer"
+    },
+    "reserved_answer_tokens": {
+      "minimum": 0,
+      "title": "Reserved Answer Tokens",
+      "type": "integer"
+    },
+    "source_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Chunk Ids",
+      "type": "array"
+    },
+    "source_context_tokens": {
+      "minimum": 0,
+      "title": "Source Context Tokens",
+      "type": "integer"
+    },
+    "source_document_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Document Ids",
+      "type": "array"
+    },
+    "system_instruction": {
+      "title": "System Instruction",
+      "type": "string"
+    },
+    "template_id": {
+      "title": "Template Id",
+      "type": "string"
+    },
+    "template_version": {
+      "title": "Template Version",
+      "type": "string"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    },
+    "user_prompt": {
+      "title": "User Prompt",
+      "type": "string"
+    }
+  },
+  "required": [
+    "prompt_id",
+    "context_pack_id",
+    "query_id",
+    "dataset_id",
+    "template_id",
+    "template_version",
+    "tokenizer_id",
+    "source_context_tokens",
+    "rendered_prompt_tokens",
+    "maximum_prompt_tokens",
+    "reserved_answer_tokens",
+    "system_instruction",
+    "rendered_context",
+    "user_prompt",
+    "citation_ids",
+    "source_chunk_ids",
+    "source_document_ids"
+  ],
+  "title": "GenerationPrompt",
+  "type": "object"
+}

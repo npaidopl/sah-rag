@@ -1,0 +1,149 @@
+artifact_type: real_dataset_sizing_registry
+artifact_version: '1.0'
+registry:
+  id: seven_real_long_context_datasets
+  version: 0.1.0
+  dataset_count: 7
+  inventory_status: INCOMPLETE_WITH_BLOCKERS
+  resolved_dataset_count: 0
+  missing_dataset_count: 7
+  ambiguous_dataset_count: 0
+measurement:
+  tokenizer_loaded: false
+  model_loaded: false
+  text_length_units:
+  - bytes
+  - characters
+  - whitespace_tokens
+  model_token_counts_available: false
+  token_measurement:
+    type: WHITESPACE_TOKEN_PROXY
+    model_tokenizer_used: false
+    suitable_for_embedding_time_prediction: false
+  percentile_method: nearest_rank
+datasets:
+  ruler:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  loong:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  long_bench_v2:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  lara:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  greek_bar_bench:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  cuad:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+  clerk:
+    status: MISSING
+    canonical_root: null
+    candidates: []
+    files: {}
+    identity: {}
+    documents: {}
+    examples: {}
+    validation: {}
+    structural_sizing: {}
+    integrity:
+      source_hashes_unchanged: true
+      references_resolve: null
+      schema_valid: null
+    blockers:
+    - canonical_root_not_found
+portfolio_totals:
+  documents: 0
+  examples: 0
+  judgments_or_ground_truth_items: 0
+  document_bytes: 0
+  document_characters: 0
+  document_whitespace_tokens: 0
+  minimum_child_chunks: 0
+  proxy_upper_bound_child_chunks: 0
+  projected_embedding_records_minimum: 0
+  projected_embedding_records_proxy_upper_bound: 0
+  projected_dense_float32_bytes_minimum: 0
+  projected_dense_float32_bytes_proxy_upper_bound: 0

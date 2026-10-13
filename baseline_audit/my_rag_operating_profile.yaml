@@ -1,0 +1,144 @@
+architecture_id: my_rag
+artifact_type: my_rag_operating_profile
+artifact_version: '1.0'
+code_revision: 0b51523ff86e4382c693d1e0a3342a358cbc4f5a
+cost_proxies_at_operating_point:
+  mean_latency_per_query_seconds: 0.0005044140141553876
+  total_dense_storage_bytes_proxy: 208515072.0
+dev_test_delta:
+  delta: -0.010673977564210235
+  dev_macro_recall@10: 0.40679483208432793
+  test_macro_recall@10: 0.3961208545201177
+fidelity_class: PROJECT_OWNED_REFERENCE
+frozen_parameters:
+  dense_dimension: 1024
+  document_limit: 100
+  document_resolution_policy: best_parent_by_score
+  embedding_model_id: BAAI/bge-m3
+  embedding_revision: 5617a9f61b028005a4858fdac845db406aefb181
+  parent_limit: 100
+  parent_rest_weight: 0.05
+  rrf_k: 60
+  structural_parser_policy: project_default
+locked_test_results:
+  dataset_query_counts:
+    clerk: 587
+    cuad: 10455
+    greek_bar_bench: 142
+    lara: 1139
+  macro_metrics:
+    hit@1: 0.2545119563597762
+    hit@10: 0.43878533087283933
+    hit@20: 0.5250800530777346
+    hit@5: 0.3823911580589912
+    hit@50: 0.6288736982405863
+    mrr@1: 0.2545119563597762
+    mrr@10: 0.30898062504539225
+    mrr@20: 0.3150347995363402
+    mrr@5: 0.30169073956786924
+    mrr@50: 0.31829528111715677
+    ndcg@10: 0.31765728815173727
+    ndcg@50: 0.3637603618708959
+    precision@10: 0.053546335472292456
+    recall@1: 0.21802751164492262
+    recall@10: 0.3961208545201177
+    recall@20: 0.48071301324646987
+    recall@5: 0.34043549163569276
+    recall@50: 0.5867735319389719
+  per_dataset:
+    clerk:
+      hit@1: 0.24872231686541738
+      hit@10: 0.5332197614991482
+      hit@20: 0.6303236797274276
+      hit@5: 0.4497444633730835
+      hit@50: 0.7427597955706985
+      mrr@1: 0.24872231686541738
+      mrr@10: 0.3347502771693573
+      mrr@20: 0.3418616726500124
+      mrr@5: 0.32356615559341284
+      mrr@50: 0.34545720124425855
+      ndcg@10: 0.2936351733491269
+      ndcg@50: 0.35572609871058924
+      precision@10: 0.0919931856899489
+      recall@1: 0.10278453800600307
+      recall@10: 0.3625618560882615
+      recall@20: 0.4528555204023688
+      recall@5: 0.2819217976798897
+      recall@50: 0.5743591303642411
+    cuad:
+      hit@1: 0.001052128168340507
+      hit@10: 0.012242945958871354
+      hit@20: 0.024485891917742707
+      hit@5: 0.0065040650406504065
+      hit@50: 0.055284552845528454
+      mrr@1: 0.001052128168340507
+      mrr@10: 0.003536889010346686
+      mrr@20: 0.00435554467966708
+      mrr@5: 0.0027785748445719747
+      mrr@50: 0.005274366731526983
+      ndcg@10: 0.005538695426595552
+      ndcg@50: 0.014597756130245661
+      precision@10: 0.0012242945958871353
+      recall@1: 0.001052128168340507
+      recall@10: 0.012242945958871354
+      recall@20: 0.024485891917742707
+      recall@5: 0.0065040650406504065
+      recall@50: 0.055284552845528454
+    greek_bar_bench:
+      hit@1: 0.02112676056338028
+      hit@10: 0.2746478873239437
+      hit@20: 0.4788732394366197
+      hit@5: 0.16901408450704225
+      hit@50: 0.7253521126760564
+      mrr@1: 0.02112676056338028
+      mrr@10: 0.08409344958640734
+      mrr@20: 0.09816042575766554
+      mrr@5: 0.0710093896713615
+      mrr@50: 0.10577335610484549
+      ndcg@10: 0.12821705656575602
+      ndcg@50: 0.2282141909636173
+      precision@10: 0.027464788732394368
+      recall@1: 0.02112676056338028
+      recall@10: 0.2746478873239437
+      recall@20: 0.4788732394366197
+      recall@5: 0.16901408450704225
+      recall@50: 0.7253521126760564
+    lara:
+      hit@1: 0.7471466198419666
+      hit@10: 0.9350307287093942
+      hit@20: 0.9666374012291484
+      hit@5: 0.9043020193151887
+      hit@50: 0.9920983318700615
+      mrr@1: 0.7471466198419666
+      mrr@10: 0.8135418844154577
+      mrr@20: 0.8157615550580158
+      mrr@5: 0.8094088381621306
+      mrr@50: 0.8166762003879959
+      ndcg@10: 0.8432382272654706
+      ndcg@50: 0.8565034016791312
+      precision@10: 0.09350307287093941
+      recall@1: 0.7471466198419666
+      recall@10: 0.9350307287093942
+      recall@20: 0.9666374012291484
+      recall@5: 0.9043020193151887
+      recall@50: 0.9920983318700615
+  primary_metric: macro_document_recall@10
+  primary_metric_value: 0.3961208545201177
+  protocol: single execution on test split
+operating_point:
+  candidate_limit: 200
+  chunk_overlap_tokens: 32
+  chunk_size_tokens: 256
+  config_id: c256_o32_hybrid_rrf_k200
+  retrieval_mode: hybrid_rrf
+pareto_frontier_ref: _m6_pareto.json
+response_curves_ref: _m4b_response_curves.json
+selection_provenance:
+  best_by_mean_r10_on_dev: c256_o128_hybrid_rrf_k200
+  bootstrap_iterations: 1000
+  bootstrap_seed: 42
+  method: one_standard_error_then_lexicographic
+  retained_within_1se:
+  - c256_o128_hybrid_rrf_k200
+  - c256_o32_hybrid_rrf_k200
+  - c512_o128_hybrid_rrf_k200

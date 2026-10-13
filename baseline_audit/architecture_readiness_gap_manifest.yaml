@@ -1,0 +1,28 @@
+artifact_type: architecture_readiness_gap_manifest
+artifact_version: '1.0'
+execution:
+  execution_id: architecture-readiness-gap-analysis-v1
+  contract_version: 0.1.0
+  status: COMPLETE
+approval:
+  static_inspection_approved: true
+  readiness_planning_approved: true
+  architecture_execution_approved: false
+  model_loading_approved: false
+  llm_execution_approved: false
+  storage_creation_approved: false
+  retrieval_execution_approved: false
+  evaluation_execution_approved: false
+results:
+  architecture_records_created: true
+  architecture_count: 11
+  dataset_ready_count: 1
+  synthetic_validated_count: 2
+  partial_count: 3
+  not_started_count: 5
+  deferred_count: 0
+  implementation_sequence_created: true
+next_gate:
+  required_step: first_architecture_readiness_completion
+  target_architecture: longrag
+  approved: false

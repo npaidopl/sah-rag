@@ -1,0 +1,191 @@
+artifact_type: baseline_adapter_specification
+artifact_version: "1.0"
+
+adapter:
+  id: longrag_retrieval_adapter
+  version: "0.1.0"
+  architecture_id: longrag
+  architecture_source_commit: ba92f95
+  status: specification_only
+
+foreign_code_execution_performed: false
+dependencies_installed: false
+
+input_contract:
+  canonical_documents:
+    required_fields:
+      - doc_id
+      - dataset
+      - text_normalized
+    optional_fields:
+      - title
+      - parent_id
+      - metadata
+
+  benchmark_queries:
+    required_fields:
+      - query_id
+      - query_text
+      - split
+
+  ground_truth:
+    required_for_document_evaluation:
+      - query_id
+      - item_id
+      - relevance
+
+  long_unit:
+    required_fields:
+      - long_unit_id
+      - dataset_id
+      - construction_policy
+      - unit_order
+      - text
+      - token_count
+      - member_doc_ids
+      - member_parent_ids
+      - member_chunk_ids
+      - metadata
+
+constraints:
+  deterministic_identity: true
+  member_doc_ids_non_empty: true
+  text_non_empty: true
+  token_count_positive: true
+  membership_order_stable: true
+  duplicate_member_doc_ids_allowed: false
+
+identity:
+  ingredients:
+    - dataset_id
+    - construction_policy
+    - target_token_size
+    - ordered_member_doc_ids
+    - source_text_checksums
+  format: longunit-{dataset_id}-{fingerprint}
+
+construction_policies:
+  single_document_if_within_budget:
+    description: >
+      One canonical document forms one unit when its token count
+      does not exceed the selected unit budget.
+    faithful_relation: strong
+
+  adjacent_document_segments:
+    description: >
+      Consecutive document or segment records are grouped until
+      the selected token budget is reached.
+    faithful_relation: controlled_adaptation
+
+  structure_preserving_parent_groups:
+    description: >
+      Parent records from the same canonical document are grouped
+      while preserving their original structural order.
+    faithful_relation: controlled_adaptation
+
+embedding_contract:
+  initial_pilot_model: BAAI/bge-m3
+  model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+  dense_enabled: true
+  sparse_enabled: false
+  normalized: true
+  research_note: >
+    The initial adapter pilot may reuse BGE-M3 to validate the
+    execution contract. A paper-faithful embedding configuration
+    must be evaluated separately and must not be conflated with
+    the interface-validation pilot.
+
+index_contract:
+  backend_for_interface_pilot: qdrant_server
+  retrieval_level: long_unit
+  vector_name: dense
+  score_type: cosine_similarity
+  required_payload:
+    - long_unit_id
+    - dataset_id
+    - construction_policy
+    - member_doc_ids
+    - member_parent_ids
+    - member_chunk_ids
+    - token_count
+    - source_commit
+    - adapter_version
+
+query_contract:
+  input:
+    - query_id
+    - query_text
+  output:
+    - query_id
+    - ranked_long_units
+  ranked_long_unit_fields:
+    - rank
+    - long_unit_id
+    - score
+    - member_doc_ids
+    - construction_policy
+
+document_expansion:
+  method: first_occurrence_by_long_unit_rank
+  algorithm:
+    - Iterate long units in retrieval-rank order.
+    - Iterate member_doc_ids in stored membership order.
+    - Emit each unseen doc_id once.
+    - Preserve the originating long_unit_id and unit rank.
+    - Stop at the requested document limit.
+  output_fields:
+    - document_rank
+    - doc_id
+    - source_long_unit_id
+    - source_long_unit_rank
+    - source_long_unit_score
+    - membership_position
+
+evaluation:
+  common_document_metrics:
+    - recall_at_k
+    - precision_at_k
+    - reciprocal_rank
+    - ndcg_at_k
+    - hit_at_k
+  required_cutoffs:
+    - 1
+    - 5
+    - 10
+    - 100
+  pilot_selection_split: dev
+  fixed_reporting_split: test
+
+instrumentation:
+  required:
+    - unit_construction_seconds
+    - embedding_seconds
+    - indexing_seconds
+    - query_latency_seconds
+    - peak_process_ram_bytes
+    - serialized_unit_bytes
+    - qdrant_point_count
+    - model_id
+    - model_revision
+    - source_commit
+    - adapter_git_revision
+
+faithfulness_labels:
+  interface_validation:
+    description: >
+      Validates deterministic long units, source lineage, retrieval,
+      and document expansion. It is not a paper-faithful result.
+  adapted_longrag:
+    description: >
+      Preserves long-unit retrieval but uses a dataset-specific
+      declared grouping policy.
+  faithful_longrag:
+    description: >
+      Uses the original or demonstrably equivalent long-unit
+      construction, retrieval model, and ranking behavior.
+
+safety:
+  final_generation_enabled: false
+  foreign_code_modified: false
+  frozen_baseline_modified: false
+  secrets_required: false

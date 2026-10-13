@@ -1,0 +1,466 @@
+{
+  "$defs": {
+    "ArtifactReference": {
+      "additionalProperties": false,
+      "description": "Reference to a generated or consumed artifact.",
+      "properties": {
+        "artifact_type": {
+          "title": "Artifact Type",
+          "type": "string"
+        },
+        "completed": {
+          "default": false,
+          "title": "Completed",
+          "type": "boolean"
+        },
+        "fingerprint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fingerprint"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "size_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size Bytes"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "path"
+      ],
+      "title": "ArtifactReference",
+      "type": "object"
+    },
+    "ComponentReference": {
+      "additionalProperties": false,
+      "description": "Versioned reference to one pipeline component.",
+      "properties": {
+        "component_id": {
+          "title": "Component Id",
+          "type": "string"
+        },
+        "config_hash": {
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "configuration": {
+          "additionalProperties": true,
+          "title": "Configuration",
+          "type": "object"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_id",
+        "version",
+        "config_hash"
+      ],
+      "title": "ComponentReference",
+      "type": "object"
+    },
+    "ExecutionEnvironment": {
+      "description": "Supported experiment execution environments.",
+      "enum": [
+        "local",
+        "colab",
+        "cloud",
+        "unknown"
+      ],
+      "title": "ExecutionEnvironment",
+      "type": "string"
+    },
+    "ExecutionReference": {
+      "additionalProperties": false,
+      "description": "Recorded execution environment for one experiment.",
+      "properties": {
+        "cpu": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cpu"
+        },
+        "device": {
+          "title": "Device",
+          "type": "string"
+        },
+        "environment": {
+          "$ref": "#/$defs/ExecutionEnvironment"
+        },
+        "gpu": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpu"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "operating_system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operating System"
+        },
+        "precision": {
+          "title": "Precision",
+          "type": "string"
+        },
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "python_version": {
+          "title": "Python Version",
+          "type": "string"
+        },
+        "ram_gb": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ram Gb"
+        },
+        "vram_gb": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vram Gb"
+        }
+      },
+      "required": [
+        "profile_id",
+        "environment",
+        "device",
+        "precision",
+        "python_version"
+      ],
+      "title": "ExecutionReference",
+      "type": "object"
+    },
+    "ExperimentStatus": {
+      "description": "Lifecycle states of an experiment.",
+      "enum": [
+        "created",
+        "running",
+        "completed",
+        "failed",
+        "interrupted"
+      ],
+      "title": "ExperimentStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Complete identity and provenance record for one experiment.",
+  "properties": {
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "architecture_version": {
+      "title": "Architecture Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "experiment_manifest",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "canonical_manifest_fingerprint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Canonical Manifest Fingerprint"
+    },
+    "canonical_root_fingerprint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Canonical Root Fingerprint"
+    },
+    "chunker": {
+      "$ref": "#/$defs/ComponentReference"
+    },
+    "code_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Revision"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completed At"
+    },
+    "configuration_hash": {
+      "title": "Configuration Hash",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "embedder": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "errors": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "evaluator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "execution": {
+      "$ref": "#/$defs/ExecutionReference"
+    },
+    "experiment_id": {
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "fusion": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "inputs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ArtifactReference"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "metrics": {
+      "additionalProperties": true,
+      "title": "Metrics",
+      "type": "object"
+    },
+    "notes": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "outputs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ArtifactReference"
+      },
+      "title": "Outputs",
+      "type": "array"
+    },
+    "parser": {
+      "$ref": "#/$defs/ComponentReference"
+    },
+    "random_seed": {
+      "minimum": 0,
+      "title": "Random Seed",
+      "type": "integer"
+    },
+    "reranker": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "retriever": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Started At"
+    },
+    "status": {
+      "$ref": "#/$defs/ExperimentStatus",
+      "default": "created"
+    },
+    "vectorstore": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "experiment_id",
+    "architecture_id",
+    "architecture_version",
+    "dataset_id",
+    "parser",
+    "chunker",
+    "execution",
+    "random_seed",
+    "configuration_hash"
+  ],
+  "title": "ExperimentManifest",
+  "type": "object"
+}

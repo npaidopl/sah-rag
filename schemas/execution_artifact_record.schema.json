@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "artifact_type": {
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "bytes": {
+      "minimum": 0,
+      "title": "Bytes",
+      "type": "integer"
+    },
+    "relative_path": {
+      "title": "Relative Path",
+      "type": "string"
+    },
+    "sha256": {
+      "title": "Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_type",
+    "relative_path",
+    "sha256",
+    "bytes"
+  ],
+  "title": "ExecutionArtifactRecord",
+  "type": "object"
+}

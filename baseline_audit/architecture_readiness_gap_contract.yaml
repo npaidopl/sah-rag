@@ -1,0 +1,163 @@
+artifact_type: architecture_readiness_gap_contract
+artifact_version: "1.0"
+
+contract:
+  id: eleven_architectures_readiness_gap_registry
+  version: "0.1.0"
+  status: APPROVED_FOR_STATIC_GAP_ANALYSIS
+
+dependencies:
+  fair_benchmark_protocol:
+    path: baseline_audit/fair_benchmark_protocol.yaml
+    required_status: FROZEN_FOR_IMPLEMENTATION
+  architecture_fidelity_matrix:
+    path: baseline_audit/architecture_fidelity_matrix.yaml
+  component_substitution_policy:
+    path: baseline_audit/component_substitution_policy.yaml
+  dataset_task_matrix:
+    path: baseline_audit/dataset_retrieval_task_matrix.yaml
+  architecture_portfolio:
+    path: baseline_audit/architecture_portfolio_dispositions.yaml
+  architecture_environment_matrix:
+    path: baseline_audit/architecture_environment_matrix.yaml
+
+architectures:
+  expected:
+    - rag_system
+    - longrag
+    - raptor
+    - hipporag2
+    - lightrag
+    - pathrag
+    - disretrieval
+    - memorag
+    - kag
+    - metadata_rag
+    - hikey
+  expected_count: 11
+  exact_set_required: true
+
+required_record_fields:
+  - architecture_id
+  - implementation_status
+  - fidelity_class
+  - controlled_track_status
+  - native_track_status
+  - readiness_gate
+  - current_artifacts
+  - verified_components
+  - missing_components
+  - architecture_defining_components
+  - controlled_substitutions
+  - llm_dependencies
+  - storage_policy
+  - canonical_input_status
+  - retrieval_output_status
+  - synthetic_acceptance_status
+  - dataset_readiness_status
+  - blockers
+  - next_action_class
+  - next_action
+  - recommended_order
+
+status_vocabularies:
+  implementation_status:
+    - NOT_STARTED
+    - STATIC_SPEC_COMPLETE
+    - PARTIAL
+    - COMPONENT_TESTED
+    - SYNTHETIC_VALIDATED
+    - CANONICAL_INPUT_VALIDATED
+    - DATASET_READY
+  readiness_gate:
+    - PASSED
+    - READY_FOR_SYNTHETIC_ACCEPTANCE
+    - REQUIRES_BOUNDED_IMPLEMENTATION
+    - REQUIRES_COMPONENT_DECISION
+    - REQUIRES_LICENSE_OR_MODEL_REVIEW
+    - REQUIRES_SERVICE_ENVIRONMENT
+    - REQUIRES_MULTIMODAL_CONTRACT
+    - DEFERRED_WITH_REASON
+  fidelity_class:
+    - PROJECT_OWNED_REFERENCE
+    - NATIVE_FAITHFUL
+    - CONTROLLED_ADAPTATION
+    - PAPER_DERIVED_COMPARATOR
+    - UNRESOLVED
+  next_action_class:
+    - SYNTHETIC_PROOF
+    - IMPLEMENT_MISSING_COMPONENT
+    - FREEZE_COMPONENT_CONTRACT
+    - RUN_EQUIVALENCE_TEST
+    - AUDIT_MODEL_LICENSE
+    - PROVISION_SERVICE
+    - EXTEND_INPUT_CONTRACT
+    - KEEP_DEFERRED
+  track_status:
+    - ELIGIBLE
+    - NOT_ELIGIBLE
+    - DEFERRED
+
+static_analysis:
+  allowed: true
+  import_project_modules: false
+  execute_architecture: false
+
+evidence_sources:
+  - source_files
+  - unit_tests
+  - audit_contracts
+  - execution_manifests
+  - readiness_declarations
+  - synthetic_smoke_reports
+  - portfolio_registry
+  - environment_matrix
+
+prohibited:
+  - execute_architecture
+  - load_model
+  - call_llm
+  - create_index
+  - open_qdrant
+  - create_storage
+  - execute_retrieval
+  - execute_evaluation
+
+readiness_rules:
+  dataset_ready_requires:
+    - canonical_input_mapping_valid
+    - preprocessing_executable
+    - persistent_state_supported
+    - state_reopen_validated
+    - retrieval_callable
+    - canonical_identity_recoverable
+    - evaluation_mapping_valid
+    - generation_disableable
+    - synthetic_acceptance_passed
+  synthetic_validated_requires:
+    - tiny_fixture_ingested
+    - architecture_state_created
+    - state_reopened
+    - at_least_one_query_retrieved
+    - canonical_ids_recovered
+    - deterministic_or_classified
+  deferred_requires:
+    - explicit_reason
+    - explicit_re_evaluation_trigger
+    - no_numeric_leaderboard_entry
+
+evidence_precedence:
+  - successful_execution_manifest
+  - successful_readiness_declaration
+  - passing_synthetic_smoke
+  - passing_component_tests
+  - static_implementation_evidence
+  - frozen_implementation_contract
+  - paper_audit
+  - planning_statement
+
+claims:
+  readiness_registry_is_execution_result: false
+  static_gap_analysis_is_synthetic_proof: false
+  synthetic_proof_is_real_dataset_readiness: false
+  publishable_execution: false

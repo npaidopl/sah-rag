@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "description": "Summary metrics for a constructed long-unit corpus.",
+  "properties": {
+    "average_unit_tokens": {
+      "minimum": 0.0,
+      "title": "Average Unit Tokens",
+      "type": "number"
+    },
+    "complete_chunk_coverage": {
+      "title": "Complete Chunk Coverage",
+      "type": "boolean"
+    },
+    "complete_document_coverage": {
+      "title": "Complete Document Coverage",
+      "type": "boolean"
+    },
+    "complete_parent_coverage": {
+      "title": "Complete Parent Coverage",
+      "type": "boolean"
+    },
+    "construction_policy": {
+      "enum": [
+        "adjacent_segments",
+        "adjacent_document_segments",
+        "single_document_if_within_budget",
+        "structure_preserving_parent_groups"
+      ],
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "long_unit_count": {
+      "minimum": 0,
+      "title": "Long Unit Count",
+      "type": "integer"
+    },
+    "maximum_unit_tokens": {
+      "minimum": 0,
+      "title": "Maximum Unit Tokens",
+      "type": "integer"
+    },
+    "minimum_unit_tokens": {
+      "minimum": 0,
+      "title": "Minimum Unit Tokens",
+      "type": "integer"
+    },
+    "source_document_count": {
+      "minimum": 0,
+      "title": "Source Document Count",
+      "type": "integer"
+    },
+    "source_parent_count": {
+      "minimum": 0,
+      "title": "Source Parent Count",
+      "type": "integer"
+    },
+    "source_segment_count": {
+      "minimum": 0,
+      "title": "Source Segment Count",
+      "type": "integer"
+    },
+    "target_token_size": {
+      "exclusiveMinimum": 0,
+      "title": "Target Token Size",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "construction_policy",
+    "target_token_size",
+    "source_segment_count",
+    "source_document_count",
+    "source_parent_count",
+    "long_unit_count",
+    "minimum_unit_tokens",
+    "maximum_unit_tokens",
+    "average_unit_tokens",
+    "complete_document_coverage",
+    "complete_parent_coverage",
+    "complete_chunk_coverage"
+  ],
+  "title": "LongUnitConstructionSummary",
+  "type": "object"
+}

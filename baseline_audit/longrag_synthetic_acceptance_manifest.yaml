@@ -1,0 +1,50 @@
+artifact_type: longrag_synthetic_acceptance_manifest
+artifact_version: '1.0'
+execution:
+  execution_id: longrag-controlled-synthetic-acceptance-v1
+  contract_version: 0.1.0
+  status: PASSED
+approval:
+  long_unit_construction_approved: true
+  model_loading_approved: true
+  dense_embedding_approved: true
+  reference_index_approved: true
+  qdrant_collection_approved: true
+  reference_retrieval_approved: true
+  qdrant_retrieval_approved: true
+  equivalence_comparison_approved: true
+  canonical_expansion_approved: true
+  evaluation_case_construction_approved: true
+  native_embedder_execution_approved: false
+  sparse_embedding_approved: false
+  hybrid_retrieval_approved: false
+  llm_execution_approved: false
+  metric_computation_approved: false
+  generation_approved: false
+results:
+  documents_loaded: 12
+  queries_loaded: 6
+  long_units_created: true
+  long_unit_count: 4
+  model_loaded: true
+  long_unit_embedding_count: 4
+  query_embedding_count: 6
+  reference_index_created: true
+  qdrant_collection_created: true
+  qdrant_collection_reopened: true
+  reference_retrieval_executed: true
+  qdrant_retrieval_executed: true
+  storage_equivalence_passed: true
+  ranked_document_count: 60
+  evaluation_case_count: 6
+  ground_truth_loaded_during_retrieval: false
+  source_unchanged: true
+  round_trip_valid: true
+  checksums_valid: true
+  determinism_status: BYTE_IDENTICAL_PENDING_RERUN
+  wall_clock_seconds: 27.134
+  output_bytes: 201460
+  metrics_computed: false
+next_gate:
+  required_step: longrag_readiness_declaration
+  approved: true

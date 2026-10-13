@@ -1,0 +1,106 @@
+artifact_type: infrastructure_pilot_closure_contract
+artifact_version: "1.0"
+
+contract:
+  id: infrastructure_pilot_evidence_freeze
+  version: "0.1.0"
+  status: APPROVED_FOR_CLOSURE
+
+pilot:
+  pilot_id: infrastructure-pilot-wave1-cpu-v1
+  execution_role: INFRASTRUCTURE_VALIDATION_ONLY
+  dataset_id: infrastructure-pilot-synthetic-v1
+  dataset_revision: "1.0.0"
+  architecture_id: rag_system
+  host_profile_id: execution-host-8e2c5a1f3b7d4c9a
+
+scope:
+  first_step: 77
+  last_execution_step: 89
+  closure_step: 90
+  synthetic_data_only: true
+  real_dataset_used: false
+  publishable_execution: false
+
+commit_chain:
+  step_77: c8943ab327fefc667f8bdd255ba33b2a3c249432
+  step_78: 7e03619158de5b9f7e1303d88047c1fd8e84a9a6
+  step_79: bd1e569e1cd7f413287110af0691e914e82dce24
+  step_80: c4b1d291b99366d186734631be1642303baef960
+  step_81: 02d325d91170ff20a3f6d26f5f8967288f1ed106
+  step_82: be63a05c488fdf2fa8d81f8536ac826ed3f8b8a2
+  step_83: 61ae98cbefc86a1a21465b3fea0f9dba2277b8fd
+  step_84: 37089157a0cd6d7cd5900024f4ca897b7bd13299
+  step_85: 1680fd0db07f92743c2badd95b9dd70b8bb0de1a
+  step_86: b1b790afbf25dbf54d718a54d66122c7a6c75071
+  step_87: 1f1799402085afd8dfba6dce0760f96916e13033
+  step_88: aaddf85eddd6fdfdaaf487534ad491e2883af2b8
+  step_89: 8e004f26f1afa21c8bc173488a925a0be07dad6c
+
+required_stage_statuses:
+  pilot_planning: COMPLETE
+  dataset_materialization: COMPLETE
+  canonical_adapter: COMPLETE
+  static_pipeline_inspection: COMPLETE
+  parser_chunker_execution: SUCCEEDED
+  embedding_execution: SUCCEEDED
+  qdrant_ingestion: SUCCEEDED
+  retrieval_execution: SUCCEEDED
+  evaluation_execution: SUCCEEDED
+
+required_execution_chain:
+  - canonical_envelope
+  - parser
+  - semantic_parents
+  - child_chunks
+  - dense_embedding
+  - learned_sparse_embedding
+  - qdrant_local_persistence
+  - dense_retrieval
+  - sparse_retrieval
+  - hybrid_rrf_retrieval
+  - parent_aggregation
+  - canonical_document_resolution
+  - common_retrieval_evaluation
+
+closure:
+  repeat_execution_required: false
+  runtime_artifact_validation_required: true
+  checksum_validation_required: true
+  commit_chain_validation_required: true
+  source_immutability_validation_required: true
+
+safety:
+  generation_executed: false
+  answer_evaluation_executed: false
+  llm_as_judge_executed: false
+  architecture_comparison_executed: false
+  hosted_requests_executed: false
+  network_access_during_bounded_execution: false
+  foreign_code_execution_for_pilot: false
+  real_dataset_execution: false
+  publishable_metrics_produced: false
+  effectiveness_claims_allowed: false
+
+quality_gates:
+  full_test_suite_minimum: 878
+  ruff_required: true
+  mypy_src_required: true
+  pip_check_required: true
+  git_diff_check_required: true
+
+outputs:
+  evidence_registry: baseline_audit/infrastructure_pilot_evidence_registry.yaml
+  closure_manifest: baseline_audit/infrastructure_pilot_closure_manifest.yaml
+  documentation: docs/infrastructure_pilot_closure.md
+
+versioning:
+  contract_version: "0.1.0"
+  requires_version_bump:
+    - Pilot dataset changes.
+    - Execution-chain semantics change.
+    - Model revision changes.
+    - Qdrant collection schema changes.
+    - Retrieval method changes.
+    - Evaluation contract changes.
+    - Safety or publishability boundary changes.

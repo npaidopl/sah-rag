@@ -1,0 +1,86 @@
+{
+  "additionalProperties": false,
+  "description": "One dense-retrieved long unit with payload and rank.",
+  "properties": {
+    "condition_id": {
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "construction_policy": {
+      "enum": [
+        "adjacent_segments",
+        "adjacent_document_segments",
+        "single_document_if_within_budget",
+        "structure_preserving_parent_groups"
+      ],
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "long_unit_id": {
+      "title": "Long Unit Id",
+      "type": "string"
+    },
+    "member_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Chunk Ids",
+      "type": "array"
+    },
+    "member_doc_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Doc Ids",
+      "type": "array"
+    },
+    "member_parent_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Parent Ids",
+      "type": "array"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "rank": {
+      "title": "Rank",
+      "type": "integer"
+    },
+    "rendered_token_count": {
+      "title": "Rendered Token Count",
+      "type": "integer"
+    },
+    "score": {
+      "title": "Score",
+      "type": "number"
+    },
+    "target_token_size": {
+      "title": "Target Token Size",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "long_unit_id",
+    "condition_id",
+    "dataset_id",
+    "rank",
+    "score",
+    "construction_policy",
+    "target_token_size",
+    "rendered_token_count",
+    "member_doc_ids",
+    "member_parent_ids",
+    "member_chunk_ids",
+    "payload"
+  ],
+  "title": "RetrievedLongUnit",
+  "type": "object"
+}

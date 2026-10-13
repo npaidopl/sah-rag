@@ -1,0 +1,170 @@
+{
+  "$defs": {
+    "ContextItem": {
+      "additionalProperties": false,
+      "description": "One retrieved source included in a generation context.",
+      "properties": {
+        "chunk_id": {
+          "title": "Chunk Id",
+          "type": "string"
+        },
+        "citation_id": {
+          "title": "Citation Id",
+          "type": "string"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "parent_id": {
+          "title": "Parent Id",
+          "type": "string"
+        },
+        "retrieval_method": {
+          "title": "Retrieval Method",
+          "type": "string"
+        },
+        "retrieval_rank": {
+          "exclusiveMinimum": 0,
+          "title": "Retrieval Rank",
+          "type": "integer"
+        },
+        "retrieval_score": {
+          "title": "Retrieval Score",
+          "type": "number"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "token_count": {
+          "exclusiveMinimum": 0,
+          "title": "Token Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "citation_id",
+        "chunk_id",
+        "parent_id",
+        "doc_id",
+        "dataset",
+        "retrieval_rank",
+        "retrieval_score",
+        "retrieval_method",
+        "text",
+        "token_count"
+      ],
+      "title": "ContextItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Deterministic source context for one generation query.",
+  "properties": {
+    "artifact_type": {
+      "default": "generation_context_pack",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "context_pack_id": {
+      "title": "Context Pack Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "maximum_context_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Context Tokens",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "query_text": {
+      "title": "Query Text",
+      "type": "string"
+    },
+    "remaining_context_tokens": {
+      "minimum": 0,
+      "title": "Remaining Context Tokens",
+      "type": "integer"
+    },
+    "retrieval_method": {
+      "title": "Retrieval Method",
+      "type": "string"
+    },
+    "selected_item_count": {
+      "minimum": 0,
+      "title": "Selected Item Count",
+      "type": "integer"
+    },
+    "selected_items": {
+      "items": {
+        "$ref": "#/$defs/ContextItem"
+      },
+      "title": "Selected Items",
+      "type": "array"
+    },
+    "skipped_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Skipped Chunk Ids",
+      "type": "array"
+    },
+    "skipped_item_count": {
+      "minimum": 0,
+      "title": "Skipped Item Count",
+      "type": "integer"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    },
+    "used_context_tokens": {
+      "minimum": 0,
+      "title": "Used Context Tokens",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "context_pack_id",
+    "query_id",
+    "query_text",
+    "dataset_id",
+    "retrieval_method",
+    "tokenizer_id",
+    "maximum_context_tokens",
+    "used_context_tokens",
+    "remaining_context_tokens",
+    "selected_item_count",
+    "skipped_item_count",
+    "selected_items",
+    "skipped_chunk_ids"
+  ],
+  "title": "ContextPack",
+  "type": "object"
+}

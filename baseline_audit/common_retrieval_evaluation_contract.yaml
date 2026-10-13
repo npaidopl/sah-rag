@@ -1,0 +1,94 @@
+artifact_type: common_retrieval_evaluation_contract
+artifact_version: "1.0"
+
+contract:
+  id: wave1_common_retrieval_evaluation
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+scope:
+  evaluation_level: document
+  architectures: [longrag, raptor, hipporag2, lightrag, pathrag]
+  retrieval_only: true
+  final_generation_enabled: false
+  answer_evaluation_enabled: false
+  llm_as_judge_enabled: false
+
+cutoffs: [1, 5, 10, 100]
+
+metric_definitions:
+  hit_at_k:
+    formula: >
+      One when at least one item with relevance greater than zero appears
+      within the first k retrieved items, otherwise zero.
+  precision_at_k:
+    formula: >
+      The number of relevant retrieved items within the first k positions
+      divided by k.
+    denominator_policy: fixed_cutoff
+  recall_at_k:
+    formula: >
+      The number of relevant retrieved items within the first k positions
+      divided by the total number of relevant judgment items.
+    zero_relevant_policy: reject_case
+  reciprocal_rank:
+    formula: >
+      The reciprocal of the rank of the first relevant retrieved item
+      within the first k positions, or zero when no relevant item appears
+      within the cutoff.
+    cutoff_applied: true
+  ndcg_at_k:
+    gain_formula: "2^relevance - 1"
+    discount_formula: "1 / log2(rank + 1)"
+    ideal_ranking_source: judgments_sorted_by_relevance_descending
+    normalization: dcg_at_k_divided_by_idcg_at_k
+    zero_idcg_policy: reject_case
+
+aggregation:
+  method: macro_average
+  weighting: equal_query_weight
+  required_fields:
+    - query_count
+    - cutoff
+    - mean_hit_at_k
+    - mean_precision_at_k
+    - mean_recall_at_k
+    - mean_reciprocal_rank
+    - mean_ndcg_at_k
+  constraints:
+    every_expected_query_present: true
+    duplicate_query_results_prohibited: true
+    missing_query_results_prohibited: true
+    non_finite_metrics_prohibited: true
+
+multi_cutoff_output:
+  one_result_per_query_per_cutoff: true
+  one_aggregate_per_cutoff: true
+
+persistence:
+  files:
+    cases: retrieval_cases.jsonl
+    query_metrics: query_metrics.jsonl
+    aggregate_metrics: aggregate_metrics.json
+    manifest: evaluation.manifest.json
+  encoding: UTF-8
+  line_endings: LF
+  jsonl_compact: true
+  jsonl_sort_keys: true
+  checksum_algorithm: SHA-256
+  atomic_writes_required: true
+
+safety:
+  retrieval_only: true
+  final_generation_enabled: false
+  answer_evaluation_enabled: false
+  llm_as_judge_enabled: false
+  generated_answers_in_artifacts: false
+  architecture_specific_metric_overrides_allowed: false
+
+immutability:
+  evaluation_outputs_immutable_after_success: true
+  metric_definition_change_requires_contract_version_bump: true
+
+versioning:
+  contract_version: "0.1.0"

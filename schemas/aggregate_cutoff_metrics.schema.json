@@ -1,0 +1,66 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "cutoff": {
+      "exclusiveMinimum": 0,
+      "title": "Cutoff",
+      "type": "integer"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "mean_hit_at_k": {
+      "title": "Mean Hit At K",
+      "type": "number"
+    },
+    "mean_ndcg_at_k": {
+      "title": "Mean Ndcg At K",
+      "type": "number"
+    },
+    "mean_precision_at_k": {
+      "title": "Mean Precision At K",
+      "type": "number"
+    },
+    "mean_recall_at_k": {
+      "title": "Mean Recall At K",
+      "type": "number"
+    },
+    "mean_reciprocal_rank": {
+      "title": "Mean Reciprocal Rank",
+      "type": "number"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_count": {
+      "exclusiveMinimum": 0,
+      "title": "Query Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "dataset_id",
+    "architecture_id",
+    "cutoff",
+    "query_count",
+    "mean_hit_at_k",
+    "mean_precision_at_k",
+    "mean_recall_at_k",
+    "mean_reciprocal_rank",
+    "mean_ndcg_at_k"
+  ],
+  "title": "AggregateCutoffMetrics",
+  "type": "object"
+}

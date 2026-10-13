@@ -1,0 +1,30 @@
+﻿name: rag-architecture
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.1
+    container_name: rag-qdrant
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+
+    volumes:
+      - qdrant_storage:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
+
+    environment:
+      QDRANT__LOG_LEVEL: INFO
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+volumes:
+  qdrant_storage:
+    name: rag_architecture_qdrant_storage
+
+  qdrant_snapshots:
+    name: rag_architecture_qdrant_snapshots

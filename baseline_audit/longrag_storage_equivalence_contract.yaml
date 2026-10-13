@@ -1,0 +1,91 @@
+artifact_type: longrag_storage_equivalence_contract
+artifact_version: "1.0"
+
+contract:
+  id: longrag_qdrant_exact_dense_equivalence
+  version: "0.1.0"
+  status: APPROVED_FOR_BOUNDED_EXECUTION
+
+controlled_storage:
+  backend: Qdrant
+  mode: local_persistence
+  vector_name: dense
+  dimension: 1024
+  distance: COSINE
+  collection_created_by: rag_system.baselines.longrag_storage.create_longrag_collection
+  ingestion_function: rag_system.baselines.longrag_storage.ingest_longrag_records
+  retrieval_function: rag_system.baselines.longrag_retrieval.retrieve_long_units
+  approximate_search_allowed: false
+  quantization_allowed: false
+  reranking_allowed: false
+
+reference_storage:
+  backend: EXACT_IN_MEMORY_DENSE
+  implementation: rag_system.baselines.longrag_reference_dense_index.ReferenceDenseIndex
+  similarity: COSINE_VIA_NORMALIZED_DOT_PRODUCT
+  approximate_search: false
+  candidate_pruning: false
+
+identity:
+  point_id_source: uuid5_of_condition_long_unit_and_embedding_config_hash
+  point_id_function: rag_system.baselines.longrag_storage.build_longrag_point_id
+  point_id_prefix: rag-longunit
+  point_id_namespace: uuid.NAMESPACE_URL
+  long_unit_id_stored_in_payload: true
+  long_unit_id_preserved: true
+  canonical_lineage_preserved: true
+
+fixture:
+  dataset_id: infrastructure-pilot-synthetic-v1
+  expected_documents: 12
+  expected_queries: 6
+  expected_relevant_documents_per_query: 2
+
+comparison:
+  cutoffs:
+    - 1
+    - 5
+    - 10
+  required:
+    - exact_returned_identity_set
+    - exact_rank_order_when_scores_distinct
+    - equal_score_tie_normalization
+    - score_direction_match
+    - canonical_lineage_match
+  score_tolerance:
+    absolute: 1.0e-6
+    relative: 1.0e-6
+  tie_policy:
+    reference:
+      - score_desc
+      - long_unit_id_asc
+    qdrant_equal_score_normalization:
+      - score_desc
+      - long_unit_id_asc
+
+acceptance:
+  top_1_overlap: 1.0
+  top_5_overlap: 1.0
+  top_10_policy: >
+    Compare all available records when the fixture has fewer than
+    ten indexed long units.
+  exact_identity_order_required_after_tie_normalization: true
+  point_count_unchanged: true
+  payload_lineage_complete: true
+
+classification:
+  if_pass: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+  if_fail: STORAGE_SUBSTITUTION_BLOCKED
+
+qdrant_exactness_caveat:
+  note: >
+    The project-owned helper create_longrag_collection creates the
+    collection without an explicit HNSW override, so Qdrant defaults
+    apply. For a 12-point fixture, Qdrant performs exhaustive search
+    regardless of index parameters. Exactness must therefore be
+    demonstrated empirically by requiring overlap 1.0 at all cutoffs,
+    and not assumed from configuration.
+  large_corpus_caveat: >
+    This contract does not guarantee equivalence for approximate
+    large-corpus HNSW settings. Real-dataset index parameters require
+    a separate contract.

@@ -1,0 +1,634 @@
+artifact_type: architecture_readiness_gap_registry
+artifact_version: '1.0'
+registry:
+  id: eleven_architectures_readiness_gaps
+  version: 0.1.0
+  architecture_count: 11
+  status: COMPLETE
+architectures:
+  rag_system:
+    architecture_id: rag_system
+    implementation_status: DATASET_READY
+    fidelity_class: PROJECT_OWNED_REFERENCE
+    controlled_track_status: ELIGIBLE
+    native_track_status: ELIGIBLE
+    readiness_gate: PASSED
+    current_artifacts:
+      contracts:
+      - baseline_audit/pilot_embedding_execution_contract.yaml
+      - baseline_audit/pilot_qdrant_execution_contract.yaml
+      - baseline_audit/pilot_retrieval_execution_contract.yaml
+      - baseline_audit/pilot_evaluation_execution_contract.yaml
+      implementations:
+      - src/rag_system/ (96 modules)
+      tests:
+      - full pilot test suite
+      synthetic_evidence:
+      - Steps 78-90
+    verified_components:
+    - canonical_input
+    - deterministic_parser
+    - hierarchical_chunker
+    - dense_sparse_embedding
+    - qdrant_persistence
+    - hybrid_rrf_retrieval
+    - parent_aggregation
+    - document_resolution
+    - common_evaluation
+    missing_components: []
+    architecture_defining_components:
+    - structural_parser
+    - hierarchical_child_chunker
+    - dense_sparse_hybrid_retrieval
+    - parent_aggregation
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: NONE
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: Qdrant
+      classification: NATIVE_PROJECT_CHOICE
+      equivalence_test_required: false
+    canonical_input_status: VALIDATED
+    retrieval_output_status: VALIDATED
+    synthetic_acceptance_status: PASSED
+    dataset_readiness_status: READY
+    blockers: []
+    next_action_class: FREEZE_COMPONENT_CONTRACT
+    next_action: Freeze dataset-specific input projections and resource plan.
+    recommended_order: 0
+  longrag:
+    architecture_id: longrag
+    implementation_status: DATASET_READY
+    fidelity_class: CONTROLLED_ADAPTATION
+    controlled_track_status: ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: PASSED
+    current_artifacts:
+      contracts:
+      - baseline_audit/longrag_readiness.yaml
+      - baseline_audit\longrag_readiness.yaml
+      - baseline_audit/longrag_controlled_embedding_contract.yaml
+      - baseline_audit/longrag_storage_equivalence_contract.yaml
+      - baseline_audit/longrag_retrieval_artifact_contract.yaml
+      - baseline_audit/longrag_synthetic_acceptance_contract.yaml
+      - baseline_audit/longrag_synthetic_acceptance_manifest.yaml
+      - baseline_audit/longrag_readiness_declaration.yaml
+      implementations:
+      - src/rag_system/baselines/longrag.py
+      - src/rag_system/baselines/longrag_embeddings.py
+      - src/rag_system/baselines/longrag_retrieval.py
+      - src/rag_system/baselines/longrag_storage.py
+      - src/rag_system/baselines/longrag_pipeline.py
+      - src/rag_system/baselines/longrag_bge_m3.py
+      - src/rag_system/baselines/longrag_reference_dense_index.py
+      tests:
+      - tests/unit/test_longrag_adapter.py
+      - tests/unit/test_longrag_adapter_plan.py
+      - tests/unit/test_longrag_embeddings.py
+      - tests/unit/test_longrag_retrieval.py
+      - tests/unit/test_longrag_storage.py
+      - tests/unit/test_longrag_policy_equivalence.py
+      synthetic_evidence:
+      - Step 97 bounded synthetic acceptance (PASSED)
+      - Step 97 storage equivalence (SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK)
+      - outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/longrag/
+    verified_components:
+    - canonical_input
+    - long_unit_grouping
+    - dense_embedding
+    - qdrant_storage
+    - long_unit_retrieval
+    missing_components: []
+    architecture_defining_components:
+    - long_document_grouping
+    - dense_only_retrieval
+    controlled_substitutions:
+    - embedder: BAAI/bge-m3 (dense-only)
+    - vector_store: Qdrant
+    llm_dependencies:
+      index_time: NONE
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: Qdrant
+      classification: ARCHITECTURE_SUPPORTING
+      equivalence_test_required: true
+    canonical_input_status: VALIDATED
+    retrieval_output_status: VALIDATED
+    synthetic_acceptance_status: PASSED
+    dataset_readiness_status: READY
+    blockers:
+    - native_embedder_identity_unpinned
+    next_action_class: DATASET_RESOURCE_PLANNING
+    next_action: Freeze LongRAG long-unit, embedding, index, and transfer sizing for
+      the external canonical suite.
+    recommended_order: 1
+  raptor:
+    architecture_id: raptor
+    implementation_status: STRUCTURALLY_VALIDATED
+    fidelity_class: CONTROLLED_ADAPTATION
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: READY_FOR_COLAB_L1_EXECUTION
+    current_artifacts:
+      contracts:
+      - baseline_audit/raptor_readiness.yaml
+      - baseline_audit\raptor_readiness.yaml
+      - baseline_audit/raptor_fidelity_contract.yaml
+      - baseline_audit/raptor_summary_policy.yaml
+      - baseline_audit/raptor_synthetic_acceptance_contract.yaml
+      - baseline_audit/raptor_storage_equivalence_contract.yaml
+      - baseline_audit/raptor_readiness_manifest.yaml
+      - baseline_audit/raptor_clustering_contract.yaml
+      - baseline_audit/raptor_recursive_tree_contract.yaml
+      - baseline_audit/raptor_summary_provider_contract.yaml
+      - baseline_audit/raptor_recursive_fixture_spec.yaml
+      - baseline_audit/raptor_step99_manifest.yaml
+      - baseline_audit/raptor_fixture_contract.yaml
+      - baseline_audit/raptor_structural_acceptance_contract.yaml
+      - baseline_audit/raptor_structural_acceptance_manifest.yaml
+      - baseline_audit/raptor_summarizer_selection_contract.yaml
+      - baseline_audit/raptor_summarizer_candidate_registry.yaml
+      - baseline_audit/raptor_summary_prompt_contract.yaml
+      - baseline_audit/raptor_summary_precision_contract.yaml
+      - baseline_audit/raptor_summary_artifact_contract.yaml
+      - baseline_audit/raptor_step101_manifest.yaml
+      - baseline_audit/raptor_qwen_download_contract.yaml
+      - baseline_audit/raptor_qwen_cache_manifest.yaml
+      - baseline_audit/raptor_qwen_file_registry.yaml
+      - baseline_audit/raptor_step102a_manifest.yaml
+      - baseline_audit/raptor_qwen_execution_environment.yaml
+      - baseline_audit/raptor_summary_request_bundle_contract.yaml
+      - baseline_audit/raptor_summary_request_bundle_manifest.yaml
+      - baseline_audit/raptor_recursive_summary_dependency_contract.yaml
+      - baseline_audit/raptor_qwen_colab_execution_contract.yaml
+      - baseline_audit/raptor_qwen_colab_transfer_contract.yaml
+      - baseline_audit/raptor_qwen_colab_execution_manifest.yaml
+      implementations:
+      - src/rag_system/baselines/raptor.py
+      - src/rag_system/baselines/raptor_persistence.py
+      - src/rag_system/baselines/raptor_retrieval.py
+      - src/rag_system/baselines/raptor_clustering.py
+      - src/rag_system/baselines/raptor_tree_builder.py
+      - src/rag_system/baselines/raptor_summary_provider.py
+      - src/rag_system/baselines/raptor_fixture.py
+      - src/rag_system/baselines/raptor_fixture_persistence.py
+      - src/rag_system/baselines/raptor_structural_acceptance.py
+      - src/rag_system/baselines/raptor_summary_requests.py
+      - src/rag_system/baselines/raptor_tokenization.py
+      tests:
+      - tests/unit/test_raptor_adapter.py
+      - tests/unit/test_raptor_adapter_plan.py
+      - tests/unit/test_raptor_persistence.py
+      - tests/unit/test_raptor_retrieval.py
+      - tests/unit/test_raptor_readiness.py
+      synthetic_evidence:
+      - Step 100 structural acceptance (PASSED)
+      - data/pilot/raptor-recursive-synthetic-v1/ (materialized fixture)
+      - Step 102B-Local level-1 request bundle (7 requests)
+    verified_components:
+    - leaf_chunking
+    - dense_embedding
+    - tree_serialization
+    - ranked_node_retrieval
+    missing_components:
+    - summary_generation_stage
+    architecture_defining_components:
+    - recursive_clustering
+    - cluster_summarization
+    - tree_hierarchy
+    controlled_substitutions:
+    - embedder: BAAI/bge-m3
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: Qdrant
+      classification: ARCHITECTURE_SUPPORTING
+      equivalence_test_required: true
+    canonical_input_status: IMPLEMENTED
+    retrieval_output_status: IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: PENDING
+    blockers:
+    - local_compute_insufficient_for_fp32_reference
+    - actual_summary_generation_not_validated
+    - precision_equivalence_not_validated
+    - bge_m3_summary_embedding_not_validated
+    - storage_equivalence_not_executed
+    - retrieval_not_validated
+    - synthetic_acceptance_not_run
+    next_action_class: COLAB_L1_EXECUTION
+    next_action: 'Run the Colab L1 pilot on a CUDA GPU: FP16 run 1, FP16 run 2, FP32
+      reference on the 7 frozen level-1 requests. Return the output package for local
+      import and comparison.'
+    recommended_order: 4
+    completed:
+    - Qwen_model_identity_pinned
+    - Qwen_tokenizer_identity_pinned
+    - Qwen_license_verified
+    - Qwen_cache_verified
+    - Qwen_tokenizer_bound_level_1_request_bundle_frozen
+  hipporag2:
+    architecture_id: hipporag2
+    implementation_status: PARTIAL
+    fidelity_class: CONTROLLED_ADAPTATION
+    controlled_track_status: ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_LICENSE_OR_MODEL_REVIEW
+    current_artifacts:
+      contracts:
+      - baseline_audit/hipporag2_readiness.yaml
+      - baseline_audit\hipporag2_readiness.yaml
+      implementations:
+      - src/rag_system/baselines/hipporag2.py
+      - src/rag_system/baselines/hipporag2_graph.py
+      - src/rag_system/baselines/hipporag2_graph_persistence.py
+      - src/rag_system/baselines/hipporag2_persistence.py
+      - src/rag_system/baselines/hipporag2_ppr.py
+      - src/rag_system/baselines/hipporag2_retrieval.py
+      - src/rag_system/baselines/hipporag2_retrieval_persistence.py
+      tests:
+      - tests/unit/test_hipporag2_adapter.py
+      - tests/unit/test_hipporag2_graph.py
+      - tests/unit/test_hipporag2_ppr.py
+      - tests/unit/test_hipporag2_retrieval.py
+      - tests/unit/test_hipporag2_readiness.py
+      synthetic_evidence: []
+    verified_components:
+    - graph_construction
+    - personalized_pagerank
+    - passage_ranking
+    missing_components:
+    - openie_extraction_stage
+    architecture_defining_components:
+    - openie_extraction
+    - graph_construction
+    - personalized_pagerank
+    controlled_substitutions:
+    - embedder: BAAI/bge-m3
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: NetworkX + disk graph artifact
+      classification: ARCHITECTURE_DEFINING
+      equivalence_test_required: false
+    canonical_input_status: IMPLEMENTED
+    retrieval_output_status: IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: PENDING
+    blockers:
+    - openie_llm_model_identity_and_license_unresolved
+    - gpu_recommended
+    next_action_class: AUDIT_MODEL_LICENSE
+    next_action: Resolve OpenIE LLM identity + license + execution environment.
+    recommended_order: 5
+  lightrag:
+    architecture_id: lightrag
+    implementation_status: PARTIAL
+    fidelity_class: CONTROLLED_ADAPTATION
+    controlled_track_status: ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_COMPONENT_DECISION
+    current_artifacts:
+      contracts:
+      - baseline_audit/lightrag_readiness.yaml
+      - baseline_audit\lightrag_readiness.yaml
+      implementations:
+      - src/rag_system/baselines/lightrag.py
+      - src/rag_system/baselines/lightrag_persistence.py
+      - src/rag_system/baselines/lightrag_retrieval.py
+      - src/rag_system/baselines/lightrag_retrieval_persistence.py
+      tests:
+      - tests/unit/test_lightrag_adapter.py
+      - tests/unit/test_lightrag_retrieval.py
+      - tests/unit/test_lightrag_persistence.py
+      - tests/unit/test_lightrag_readiness.py
+      synthetic_evidence: []
+    verified_components:
+    - chunking
+    - graph_construction
+    - dual_level_retrieval
+    missing_components:
+    - entity_extraction_stage
+    - relation_extraction_stage
+    architecture_defining_components:
+    - entity_relation_extraction
+    - dual_level_local_global_retrieval
+    controlled_substitutions:
+    - embedder: BAAI/bge-m3
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: Qdrant + graph store
+      classification: ARCHITECTURE_SUPPORTING
+      equivalence_test_required: true
+    canonical_input_status: IMPLEMENTED
+    retrieval_output_status: IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: PENDING
+    blockers:
+    - entity_extraction_llm_stage_decision_required
+    next_action_class: FREEZE_COMPONENT_CONTRACT
+    next_action: Freeze entity/relation extraction policy.
+    recommended_order: 3
+  pathrag:
+    architecture_id: pathrag
+    implementation_status: SYNTHETIC_VALIDATED
+    fidelity_class: PAPER_DERIVED_COMPARATOR
+    controlled_track_status: ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: READY_FOR_SYNTHETIC_ACCEPTANCE
+    current_artifacts:
+      contracts:
+      - baseline_audit/pathrag_readiness.yaml
+      - baseline_audit\pathrag_readiness.yaml
+      implementations:
+      - src/rag_system/baselines/pathrag_comparator.py
+      - src/rag_system/baselines/pathrag_comparator_persistence.py
+      - src/rag_system/baselines/pathrag_paths.py
+      - src/rag_system/baselines/pathrag_propagation.py
+      - src/rag_system/baselines/pathrag_ranking.py
+      - src/rag_system/baselines/pathrag_retrieval.py
+      - src/rag_system/baselines/pathrag_retrieval_persistence.py
+      tests:
+      - tests/unit/test_pathrag_comparator.py
+      - tests/unit/test_pathrag_comparator_persistence.py
+      - tests/unit/test_pathrag_paths.py
+      - tests/unit/test_pathrag_propagation.py
+      - tests/unit/test_pathrag_ranking.py
+      - tests/unit/test_pathrag_retrieval.py
+      - tests/unit/test_pathrag_retrieval_persistence.py
+      - tests/unit/test_pathrag_readiness.py
+      synthetic_evidence:
+      - tests/unit/test_pathrag_*
+    verified_components:
+    - graph_construction
+    - path_enumeration
+    - resource_propagation
+    - path_ranking
+    - textualization
+    - canonical_expansion
+    - graph_artifact_persistence
+    missing_components: []
+    architecture_defining_components:
+    - graph_construction
+    - bounded_path_enumeration
+    - resource_propagation
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: NONE
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: deterministic disk graph artifact
+      classification: NATIVE_PROJECT_CHOICE
+      equivalence_test_required: false
+    canonical_input_status: VALIDATED
+    retrieval_output_status: IMPLEMENTED
+    synthetic_acceptance_status: PASSED
+    dataset_readiness_status: READY
+    blockers: []
+    next_action_class: FREEZE_COMPONENT_CONTRACT
+    next_action: Freeze PathRAG graph-sizing and resource plan for the external canonical
+      dataset suite.
+    recommended_order: 2
+  disretrieval:
+    architecture_id: disretrieval
+    implementation_status: NOT_STARTED
+    fidelity_class: UNRESOLVED
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_BOUNDED_IMPLEMENTATION
+    current_artifacts:
+      contracts: []
+      implementations: []
+      tests:
+      - tests/unit/test_disretrieval_exact_source_audit.py
+      synthetic_evidence: []
+    verified_components: []
+    missing_components:
+    - clean_room_implementation
+    - three_isolated_environments
+    architecture_defining_components:
+    - rst_parsing
+    - subtree_summarization
+    - hierarchical_retrieval
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: FAISS
+      classification: ARCHITECTURE_DEFINING
+      equivalence_test_required: false
+    canonical_input_status: NOT_IMPLEMENTED
+    retrieval_output_status: NOT_IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: NOT_READY
+    blockers:
+    - clean_room_comparator_not_implemented
+    - foreign_execution_blocked_license_missing
+    - gpu_required_for_vllm_stage
+    next_action_class: IMPLEMENT_MISSING_COMPONENT
+    next_action: Await clean-room implementation plan and license resolution.
+    recommended_order: 7
+  memorag:
+    architecture_id: memorag
+    implementation_status: NOT_STARTED
+    fidelity_class: UNRESOLVED
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_LICENSE_OR_MODEL_REVIEW
+    current_artifacts:
+      contracts: []
+      implementations: []
+      tests:
+      - tests/unit/test_memorag_exact_source_audit.py
+      synthetic_evidence: []
+    verified_components: []
+    missing_components:
+    - memory_model_identity
+    - license_review
+    - gpu_environment
+    architecture_defining_components:
+    - memory_model_encoding
+    - clue_driven_retrieval
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: ARCHITECTURE_DEFINING
+      final_generation: DISABLED
+    storage_policy:
+      backend: FAISS + cache
+      classification: ARCHITECTURE_DEFINING
+      equivalence_test_required: false
+    canonical_input_status: NOT_IMPLEMENTED
+    retrieval_output_status: NOT_IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: NOT_READY
+    blockers:
+    - memory_model_weight_license_unresolved
+    - gpu_required_16_to_24_gb_vram
+    next_action_class: AUDIT_MODEL_LICENSE
+    next_action: Complete memory model weight license review.
+    recommended_order: 8
+  kag:
+    architecture_id: kag
+    implementation_status: NOT_STARTED
+    fidelity_class: UNRESOLVED
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_SERVICE_ENVIRONMENT
+    current_artifacts:
+      contracts: []
+      implementations: []
+      tests:
+      - tests/unit/test_kag_exact_source_audit.py
+      synthetic_evidence: []
+    verified_components: []
+    missing_components:
+    - openspg_service
+    - neo4j_backend
+    - hosted_llm_access
+    architecture_defining_components:
+    - graph_construction_via_openspg
+    - logical_form_reasoning
+    - solver_executor_planner
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: ARCHITECTURE_DEFINING
+      final_generation: DISABLED
+    storage_policy:
+      backend: Neo4j + OpenSPG
+      classification: ARCHITECTURE_DEFINING
+      equivalence_test_required: false
+    canonical_input_status: NOT_IMPLEMENTED
+    retrieval_output_status: NOT_IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: NOT_READY
+    blockers:
+    - openspg_service_required
+    - neo4j_backend_required
+    - docker_engine_unreachable
+    - hosted_llm_required
+    next_action_class: PROVISION_SERVICE
+    next_action: Await service environment availability.
+    recommended_order: 10
+  metadata_rag:
+    architecture_id: metadata_rag
+    implementation_status: NOT_STARTED
+    fidelity_class: UNRESOLVED
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_BOUNDED_IMPLEMENTATION
+    current_artifacts:
+      contracts: []
+      implementations: []
+      tests:
+      - tests/unit/test_metadata_rag_paper_spec_audit.py
+      synthetic_evidence: []
+    verified_components: []
+    missing_components:
+    - clean_room_implementation
+    - metadata_query_inference
+    - metadata_filter_stage
+    architecture_defining_components:
+    - metadata_extraction
+    - metadata_filtered_retrieval
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: NONE
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: Qdrant
+      classification: ARCHITECTURE_SUPPORTING
+      equivalence_test_required: false
+    canonical_input_status: NOT_IMPLEMENTED
+    retrieval_output_status: NOT_IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: NOT_READY
+    blockers:
+    - implementation_not_started
+    - paper_preprint_under_revision
+    next_action_class: IMPLEMENT_MISSING_COMPONENT
+    next_action: Implement clean-room specification.
+    recommended_order: 6
+  hikey:
+    architecture_id: hikey
+    implementation_status: NOT_STARTED
+    fidelity_class: UNRESOLVED
+    controlled_track_status: NOT_ELIGIBLE
+    native_track_status: NOT_ELIGIBLE
+    readiness_gate: REQUIRES_MULTIMODAL_CONTRACT
+    current_artifacts:
+      contracts: []
+      implementations: []
+      tests:
+      - tests/unit/test_hikey_multimodal_feasibility_audit.py
+      synthetic_evidence: []
+    verified_components: []
+    missing_components:
+    - multimodal_input_envelope
+    - lvlm_reader
+    - gpu_environment
+    architecture_defining_components:
+    - multimodal_hierarchical_parsing
+    - modality_specific_scoring
+    - evidence_subgraph_assembly
+    controlled_substitutions: []
+    llm_dependencies:
+      index_time: ARCHITECTURE_DEFINING
+      query_time: NONE
+      final_generation: DISABLED
+    storage_policy:
+      backend: multimodal
+      classification: ARCHITECTURE_DEFINING
+      equivalence_test_required: false
+    canonical_input_status: NOT_IMPLEMENTED
+    retrieval_output_status: NOT_IMPLEMENTED
+    synthetic_acceptance_status: NOT_RUN
+    dataset_readiness_status: NOT_READY
+    blockers:
+    - multimodal_contract_extension_missing
+    - foreign_repository_not_found
+    - gpu_required
+    next_action_class: EXTEND_INPUT_CONTRACT
+    next_action: Defer until multimodal envelope extension is approved.
+    recommended_order: 9
+summary:
+  architecture_count: 11
+  dataset_ready_count: 2
+  synthetic_validated_count: 1
+  component_tested_count: 0
+  partial_count: 2
+  static_spec_count: 0
+  not_started_count: 5
+  deferred_count: 0
+  not_on_numeric_leaderboard_count: 5
+  controlled_track_current_eligible_count: 6
+  native_track_current_eligible_count: 1
+  native_track_potential_candidate_count: 4
+  already_dataset_ready:
+  - rag_system
+  - longrag
+  next_implementation_targets:
+  - raptor
+  - hipporag2
+  - lightrag
+  - pathrag
+  - disretrieval
+  - memorag
+  - kag
+  - metadata_rag
+  - hikey

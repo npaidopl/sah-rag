@@ -1,0 +1,97 @@
+artifact_type: infrastructure_pilot_manifest
+artifact_version: "1.0"
+
+pilot:
+  pilot_id: infrastructure-pilot-wave1-cpu-v1
+  contract_id: wave1_infrastructure_only_pilot
+  contract_version: "0.1.0"
+  status: CLOSED
+  execution_role: INFRASTRUCTURE_VALIDATION_ONLY
+  publishable_result: false
+  included_in_final_comparison: false
+
+dataset:
+  dataset_id: infrastructure-pilot-synthetic-v1
+  dataset_revision: "1.0.0"
+  split: pilot
+  synthetic: true
+  dataset_materialized: true
+  canonical_manifest_available: true
+  dataset_root: data/pilot/infrastructure-pilot-synthetic-v1
+  canonical_manifest_path: data/pilot/infrastructure-pilot-synthetic-v1/dataset.manifest.json
+  canonical_input_manifest_sha256: 37bff62ba7bd725fe3e9a7d888207dddc82505ce4e7150b6ebf89a0a3cfa3087
+
+host:
+  profile_path: baseline_audit/execution_host_profile.yaml
+  profile_id: execution-host-8e2c5a1f3b7d4c9a
+
+architectures:
+  longrag:
+    included: true
+    pilot_eligible: true
+    execution_label: LongRAG
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    experiment_cell_id: null
+    plan_id: null
+    status: NOT_PLANNED
+  raptor:
+    included: true
+    pilot_eligible: true
+    execution_label: RAPTOR
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    experiment_cell_id: null
+    plan_id: null
+    status: NOT_PLANNED
+  lightrag:
+    included: true
+    pilot_eligible: true
+    execution_label: LightRAG
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    experiment_cell_id: null
+    plan_id: null
+    status: NOT_PLANNED
+  pathrag:
+    included: true
+    pilot_eligible: true
+    execution_label: PathRAG paper-derived architectural comparator
+    environment_status: EXECUTABLE_ON_CURRENT_HOST
+    experiment_cell_id: null
+    plan_id: null
+    status: NOT_PLANNED
+
+planned_counts:
+  architecture_count: 4
+  experiment_cell_count: 4
+  stage_count_per_architecture: 8
+  total_stage_count: 32
+
+execution_state:
+  architecture_execution_performed: false
+  model_execution_performed: false
+  dataset_loaded: false
+  evaluation_execution_performed: false
+  hosted_requests_performed: false
+  final_generation_performed: false
+
+approval:
+  planning_approved: true
+  materialization_approved: true
+  execution_approved: true
+  infrastructure_pilot_closed: true
+  publishable_execution_approved: false
+  real_dataset_execution_approved: false
+  future_execution_approved: false
+
+closure:
+  closed: true
+  closure_contract: baseline_audit/infrastructure_pilot_closure_contract.yaml
+  closure_manifest: baseline_audit/infrastructure_pilot_closure_manifest.yaml
+  evidence_registry: baseline_audit/infrastructure_pilot_evidence_registry.yaml
+  synthetic_chain_complete: true
+  publishable_result: false
+  final_comparison_included: false
+  real_dataset_execution_authorized: false
+
+next_gate:
+  required_step: executable_experiment_cell_planning
+  required_approval: explicit

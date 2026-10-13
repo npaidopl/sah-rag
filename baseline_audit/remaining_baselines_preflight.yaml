@@ -1,0 +1,257 @@
+artifact_type: remaining_baselines_portfolio_preflight
+artifact_version: "1.0"
+
+contract:
+  id: wave23_remaining_baselines_preflight
+  version: "0.1.0"
+  status: PRELIMINARY
+  scope: registry_entries_and_public_information
+  checkouts_present: false
+  note: >
+    None of the five remaining baselines are checked out under
+    external/baselines/. This preflight records what is known from the
+    registry and the paper audit trail. Exact-source audits with real
+    checkouts are scheduled per baseline in later steps.
+
+allowed_preliminary_statuses:
+  - PREFLIGHT_GO
+  - PREFLIGHT_CONDITIONAL_GO
+  - PREFLIGHT_BLOCKED
+  - PREFLIGHT_DEFERRED_RESOURCE
+  - PREFLIGHT_DEFERRED_INPUT_CONTRACT
+
+forbidden_terminal_statuses:
+  - NOT_STARTED
+  - UNKNOWN
+  - PENDING_UNBOUNDED
+
+baselines:
+
+  disretrieval:
+    source:
+      repository_url: https://github.com/DreamH1gh/ACL2026-DISRetrieval
+      official: true
+      registry_verification: PAPER_VERIFIED
+      license_spdx: UNKNOWN
+      checkout_present: false
+    paper:
+      title: Beyond Chunking - Discourse-Aware Hierarchical Retrieval for Long Document Question Answering
+      arxiv_id: '2506.06313'
+      year: 2026
+      venue: ACL 2026 Main Conference
+    implementation:
+      algorithm_class: discourse_hierarchical_retrieval
+      retrieval_only_boundary_expected: true
+      final_generation_separable_expected: true
+      source_traceability_expected: PENDING
+      dataset_coupling_expected: LOW
+    environment:
+      gpu_required: UNKNOWN
+      vram_class: UNKNOWN
+      hosted_llm_required: UNKNOWN
+      multimodal_inputs: false
+      network_required: true
+    decision:
+      classification: UNDECIDED
+      foreign_execution_decision: CONDITIONAL
+      preliminary_status: PREFLIGHT_CONDITIONAL_GO
+      blockers:
+        - License is UNKNOWN. A license review is required before any
+          execution or code reuse.
+      next_action: >
+        Wave-2 exact-source audit: clone, pin, verify license, verify
+        retrieval-only boundary, and disposition.
+
+  memorag:
+    source:
+      repository_url: https://github.com/qhjqhj00/MemoRAG
+      alternate_url: https://github.com/VectorSpaceLab/MemoRAG
+      official: true
+      registry_verification: PAPER_VERIFIED
+      license_spdx: Apache-2.0
+      checkout_present: false
+    paper:
+      title: MemoRAG - Boosting Long Context Processing with Global Memory-Enhanced Retrieval Augmentation
+      arxiv_id: '2409.05591'
+      year: 2025
+      venue: The Web Conference 2025
+    implementation:
+      algorithm_class: memory_guided_retrieval
+      retrieval_only_boundary_expected: CONDITIONAL
+      final_generation_separable_expected: true
+      source_traceability_expected: PENDING
+      dataset_coupling_expected: MODERATE
+    environment:
+      gpu_required: UNKNOWN
+      vram_class: UNKNOWN
+      hosted_llm_required: LIKELY
+      multimodal_inputs: false
+      network_required: true
+    decision:
+      classification: UNDECIDED
+      foreign_execution_decision: CONDITIONAL
+      preliminary_status: PREFLIGHT_CONDITIONAL_GO
+      blockers:
+        - Global clue generation is expected to require a hosted LLM.
+          Offline replacement would change architecture semantics.
+        - Hosted-model accounting and cost policy are not yet frozen.
+      next_action: >
+        Wave-2 exact-source audit: clone, pin, confirm hosted-LLM
+        dependency, estimate cost, and disposition.
+
+  kag:
+    source:
+      repository_url: https://github.com/OpenSPG/KAG
+      official: true
+      registry_verification: PAPER_VERIFIED
+      license_spdx: Apache-2.0
+      checkout_present: false
+    paper:
+      title: KAG - Boosting LLMs in Professional Domains via Knowledge Augmented Generation
+      arxiv_id: '2409.13731'
+      year: 2024
+      venue: arXiv
+    implementation:
+      algorithm_class: knowledge_augmented_reasoning_retrieval
+      retrieval_only_boundary_expected: PARTIAL
+      final_generation_separable_expected: CONDITIONAL
+      source_traceability_expected: PENDING
+      dataset_coupling_expected: HIGH
+    environment:
+      gpu_required: UNKNOWN
+      vram_class: UNKNOWN
+      hosted_llm_required: LIKELY
+      multimodal_inputs: false
+      network_required: true
+    decision:
+      classification: UNDECIDED
+      foreign_execution_decision: CONDITIONAL
+      preliminary_status: PREFLIGHT_CONDITIONAL_GO
+      blockers:
+        - Knowledge-graph construction is expected to be resource-heavy.
+        - Retrieval-only boundary may not be fully separable from the
+          reasoning layer; component audit required.
+        - Hosted-model policy not yet frozen.
+      next_action: >
+        Wave-2 exact-source audit: clone, pin, run a component audit,
+        and decide whether the retrieval-only boundary is clean enough
+        for a controlled adaptation.
+
+  metadata_rag:
+    source:
+      repository_url: null
+      official: false
+      registry_verification: PAPER_VERIFIED
+      license_spdx: NOT_APPLICABLE
+      checkout_present: false
+    paper:
+      title: Metadata-Driven Retrieval-Augmented Generation for Financial Question Answering
+      arxiv_id: '2510.24402'
+      year: 2025
+      venue: Preprint under major revision
+    implementation:
+      algorithm_class: metadata_driven_multistage_retrieval
+      retrieval_only_boundary_expected: true
+      final_generation_separable_expected: true
+      source_traceability_expected: PAPER_SUPPORTED
+      dataset_coupling_expected: MODERATE
+    environment:
+      gpu_required: false
+      vram_class: none
+      hosted_llm_required: CONDITIONAL
+      multimodal_inputs: false
+      network_required: false
+    decision:
+      classification: PAPER_DERIVED_REIMPLEMENTATION
+      foreign_execution_decision: NOT_APPLICABLE
+      preliminary_status: PREFLIGHT_GO
+      blockers: []
+      next_action: >
+        Wave-3 project-owned implementation: adapt the canonical
+        envelope and produce typed artifacts against the frozen
+        contracts. No foreign source is required.
+
+  hikey:
+    source:
+      repository_url: null
+      project_page: https://gyuhoshim.github.io/projects/hikey/
+      official: PENDING
+      registry_verification: UNVERIFIED
+      license_spdx: UNKNOWN
+      checkout_present: false
+    paper:
+      title: HiKEY - Hierarchical Multimodal Retrieval for Open-Domain Document Question Answering
+      arxiv_id: '2605.29606'
+      year: 2026
+      venue: ACL 2026 Main Conference
+    implementation:
+      algorithm_class: hierarchical_multimodal_retrieval
+      retrieval_only_boundary_expected: UNKNOWN
+      final_generation_separable_expected: UNKNOWN
+      source_traceability_expected: PAPER_SUPPORTED
+      dataset_coupling_expected: HIGH
+    environment:
+      gpu_required: LIKELY
+      vram_class: UNKNOWN
+      hosted_llm_required: UNKNOWN
+      multimodal_inputs: true
+      network_required: true
+    decision:
+      classification: UNDECIDED
+      foreign_execution_decision: HOLD
+      preliminary_status: PREFLIGHT_DEFERRED_INPUT_CONTRACT
+      blockers:
+        - No public repository has been released yet.
+        - The canonical dataset envelope is text-only. Multimodal
+          documents require a versioned extension to the cross-baseline
+          execution contract (0.1.0 -> 0.2.0).
+        - Multimodal input contract and cross-architecture comparison
+          policy are not yet frozen.
+      next_action: >
+        Wave-3 audit deferred until a public repository is released and
+        the multimodal input contract is designed. Do not extend the
+        cross-baseline execution contract unless a concrete multimodal
+        baseline is approved for execution.
+
+sequencing_decision:
+  wave_1_full_execution_now: false
+  remaining_baselines_preflight_first: true
+  wave_2_before_wave_3: true
+  wave_1_infrastructure_pilot_allowed: true
+  wave_1_publishable_execution_allowed: false
+  all_architecture_slots_require_terminal_disposition: true
+  all_architectures_required_to_be_ready_for_data: false
+
+planned_sequence:
+  - step: 69
+    scope: portfolio_preflight
+    baselines: [disretrieval, memorag, kag, metadata_rag, hikey]
+  - step: 70
+    scope: exact_source_audit_and_disposition
+    baseline: disretrieval
+  - step: 71
+    scope: exact_source_audit_and_disposition
+    baseline: memorag
+  - step: 72
+    scope: exact_source_audit_and_disposition
+    baseline: kag
+  - step: 73
+    scope: exact_source_audit_and_disposition
+    baseline: metadata_rag
+  - step: 74
+    scope: exact_source_audit_and_disposition
+    baseline: hikey
+  - step: 75
+    scope: registry_terminal_disposition_freeze
+    baselines: all_10
+
+
+closure:
+  status: COMPLETE
+  disposition_registry: baseline_audit/architecture_portfolio_dispositions.yaml
+  final_dispositions:
+    disretrieval: CONDITIONAL_GO
+    memorag: CONDITIONAL_GO
+    kag: DEFERRED_WITH_REASON
+    metadata_rag: CONDITIONAL_GO
+    hikey: DEFERRED_WITH_REASON

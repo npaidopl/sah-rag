@@ -1,0 +1,145 @@
+artifact_type: baseline_isolated_environment_plan
+artifact_version: "1.0"
+
+architecture:
+  id: longrag
+  display_name: LongRAG
+  reproduction_class: CONTROLLED_ADAPTATION
+  execution_decision: CONDITIONAL_GO
+
+source:
+  repository_url: https://github.com/TIGER-AI-Lab/LongRAG
+  resolved_commit: ba92f95
+  full_commit_required: true
+  external_checkout: external/baselines/longrag
+  foreign_code_modified_in_place: false
+
+reference:
+  dry_architecture_tag: dry-retrieval-v1.0.0
+  frozen_reference_modification_allowed: false
+
+environment:
+  id: baseline-longrag-retrieval
+  isolation: dedicated_virtual_environment
+  preferred_operating_system: linux
+  initial_host: local_windows_cpu
+  initial_execution_mode: adapter_contract_only
+
+  install_foreign_dependencies: false
+  execute_foreign_code: false
+  download_models: false
+  download_datasets: false
+  network_access: false
+
+future_installation:
+  approved: false
+  environment_location: external/environments/longrag
+  environment_must_not_be_committed: true
+  dependency_lock_required: true
+  installed_package_inventory_required: true
+  package_license_inventory_required: true
+
+retrieval_scope:
+  generation_enabled: false
+  long_reader_enabled: false
+  answer_evaluation_enabled: false
+
+required_stages:
+  - canonical_document_loading
+  - long_unit_construction
+  - source_membership_serialization
+  - dense_embedding
+  - long_unit_indexing
+  - query_embedding
+  - ranked_long_unit_retrieval
+  - long_unit_to_document_expansion
+  - document_level_evaluation
+
+excluded_stages:
+  - long_reader
+  - final_answer_generation
+  - generator_based_reranking
+  - llm_as_judge
+
+faithfulness:
+  must_preserve:
+    - Long retrieval units.
+    - Reduced retrieval-unit corpus.
+    - Dense retrieval over long units.
+    - Ranking of a small number of long units.
+    - Explicit source membership for every unit.
+
+controlled_adaptations:
+  - Replace Wikipedia-specific input loading with canonical documents.
+  - Replace hyperlink grouping where unavailable with a declared grouping policy.
+  - Add stable long_unit_id.
+  - Add canonical doc_id membership lists.
+  - Add common retrieval-result serialization.
+  - Bypass the long reader.
+
+prohibited:
+  - Replace long units with standard short chunks.
+  - Hide dataset-specific grouping rules.
+  - Evaluate generated answers as retrieval quality.
+  - Describe arbitrary concatenation as faithful LongRAG.
+  - Alter the frozen Dry Retrieval Architecture.
+
+pilot:
+  dataset_id: clerk
+  split: dev
+  document_limit: 100
+  query_limit: 10
+
+candidate_unit_sizes_tokens:
+  - 2048
+  - 4096
+
+primary_unit_size_tokens: 4096
+
+grouping_policy_candidates:
+  - single_document_if_within_budget
+  - adjacent_document_segments
+  - structure_preserving_parent_groups
+
+selected_grouping_policy: PENDING_DEV_SELECTION
+
+retrieval_top_k:
+  - 1
+  - 2
+  - 4
+  - 8
+
+random_seed: 20261004
+
+success_gates:
+  - Exactly 100 canonical documents are loaded.
+  - Every long unit has a deterministic long_unit_id.
+  - Every long unit contains at least one canonical doc_id.
+  - Every selected document belongs to at least one long unit.
+  - Unit memberships survive serialization and reload.
+  - Retrieval returns ordered long_unit_ids with numeric scores.
+  - Document expansion is deterministic.
+  - No long-reader function is called.
+  - No final answer is generated.
+  - All artifacts record the exact source commit.
+  - The pilot can run twice with identical outputs.
+
+failure_gates:
+  - Unit membership cannot be traced to canonical doc_ids.
+  - Group construction changes between identical runs.
+  - Reader or generation code is required for retrieval.
+  - The grouping policy is specific to one dataset but undisclosed.
+  - Retrieval returns only text without stable identity.
+  - Dependencies require modification of the frozen environment.
+
+artifacts:
+  plan:
+    - baseline_audit/longrag_environment_plan.yaml
+    - baseline_audit/longrag_adapter_spec.yaml
+  future_pilot_outputs:
+    - outputs/longrag_clerk_pilot_units.jsonl
+    - outputs/longrag_clerk_pilot_unit_memberships.jsonl
+    - outputs/longrag_clerk_pilot_retrieval.jsonl
+    - outputs/longrag_clerk_pilot_metrics.jsonl
+    - outputs/longrag_clerk_pilot_run.json
+    - outputs/longrag_clerk_pilot.manifest.json

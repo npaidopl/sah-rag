@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "item_id": {
+      "title": "Item Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "relevance": {
+      "title": "Relevance",
+      "type": "integer"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "query_id",
+    "item_id",
+    "relevance",
+    "split"
+  ],
+  "title": "PilotCanonicalJudgment",
+  "type": "object"
+}

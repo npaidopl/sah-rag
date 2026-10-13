@@ -1,0 +1,120 @@
+artifact_type: my_rag_m6_frozen_config
+artifact_version: '1.0'
+best_by_mean_r10: c256_o128_hybrid_rrf_k200
+chunk_counts_per_dataset:
+  clerk: 5317
+  cuad: 30932
+  greek_bar_bench: 23863
+  lara: 41702
+cost_proxies:
+  mean_latency_per_query_seconds: 0.0005044140141553876
+  total_dense_storage_bytes_proxy: 208515072.0
+retained_within_1se:
+- c256_o128_hybrid_rrf_k200
+- c256_o32_hybrid_rrf_k200
+- c512_o128_hybrid_rrf_k200
+selected_config:
+  candidate_limit: 200
+  chunk_overlap: 32
+  chunk_size: 256
+  retrieval_mode: hybrid_rrf
+selected_config_id: c256_o32_hybrid_rrf_k200
+selected_config_metrics:
+  macro_recall@10: 0.40679483208432793
+  macro_recall@10_se: 0.009598603697658907
+  per_dataset:
+    clerk:
+      macro:
+        hit@1: 0.24455205811138014
+        hit@10: 0.5569007263922519
+        hit@20: 0.639225181598063
+        hit@5: 0.45278450363196127
+        hit@50: 0.7457627118644068
+        mrr@1: 0.24455205811138014
+        mrr@10: 0.33400015373380987
+        mrr@20: 0.3397896969371456
+        mrr@5: 0.32005649717514123
+        mrr@50: 0.34313676063627213
+        ndcg@10: 0.27900068376474624
+        ndcg@50: 0.34462734677625817
+        precision@10: 0.10242130750605326
+        recall@1: 0.08694607786617471
+        recall@10: 0.3420951996617856
+        recall@20: 0.43271551558476495
+        recall@5: 0.2545524424459049
+        recall@50: 0.5504563972481648
+      query_count: 413
+    cuad:
+      macro:
+        hit@1: 0.001912960306073649
+        hit@10: 0.015303682448589193
+        hit@20: 0.02697274031563845
+        hit@5: 0.00784313725490196
+        hit@50: 0.05758010521281683
+        mrr@1: 0.001912960306073649
+        mrr@10: 0.004832084595355757
+        mrr@20: 0.005639540240683575
+        mrr@5: 0.0038657739518571654
+        mrr@50: 0.006575637795376429
+        ndcg@10: 0.007224955374757338
+        ndcg@50: 0.016175654935113335
+        precision@10: 0.0015303682448589192
+        recall@1: 0.001912960306073649
+        recall@10: 0.015303682448589193
+        recall@20: 0.02697274031563845
+        recall@5: 0.00784313725490196
+        recall@50: 0.05758010521281683
+      query_count: 10455
+    greek_bar_bench:
+      macro:
+        hit@1: 0.02112676056338028
+        hit@10: 0.33098591549295775
+        hit@20: 0.5070422535211268
+        hit@5: 0.16901408450704225
+        hit@50: 0.7464788732394366
+        mrr@1: 0.02112676056338028
+        mrr@10: 0.08820422535211267
+        mrr@20: 0.09975095871729543
+        mrr@5: 0.06643192488262911
+        mrr@50: 0.10717278124761608
+        ndcg@10: 0.14390250406179497
+        ndcg@50: 0.23485132100096512
+        precision@10: 0.03309859154929578
+        recall@1: 0.02112676056338028
+        recall@10: 0.33098591549295775
+        recall@20: 0.5070422535211268
+        recall@5: 0.16901408450704225
+        recall@50: 0.7464788732394366
+      query_count: 142
+    lara:
+      macro:
+        hit@1: 0.780960404380792
+        hit@10: 0.9376579612468408
+        hit@20: 0.970513900589722
+        hit@5: 0.9106992417860151
+        hit@50: 0.9983150800336984
+        mrr@1: 0.780960404380792
+        mrr@10: 0.8379424586459127
+        mrr@20: 0.8402385666638041
+        mrr@5: 0.8343864083122718
+        mrr@50: 0.8412737189873137
+        ndcg@10: 0.8623694280267588
+        ndcg@50: 0.8764772765573108
+        precision@10: 0.09376579612468407
+        recall@1: 0.780960404380792
+        recall@10: 0.9376579612468408
+        recall@20: 0.970513900589722
+        recall@5: 0.9106992417860151
+        recall@50: 0.9983150800336984
+      query_count: 1187
+selection_rule: one_standard_error_then_lexicographic
+selection_rule_details:
+  bootstrap_iterations: 1000
+  bootstrap_seed: 42
+  primary_metric: recall@10
+  tie_break_priority:
+  - lower_latency_per_query
+  - lower_storage_bytes
+  - smaller_chunk_size
+  - lower_candidate_limit
+  - config_id_ascending

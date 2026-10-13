@@ -1,0 +1,99 @@
+artifact_type: fair_benchmark_protocol
+artifact_version: "1.0"
+
+protocol:
+  id: wave1_fair_benchmark
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+  note: >
+    Methodological checkpoint before any architecture implementation
+    or dataset execution. Purely planning-only.
+
+scope:
+  generation_enabled: false
+  retrieval_only: true
+  answer_evaluation_enabled: false
+  llm_as_judge_enabled: false
+  publishable_execution: false
+
+architectures:
+  expected:
+    - rag_system
+    - longrag
+    - raptor
+    - hipporag2
+    - lightrag
+    - pathrag
+    - disretrieval
+    - memorag
+    - kag
+    - metadata_rag
+    - hikey
+  expected_count: 11
+  exact_set_required: true
+
+datasets:
+  expected:
+    - ruler
+    - loong
+    - long_bench_v2
+    - lara
+    - greek_bar_bench
+    - cuad
+    - clerk
+  expected_count: 7
+  exact_set_required: true
+
+tracks:
+  controlled_architectural_track:
+    id: track_a
+    purpose: >
+      Compare retrieval architectures while controlling common
+      semantic representation and evaluation components.
+    common_components:
+      dataset_suite: canonical-rag-dataset-suite
+      embedder: BAAI/bge-m3
+      embedder_revision: 5617a9f61b028005a4858fdac845db406aefb181
+      embedding_precision: TO_BE_FROZEN_BY_PRECISION_PROTOCOL
+      tokenizer_revision: SAME_AS_MODEL_SNAPSHOT
+      evaluator: common_retrieval_evaluation_contract
+      generation: disabled
+    architecture_specific_components:
+      - preprocessing
+      - hierarchy_construction
+      - graph_construction
+      - chunk_or_node_organization
+      - candidate_generation
+      - fusion
+      - traversal
+      - aggregation
+      - parent_or_evidence_expansion
+    allowed_claim: architecture_comparison_under_controlled_components
+    prohibited_claim: faithful_reproduction_of_every_original_system
+  native_fidelity_reference_track:
+    id: track_b
+    purpose: >
+      Quantify how much controlled component replacement changes
+      each architecture relative to its available native
+      implementation.
+    common_dataset_subset_required: true
+    full_suite_required: false
+    preserve:
+      - native_embedder
+      - native_storage_when_architecture_defining
+      - native_llm_stages_when_architecture_defining
+      - native_hyperparameters
+      - native_retrieval_logic
+    report_separately: true
+    merge_with_controlled_scores: false
+
+reporting_rules:
+  mixing_tracks_in_single_leaderboard: false
+  mandatory_track_label: true
+  mandatory_fidelity_class_label: true
+  mandatory_component_disposition_summary: true
+
+publishability:
+  publishable_result: false
+  architecture_quality_claimed: false
+  real_dataset_execution_completed: false

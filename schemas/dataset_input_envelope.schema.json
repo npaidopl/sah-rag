@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "chunks_file": {
+      "default": "chunks.jsonl",
+      "title": "Chunks File",
+      "type": "string"
+    },
+    "documents_file": {
+      "default": "documents.jsonl",
+      "title": "Documents File",
+      "type": "string"
+    },
+    "judgments_file": {
+      "default": "judgments.jsonl",
+      "title": "Judgments File",
+      "type": "string"
+    },
+    "manifest_file": {
+      "default": "dataset.manifest.json",
+      "title": "Manifest File",
+      "type": "string"
+    },
+    "queries_file": {
+      "default": "queries.jsonl",
+      "title": "Queries File",
+      "type": "string"
+    }
+  },
+  "title": "DatasetInputEnvelope",
+  "type": "object"
+}

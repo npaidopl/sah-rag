@@ -1,0 +1,65 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "architecture_configuration_hash": {
+      "title": "Architecture Configuration Hash",
+      "type": "string"
+    },
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "canonical_input_manifest_sha256": {
+      "title": "Canonical Input Manifest Sha256",
+      "type": "string"
+    },
+    "code_revision": {
+      "title": "Code Revision",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dataset_revision": {
+      "title": "Dataset Revision",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "random_seed": {
+      "minimum": 0,
+      "title": "Random Seed",
+      "type": "integer"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "dataset_id",
+    "dataset_revision",
+    "split",
+    "architecture_id",
+    "adapter_id",
+    "adapter_version",
+    "architecture_configuration_hash",
+    "canonical_input_manifest_sha256",
+    "random_seed",
+    "code_revision"
+  ],
+  "title": "ExperimentCellIdentity",
+  "type": "object"
+}

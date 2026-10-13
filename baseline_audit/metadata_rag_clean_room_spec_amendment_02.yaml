@@ -1,0 +1,107 @@
+artifact_type: metadata_rag_clean_room_spec_amendment
+artifact_version: "1.0"
+
+amendment:
+  id: metadata_rag_clean_room_spec_amendment_02
+  version: "0.1.0"
+  status: FROZEN
+  applies_to:
+    artifact_type: metadata_rag_clean_room_spec
+    path: baseline_audit/metadata_rag_clean_room_spec.yaml
+    sha256: A02DBA61EE1DD922F3B2DE0CED932E7E20E748C381E8AACC655A070BEC50DB02
+    artifact_version: "1.0"
+  reason: >
+    The paper does not pin a storage backend. Storage is therefore
+    ARCHITECTURE_SUPPORTING under component_substitution_policy.yaml.
+    The clean-room spec originally declared Qdrant as the experimental
+    backend with a required top-k equivalence test. On review, a
+    controlled Qdrant deployment adds an HNSW approximation risk that
+    would have to be re-frozen for every target corpus size (LaRA
+    131 docs, CUAD 510, CLERK 2,756), an operational dependency
+    (server process, network) that is irrelevant to the
+    architecture-defining retrieval logic, and an equivalence test
+    whose outcome is not guaranteed a priori on tie-heavy rankings.
+    None of this contributes a fidelity signal because no native
+    backend exists to protect: the Metadata-RAG architecture-defining
+    surface is the metadata layer (schema, extraction, query
+    inference, filtering, fusion, ranking), not the nearest-neighbor
+    search. An in-memory exact dense index is therefore the
+    semantically neutral choice: it makes the semantic retrieval
+    signal the exact reference for the controlled comparison, removes
+    approximation from the comparison entirely, and remains
+    byte-reproducible across every target dataset. This amendment
+    changes the storage decision only. All thresholds, coefficients,
+    and the min_match_ratio of 0.5 remain frozen exactly as before.
+  reason_scope:
+    kind: storage_backend_selection_only
+    post_retrieval_threshold_tuning: false
+    coefficient_changes: none
+    min_match_ratio_changes: none
+    fidelity_class_change: none
+    affects_architecture_defining_components: false
+  patch:
+    storage:
+      native_backend: null
+      experimental_backend: IN_MEMORY_EXACT_DENSE
+      replacement_class: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+      equivalence_test: NOT_REQUIRED
+      equivalence_test_rationale: >
+        No storage substitution is performed. The in-memory exact
+        dense index IS the semantic-retrieval reference surface.
+        Approximate search is not used and therefore cannot alter the
+        ranking. The disk artifact (JSONL + checksums) already frozen
+        at persistence time carries the byte-identical payload.
+      approximate_search_allowed: false
+      quantization_allowed: false
+      vector_name: dense
+      distance: COSINE
+      dimension: 1024
+      reference_index_module: rag_system.baselines.metadata_rag_reference_index
+      payload_required_fields:
+        - doc_id
+        - dataset
+        - metadata_record_id
+        - metadata_schema_version
+        - extractor_version
+        - capitalized_phrases
+        - year_mentions
+        - numeric_tokens
+        - char_length
+        - word_count
+        - length_bucket
+        - source_content_group_id
+      payload_prohibited_fields:
+        - generated_answer
+        - reference_answer
+        - answer_text
+        - relevance
+        - relevance_label
+        - judgment
+        - relevant_ids
+        - target_content_group_id
+        - API_key
+        - access_token
+        - secret
+        - credentials
+        - raw_model_weights
+
+effective_spec:
+  composed_from:
+    - baseline_audit/metadata_rag_clean_room_spec.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_01.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_02.yaml
+  merge_rule: >
+    Amendments are applied in ascending numeric order. The patch of
+    each amendment is deep-merged into the accumulated effective
+    spec. Scalars and lists in the patch replace the corresponding
+    values in the spec. Unmentioned keys are unchanged.
+  merge_is_applied_at:
+    - scripts/validate_metadata_rag_clean_room_spec.py
+    - src/rag_system/baselines/metadata_rag_metadata.py
+    - src/rag_system/baselines/metadata_rag_reference_index.py
+
+claims:
+  silent_substitution: false
+  changes_outward_retrieval_contract: false
+  changes_fidelity_class: false
+  changes_architecture_defining_components: false

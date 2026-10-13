@@ -1,0 +1,82 @@
+architecture:
+  architecture_id: longrag
+  controlled_track_eligible: true
+  display_name: LongRAG
+  fidelity_class: CONTROLLED_ADAPTATION
+  native_track_eligible: false
+  native_track_reason: native_embedder_identity_unpinned
+  source_architecture_commit: ba92f95
+architecture_defining_components:
+- long_document_grouping
+- dense_only_retrieval
+artifact_type: longrag_full_track_architecture_freeze_contract
+artifact_version: '1.0'
+component_disposition_ref: longrag_full_track_component_disposition
+contract:
+  id: longrag_full_track_architecture_freeze
+  status: FROZEN_FOR_EXECUTION
+  version: 0.3.0
+datasets:
+- ruler
+- loong
+- long_bench_v2
+- lara
+- greek_bar_bench
+- cuad
+- clerk
+embedding_profile_ref: longrag_full_track_embedding_profile
+evaluation_profile:
+  aggregation: macro_then_micro_secondary
+  generation_enabled: false
+  ground_truth_boundary: evaluator_only
+  level: canonical_document
+  llm_judge_enabled: false
+  metrics:
+  - Hit@1
+  - Hit@5
+  - Hit@10
+  - Hit@20
+  - Hit@50
+  - Recall@1
+  - Recall@5
+  - Recall@10
+  - Recall@20
+  - Recall@50
+  - Precision@10
+  - MRR@10
+  - MRR@50
+  - nDCG@10
+  - nDCG@50
+  primary_metric: macro_document_Recall_at_10
+long_unit_semantics:
+  construction_policy: adjacent_document_segments
+  derived_chunk_id: seg-<doc_id>
+  derived_parent_id: <doc_id>:p0
+  long_unit_identity_property: deterministic_content_addressable
+  oversize_handling: split_into_target_size_windows_via_pinned_bge_m3_tokenizer
+  segment_source: one_canonical_document_per_segment
+  target_token_size: 4096
+  token_counter: pinned_bge_m3_tokenizer
+  tokenizer_id: BAAI/bge-m3
+  tokenizer_revision: 5617a9f61b028005a4858fdac845db406aefb181
+retrieval_semantics:
+  expansion: first_occurrence_by_long_unit_rank
+  hybrid_enabled: false
+  reranking_enabled: false
+  retrieval_level: long_unit
+  retrieval_signal: dense_only
+  score_direction: HIGHER_IS_BETTER
+  similarity: COSINE
+  sparse_enabled: false
+storage_semantics:
+  approximate_search_allowed: false
+  backend: Qdrant
+  dimension: 1024
+  distance: COSINE
+  equivalence_classification: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+  equivalence_evidence: baseline_audit/longrag_storage_equivalence_report.yaml
+  mode: local_persistence
+  point_id_namespace: uuid.NAMESPACE_URL
+  point_id_prefix: rag-longunit
+  quantization_allowed: false
+  vector_name: dense

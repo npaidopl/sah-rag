@@ -1,0 +1,163 @@
+artifact_type: real_dataset_inventory_contract
+artifact_version: "1.0"
+
+contract:
+  id: seven_real_long_context_datasets_inventory
+  version: "0.1.0"
+  status: APPROVED_FOR_READ_ONLY_INVENTORY
+
+dependencies:
+  infrastructure_pilot_closure:
+    path: baseline_audit/infrastructure_pilot_closure_manifest.yaml
+    required_status: CLOSED
+  cross_baseline_execution_contract:
+    path: baseline_audit/cross_baseline_execution_contract.yaml
+
+datasets:
+  expected:
+    - ruler
+    - loong
+    - long_bench_v2
+    - lara
+    - greek_bar_bench
+    - cuad
+    - clerk
+  expected_count: 7
+  exact_set_required: true
+
+source:
+  preferred_shape:
+    required_files:
+      - documents.jsonl
+      - examples.jsonl
+      - validation.json
+      - manifest.json
+  alternative_shapes_require_explicit_adapter_evidence: true
+
+collection:
+  read_only: true
+  filesystem_mutation_allowed: false
+  allowed_operations:
+    - resolve_paths
+    - stat_files
+    - compute_sha256
+    - stream_jsonl
+    - validate_json_syntax
+    - count_records
+    - inspect_record_keys
+    - compute_text_lengths
+    - compute_whitespace_token_estimates
+    - inspect_identity_cardinality
+    - inspect_reference_integrity
+    - estimate_derived_workload
+  prohibited_operations:
+    - rewrite_jsonl
+    - normalize_text
+    - run_adapter
+    - parse_documents
+    - generate_chunks
+    - load_embedding_model
+    - load_model_tokenizer
+    - create_embeddings
+    - create_qdrant_collection
+    - execute_retrieval
+    - execute_evaluation
+    - execute_generation
+
+units:
+  bytes: integer
+  characters: integer
+  whitespace_tokens: integer
+
+model_input_tokens:
+  status: NOT_MEASURED_IN_STEP_91
+
+estimated_model_tokens:
+  allowed: false
+
+statistics:
+  required_numeric_summaries:
+    - count
+    - minimum
+    - median
+    - p90
+    - p95
+    - p99
+    - maximum
+    - total
+    - mean
+  percentile_method: nearest_rank
+
+documents:
+  required_statistics:
+    - record_count
+    - unique_doc_id_count
+    - duplicate_doc_id_count
+    - empty_text_count
+    - text_bytes
+    - text_characters
+    - whitespace_tokens
+    - metadata_key_inventory
+
+examples:
+  required_statistics:
+    - record_count
+    - unique_query_id_count
+    - duplicate_query_id_count
+    - empty_query_count
+    - query_characters
+    - query_whitespace_tokens
+    - ground_truth_cardinality
+    - referenced_document_cardinality
+    - metadata_key_inventory
+
+validation:
+  required_statistics:
+    - validation_status
+    - error_count
+    - warning_count
+
+manifest:
+  required_fields:
+    - dataset_id
+    - dataset_revision
+
+integrity:
+  file_sha256_required: true
+  source_files_must_remain_unchanged: true
+  document_ids_unique: true
+  query_ids_unique: true
+  references_must_resolve: true
+
+sizing:
+  parser_workload_estimate_allowed: true
+  chunker_workload_estimate_allowed: true
+  embedding_workload_estimate_allowed: true
+  estimates_must_be_structural_only: true
+  elapsed_time_estimates_allowed: false
+  required_estimates:
+    - documents_to_parse
+    - characters_to_parse
+    - whitespace_tokens_to_parse
+    - projected_minimum_child_chunks
+    - projected_upper_bound_child_chunks
+    - projected_embedding_records
+    - projected_dense_float32_bytes
+    - projected_transfer_bytes
+
+execution:
+  parser_executed: false
+  chunker_executed: false
+  tokenizer_loaded: false
+  model_loaded: false
+  embedding_executed: false
+  qdrant_executed: false
+  retrieval_executed: false
+  evaluation_executed: false
+  generation_executed: false
+
+publishability:
+  publishable_result: false
+  dataset_quality_claimed: false
+  runtime_estimate_claimed: false
+  architecture_readiness_claimed: false

@@ -1,0 +1,43 @@
+artifact_type: my_rag_optimization_split
+artifact_version: '1.0'
+datasets:
+  clerk:
+    dev_doc_count: 497
+    dev_query_count: 413
+    dev_query_fraction: 0.413
+    test_doc_count: 2259
+    test_query_count: 587
+    total_docs: 2756
+    total_queries: 1000
+  cuad:
+    dev_doc_count: 255
+    dev_query_count: 10455
+    dev_query_fraction: 0.5
+    test_doc_count: 255
+    test_query_count: 10455
+    total_docs: 510
+    total_queries: 20910
+  greek_bar_bench:
+    dev_doc_count: 142
+    dev_query_count: 142
+    dev_query_fraction: 0.5
+    test_doc_count: 142
+    test_query_count: 142
+    total_docs: 284
+    total_queries: 284
+  lara:
+    dev_doc_count: 65
+    dev_query_count: 1187
+    dev_query_fraction: 0.5103181427343079
+    test_doc_count: 66
+    test_query_count: 1139
+    total_docs: 131
+    total_queries: 2326
+development_fraction: 0.5
+fingerprint_sha256: cc04a27d518a7fc3a9232c61fec6a18e1e6f178ff8b932d44c58f293474065ea
+full_partition_jsonl: outputs/external_my_rag/_optimization_split.jsonl
+grouping_key: query.doc_ids
+leakage_guard: document-level partition
+policy: grouped_by_document
+seed: 0
+test_fraction: 0.5

@@ -1,0 +1,123 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "pilot_adapter_manifest",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "baseline_execution_enabled": {
+      "default": false,
+      "title": "Baseline Execution Enabled",
+      "type": "boolean"
+    },
+    "document_count": {
+      "minimum": 0,
+      "title": "Document Count",
+      "type": "integer"
+    },
+    "document_mapping_count": {
+      "minimum": 0,
+      "title": "Document Mapping Count",
+      "type": "integer"
+    },
+    "documents_sha256": {
+      "title": "Documents Sha256",
+      "type": "string"
+    },
+    "evaluation_execution_enabled": {
+      "default": false,
+      "title": "Evaluation Execution Enabled",
+      "type": "boolean"
+    },
+    "example_count": {
+      "minimum": 0,
+      "title": "Example Count",
+      "type": "integer"
+    },
+    "example_mapping_count": {
+      "minimum": 0,
+      "title": "Example Mapping Count",
+      "type": "integer"
+    },
+    "examples_sha256": {
+      "title": "Examples Sha256",
+      "type": "string"
+    },
+    "generation_enabled": {
+      "default": false,
+      "title": "Generation Enabled",
+      "type": "boolean"
+    },
+    "mapping_sha256": {
+      "title": "Mapping Sha256",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_execution_enabled": {
+      "default": false,
+      "title": "Model Execution Enabled",
+      "type": "boolean"
+    },
+    "retrieval_execution_enabled": {
+      "default": false,
+      "title": "Retrieval Execution Enabled",
+      "type": "boolean"
+    },
+    "source_dataset_id": {
+      "title": "Source Dataset Id",
+      "type": "string"
+    },
+    "source_dataset_revision": {
+      "title": "Source Dataset Revision",
+      "type": "string"
+    },
+    "source_manifest_sha256": {
+      "title": "Source Manifest Sha256",
+      "type": "string"
+    },
+    "target_dataset_id": {
+      "title": "Target Dataset Id",
+      "type": "string"
+    },
+    "validation_sha256": {
+      "title": "Validation Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "adapter_id",
+    "adapter_version",
+    "source_dataset_id",
+    "source_dataset_revision",
+    "source_manifest_sha256",
+    "target_dataset_id",
+    "document_count",
+    "example_count",
+    "document_mapping_count",
+    "example_mapping_count",
+    "documents_sha256",
+    "examples_sha256",
+    "validation_sha256",
+    "mapping_sha256"
+  ],
+  "title": "PilotAdapterManifest",
+  "type": "object"
+}

@@ -1,0 +1,113 @@
+artifact_type: infrastructure_pilot_dataset_contract
+artifact_version: "1.0"
+
+contract:
+  id: infrastructure_pilot_synthetic_dataset
+  version: "1.0.0"
+  status: FROZEN_FOR_MATERIALIZATION
+
+pilot:
+  contract_path: baseline_audit/infrastructure_pilot_contract.yaml
+  manifest_path: baseline_audit/infrastructure_pilot_manifest.yaml
+  pilot_id: infrastructure-pilot-wave1-cpu-v1
+
+dataset:
+  dataset_id: infrastructure-pilot-synthetic-v1
+  dataset_revision: "1.0.0"
+  split: pilot
+  synthetic: true
+  project_owned: true
+  real_dataset: false
+  publishable_dataset_result: false
+  root: data/pilot/infrastructure-pilot-synthetic-v1
+
+counts:
+  document_count: 12
+  duplicate_content_pair_count: 6
+  unique_content_count: 6
+  chunk_count: 24
+  chunks_per_document: 2
+  query_count: 6
+  judgment_count: 12
+  relevant_documents_per_query: 2
+
+files:
+  documents: documents.jsonl
+  chunks: chunks.jsonl
+  queries: queries.jsonl
+  judgments: judgments.jsonl
+  manifest: dataset.manifest.json
+  checksums: checksums.json
+
+identity:
+  document_id_format: "pilot-doc-{number:02d}"
+  chunk_id_format: "pilot-chunk-{document:02d}-{chunk}"
+  query_id_format: "pilot-query-{number:02d}"
+  content_group_id_format: "pilot-content-group-{number:02d}"
+
+deterministic_generation: true
+random_generation_allowed: false
+timestamps_in_artifacts_allowed: false
+
+duplicate_content_policy:
+  pair_count: 6
+  documents_per_group: 2
+  same_normalized_text_within_group: true
+  same_source_text_sha256_within_group: true
+  distinct_document_ids_within_group: true
+  distinct_chunk_ids_within_group: true
+  content_based_document_deduplication_prohibited: true
+  canonical_document_identity_preserved: true
+
+text_policy:
+  language: English
+  style: neutral_synthetic_factual
+  word_count_per_document:
+    minimum: 40
+    maximum: 120
+  prohibited:
+    - Personal data.
+    - Medical advice.
+    - Legal advice.
+    - Financial advice.
+    - Political persuasion.
+    - Copyrighted passages.
+    - Generated answers.
+    - Evaluation labels embedded in text.
+
+canonicalization:
+  unicode_normalization: NFC
+  line_endings: LF
+  outer_whitespace_trimmed: true
+  internal_whitespace_policy: preserve_single_spaces
+
+checksum:
+  algorithm: SHA-256
+  input: utf8_text_normalized
+
+token_count:
+  policy: deterministic_whitespace_token_count
+  external_tokenizer_required: false
+
+serialization:
+  encoding: UTF-8
+  line_endings: LF
+  jsonl_sort_keys: true
+  jsonl_compact: true
+  manifest_indented: true
+  checksums_indented: true
+  atomic_writes_required: true
+
+safety:
+  baseline_execution_enabled: false
+  model_execution_enabled: false
+  retrieval_execution_enabled: false
+  evaluation_execution_enabled: false
+  final_generation_enabled: false
+  network_access_required: false
+  foreign_code_execution_allowed: false
+
+immutability:
+  materialized_dataset_immutable: true
+  overwrite_prohibited_without_explicit_flag: true
+  semantic_change_requires_new_dataset_revision: true

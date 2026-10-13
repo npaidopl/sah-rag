@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "OffsetSpan": {
+      "additionalProperties": false,
+      "description": "Half-open character or token span.",
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "OffsetSpan",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One indexed retrieval chunk derived from a semantic parent.",
+  "properties": {
+    "artifact_type": {
+      "default": "child_chunk",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "chunk_id": {
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "chunk_index": {
+      "minimum": 0,
+      "title": "Chunk Index",
+      "type": "integer"
+    },
+    "chunk_overlap": {
+      "minimum": 0,
+      "title": "Chunk Overlap",
+      "type": "integer"
+    },
+    "chunk_size": {
+      "exclusiveMinimum": 0,
+      "title": "Chunk Size",
+      "type": "integer"
+    },
+    "chunker_config_hash": {
+      "title": "Chunker Config Hash",
+      "type": "string"
+    },
+    "chunker_id": {
+      "title": "Chunker Id",
+      "type": "string"
+    },
+    "chunker_version": {
+      "title": "Chunker Version",
+      "type": "string"
+    },
+    "dataset": {
+      "title": "Dataset",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "normalized_char_span": {
+      "$ref": "#/$defs/OffsetSpan"
+    },
+    "parent_chunk_index": {
+      "minimum": 0,
+      "title": "Parent Chunk Index",
+      "type": "integer"
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "string"
+    },
+    "parent_normalized_char_span": {
+      "$ref": "#/$defs/OffsetSpan"
+    },
+    "parser_config_hash": {
+      "title": "Parser Config Hash",
+      "type": "string"
+    },
+    "parser_id": {
+      "title": "Parser Id",
+      "type": "string"
+    },
+    "parser_version": {
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "raw_char_span": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OffsetSpan"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "text_normalized": {
+      "title": "Text Normalized",
+      "type": "string"
+    },
+    "text_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Raw"
+    },
+    "token_count": {
+      "minimum": 0,
+      "title": "Token Count",
+      "type": "integer"
+    },
+    "token_span": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OffsetSpan"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "chunk_id",
+    "parent_id",
+    "doc_id",
+    "dataset",
+    "chunk_index",
+    "parent_chunk_index",
+    "text_normalized",
+    "normalized_char_span",
+    "parent_normalized_char_span",
+    "token_count",
+    "parser_id",
+    "parser_version",
+    "parser_config_hash",
+    "chunker_id",
+    "chunker_version",
+    "chunker_config_hash",
+    "tokenizer_id",
+    "chunk_size",
+    "chunk_overlap"
+  ],
+  "title": "ChildChunk",
+  "type": "object"
+}

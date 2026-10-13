@@ -1,0 +1,74 @@
+artifact_type: remaining_baselines_resource_matrix
+artifact_version: "1.0"
+
+host_profiles:
+  local_windows_cpu:
+    operating_system: windows
+    cpu_class: desktop_6c12t
+    total_ram_gb: 15.37
+    observed_free_ram_gb: 5.02
+    discrete_gpu: false
+    cuda: false
+  colab_gpu:
+    availability: planned
+    gpu_model: VARIABLE
+    persistent_runtime: false
+  hosted_llm_api:
+    configured: false
+    provider: null
+
+baselines:
+  disretrieval:
+    gpu_required: UNKNOWN
+    vram_class: UNKNOWN
+    hosted_llm_required: UNKNOWN
+    multimodal_inputs: false
+    approximate_local_fit: CONDITIONAL_SMALL_PILOT
+    approximate_full_run_fit: UNKNOWN
+    notes:
+      - Exact resource envelope requires source audit.
+
+  memorag:
+    gpu_required: UNKNOWN
+    vram_class: UNKNOWN
+    hosted_llm_required: LIKELY
+    multimodal_inputs: false
+    approximate_local_fit: HOSTED_DEPENDENT
+    approximate_full_run_fit: UNKNOWN
+    notes:
+      - Global memory construction is expected to need a hosted model.
+      - Cost and rate-limit plan not approved.
+
+  kag:
+    gpu_required: UNKNOWN
+    vram_class: UNKNOWN
+    hosted_llm_required: LIKELY
+    multimodal_inputs: false
+    approximate_local_fit: UNLIKELY
+    approximate_full_run_fit: UNKNOWN
+    notes:
+      - Knowledge graph construction cost not yet estimated.
+      - Component audit required before any execution decision.
+
+  metadata_rag:
+    gpu_required: false
+    vram_class: none
+    hosted_llm_required: CONDITIONAL
+    multimodal_inputs: false
+    approximate_local_fit: FEASIBLE
+    approximate_full_run_fit: FEASIBLE
+    notes:
+      - Project-owned reimplementation. No foreign execution.
+      - Small hosted-LLM use possible for metadata generation.
+
+  hikey:
+    gpu_required: LIKELY
+    vram_class: UNKNOWN
+    hosted_llm_required: UNKNOWN
+    multimodal_inputs: true
+    approximate_local_fit: NOT_FEASIBLE
+    approximate_full_run_fit: UNKNOWN
+    notes:
+      - Multimodal inputs required.
+      - No public repository released yet.
+      - Cross-baseline contract extension required.

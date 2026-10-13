@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "description": "Summary of one multi-method retrieval evaluation run.",
+  "properties": {
+    "aggregate_record_count": {
+      "exclusiveMinimum": 0,
+      "title": "Aggregate Record Count",
+      "type": "integer"
+    },
+    "aggregates_path": {
+      "title": "Aggregates Path",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "retrieval_evaluation_run",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "case_count": {
+      "exclusiveMinimum": 0,
+      "title": "Case Count",
+      "type": "integer"
+    },
+    "cases_path": {
+      "title": "Cases Path",
+      "type": "string"
+    },
+    "cutoffs": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Cutoffs",
+      "type": "array"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "evaluation_level": {
+      "title": "Evaluation Level",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "metric_record_count": {
+      "exclusiveMinimum": 0,
+      "title": "Metric Record Count",
+      "type": "integer"
+    },
+    "metrics_path": {
+      "title": "Metrics Path",
+      "type": "string"
+    },
+    "retrieval_methods": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Retrieval Methods",
+      "type": "array"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "dataset_id",
+    "evaluation_level",
+    "retrieval_methods",
+    "cutoffs",
+    "case_count",
+    "metric_record_count",
+    "aggregate_record_count",
+    "cases_path",
+    "metrics_path",
+    "aggregates_path"
+  ],
+  "title": "RetrievalEvaluationRun",
+  "type": "object"
+}

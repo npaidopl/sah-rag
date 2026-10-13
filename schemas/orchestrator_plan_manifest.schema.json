@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_execution_enabled": {
+      "default": false,
+      "title": "Architecture Execution Enabled",
+      "type": "boolean"
+    },
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dataset_revision": {
+      "title": "Dataset Revision",
+      "type": "string"
+    },
+    "evaluation_contract_version": {
+      "default": "0.1.0",
+      "title": "Evaluation Contract Version",
+      "type": "string"
+    },
+    "evaluation_execution_enabled": {
+      "default": false,
+      "title": "Evaluation Execution Enabled",
+      "type": "boolean"
+    },
+    "execution_contract_version": {
+      "default": "0.1.0",
+      "title": "Execution Contract Version",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "manifest_id": {
+      "title": "Manifest Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "orchestrator_contract_version": {
+      "default": "0.1.0",
+      "title": "Orchestrator Contract Version",
+      "type": "string"
+    },
+    "plan_id": {
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "title": "Plan Sha256",
+      "type": "string"
+    },
+    "request_sha256": {
+      "title": "Request Sha256",
+      "type": "string"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest_id",
+    "plan_id",
+    "experiment_cell_id",
+    "dataset_id",
+    "dataset_revision",
+    "split",
+    "architecture_id",
+    "request_sha256",
+    "plan_sha256"
+  ],
+  "title": "OrchestratorPlanManifest",
+  "type": "object"
+}

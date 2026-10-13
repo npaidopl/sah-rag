@@ -1,0 +1,185 @@
+{
+  "additionalProperties": false,
+  "description": "Manifest for one dense-only LongRAG Qdrant collection.",
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "longrag_collection_manifest",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "code_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Revision"
+    },
+    "collection_name": {
+      "title": "Collection Name",
+      "type": "string"
+    },
+    "complete": {
+      "default": false,
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "condition_id": {
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "exclusiveMinimum": 0,
+      "title": "Dense Dimension",
+      "type": "integer"
+    },
+    "dense_distance": {
+      "title": "Dense Distance",
+      "type": "string"
+    },
+    "dense_vector_name": {
+      "title": "Dense Vector Name",
+      "type": "string"
+    },
+    "document_count": {
+      "exclusiveMinimum": 0,
+      "title": "Document Count",
+      "type": "integer"
+    },
+    "embedding_catalog_path": {
+      "title": "Embedding Catalog Path",
+      "type": "string"
+    },
+    "embedding_catalog_sha256": {
+      "title": "Embedding Catalog Sha256",
+      "type": "string"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "execution_profile": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Profile"
+    },
+    "expected_point_count": {
+      "exclusiveMinimum": 0,
+      "title": "Expected Point Count",
+      "type": "integer"
+    },
+    "interface_validation": {
+      "default": true,
+      "title": "Interface Validation",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "paper_faithful_result": {
+      "default": false,
+      "title": "Paper Faithful Result",
+      "type": "boolean"
+    },
+    "point_count": {
+      "minimum": 0,
+      "title": "Point Count",
+      "type": "integer"
+    },
+    "shard_count": {
+      "exclusiveMinimum": 0,
+      "title": "Shard Count",
+      "type": "integer"
+    },
+    "source_architecture": {
+      "title": "Source Architecture",
+      "type": "string"
+    },
+    "source_architecture_commit": {
+      "title": "Source Architecture Commit",
+      "type": "string"
+    },
+    "source_unit_count": {
+      "exclusiveMinimum": 0,
+      "title": "Source Unit Count",
+      "type": "integer"
+    },
+    "storage_mode": {
+      "title": "Storage Mode",
+      "type": "string"
+    },
+    "storage_path": {
+      "title": "Storage Path",
+      "type": "string"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "collection_name",
+    "storage_mode",
+    "storage_path",
+    "dataset_id",
+    "condition_id",
+    "embedding_catalog_path",
+    "embedding_catalog_sha256",
+    "embedding_config_hash",
+    "dense_vector_name",
+    "dense_dimension",
+    "dense_distance",
+    "point_count",
+    "expected_point_count",
+    "source_unit_count",
+    "document_count",
+    "shard_count",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "adapter_id",
+    "adapter_version",
+    "source_architecture",
+    "source_architecture_commit"
+  ],
+  "title": "LongRAGCollectionManifest",
+  "type": "object"
+}

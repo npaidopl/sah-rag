@@ -1,0 +1,386 @@
+registry:
+  id: baseline_audit_registry
+  version: 1.0.0
+  created_for: dry-retrieval-v1.0.0
+  status: initial_paper_and_repository_audit
+  comparison_policy: retrieval_focused_generation_free
+  architecture_count: 10
+  portfolio_disposition_status: COMPLETE
+  portfolio_disposition_version: 0.1.0
+  portfolio_disposition_declaration: baseline_audit/architecture_portfolio_dispositions.yaml
+  portfolio_ready_for_data_count: 5
+  portfolio_conditional_go_count: 3
+  portfolio_deferred_with_reason_count: 2
+  portfolio_blocked_with_reason_count: 0
+verification_levels:
+- UNVERIFIED
+- PAPER_VERIFIED
+- CODE_VERIFIED
+- EXPERIMENT_VERIFIED
+adaptation_classes:
+- FAITHFUL
+- CONTROLLED_ADAPTATION
+- PAPER_DERIVED_REIMPLEMENTATION
+- ARCHITECTURAL_COMPARATOR
+- UNDECIDED
+compatibility_states:
+- FULL
+- ADAPTED
+- PARTIAL
+- NOT_APPLICABLE
+- BLOCKED
+- PENDING
+architectures:
+- architecture_id: disretrieval
+  display_name: DISRetrieval
+  family: discourse_hierarchical_retrieval
+  paper:
+    title: Beyond Chunking - Discourse-Aware Hierarchical Retrieval for Long Document Question Answering
+    arxiv_id: '2506.06313'
+    year: 2026
+    venue: ACL 2026 Main Conference
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/DreamH1gh/ACL2026-DISRetrieval
+    default_branch: main
+    resolved_commit: 4f3144042c6eb1e514a0a89ec704d892a66e700c
+    license_spdx: UNKNOWN
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: false
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: RST_TREE
+    retrieval_output: hierarchical_evidence_nodes
+    source_id_traceability: PENDING
+  audit:
+    wave: 2
+    adaptation_class: ARCHITECTURAL_COMPARATOR
+    faithful_reproduction_possible: false
+    retrieval_only_extraction_possible: true
+    initial_status: GO_WITH_LICENSE_REVIEW
+    verification_level: PAPER_AND_CODE_VERIFIED
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    foreign_execution_decision: BLOCKED
+    project_owned_specification_decision: CONDITIONAL_GO
+    source_traceability: REQUIRES_INDEPENDENT_DESIGN
+    exact_source_audit: baseline_audit/disretrieval_exact_source_audit.yaml
+- architecture_id: hikey
+  display_name: HiKEY
+  family: hierarchical_multimodal_retrieval
+  paper:
+    title: HiKEY - Hierarchical Multimodal Retrieval for Open-Domain Document Question Answering
+    arxiv_id: '2605.29606'
+    year: 2026
+    venue: ACL 2026 Main Conference
+    verification: PAPER_VERIFIED
+  repository:
+    official: PENDING
+    url: null
+    project_page: https://gyuhoshim.github.io/projects/hikey/
+    default_branch: null
+    resolved_commit: null
+    license_spdx: UNKNOWN
+    verification: UNVERIFIED
+  architecture:
+    offline_llm_required: PENDING
+    online_retrieval_llm_required: false
+    final_generation_required: false
+    multimodal_required: true
+    graph_or_tree: DOCUMENT_HIERARCHY_GRAPH
+    retrieval_output: ranked_documents_sections_and_evidence_subgraph
+    source_id_traceability: PAPER_SUPPORTED
+  audit:
+    wave: 3
+    verification_level: PAPER_VERIFIED
+    adaptation_class: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    faithful_reproduction_possible: false
+    retrieval_only_extraction_possible: PAPER_LEVEL_ONLY
+    foreign_execution_decision: NOT_APPLICABLE
+    project_owned_specification_decision: DEFERRED
+    source_traceability: REQUIRES_INDEPENDENT_DESIGN
+    multimodal_contract_status: MULTIMODAL_EXTENSION_REQUIRED
+    multimodal_contract_target_version: 0.2.0
+    terminal_disposition: DEFERRED_WITH_REASON
+    initial_status: HOLD_FOR_CODE_RELEASE_AUDIT
+    multimodal_feasibility_audit: baseline_audit/hikey_multimodal_feasibility_audit.yaml
+- architecture_id: raptor
+  display_name: RAPTOR
+  family: semantic_hierarchical_retrieval
+  paper:
+    title: RAPTOR - Recursive Abstractive Processing for Tree-Organized Retrieval
+    arxiv_id: '2401.18059'
+    year: 2024
+    venue: ICLR 2024
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/parthsarthi03/raptor
+    default_branch: master
+    resolved_commit: null
+    license_spdx: MIT
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: false
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: SEMANTIC_SUMMARY_TREE
+    retrieval_output: ranked_tree_nodes
+    source_id_traceability: PENDING
+  audit:
+    wave: 1
+    adaptation_class: UNDECIDED
+    faithful_reproduction_possible: LIKELY
+    retrieval_only_extraction_possible: LIKELY
+    initial_status: GO
+- architecture_id: longrag
+  display_name: LongRAG
+  family: long_retrieval_units
+  paper:
+    title: LongRAG - Enhancing Retrieval-Augmented Generation with Long-context LLMs
+    arxiv_id: '2406.15319'
+    year: 2024
+    venue: Technical Report
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/TIGER-AI-Lab/LongRAG
+    default_branch: main
+    resolved_commit: null
+    license_spdx: MIT
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: false
+    online_retrieval_llm_required: false
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: LONG_RETRIEVAL_UNITS
+    retrieval_output: ranked_long_units
+    source_id_traceability: PENDING
+  audit:
+    wave: 1
+    adaptation_class: UNDECIDED
+    faithful_reproduction_possible: LIKELY
+    retrieval_only_extraction_possible: LIKELY
+    initial_status: GO
+- architecture_id: memorag
+  display_name: MemoRAG
+  family: memory_guided_retrieval
+  paper:
+    title: MemoRAG - Boosting Long Context Processing with Global Memory-Enhanced Retrieval Augmentation
+    arxiv_id: '2409.05591'
+    year: 2025
+    venue: The Web Conference 2025
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/qhjqhj00/MemoRAG
+    alternate_url: https://github.com/VectorSpaceLab/MemoRAG
+    default_branch: main
+    resolved_commit: 7c23dfa855289a2a99fe72c98e024105196ce01e
+    license_spdx: Apache-2.0
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: true
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: GLOBAL_MEMORY
+    retrieval_output: ranked_chunks_after_memory_clues
+    source_id_traceability: REQUIRES_INSTRUMENTATION
+  audit:
+    wave: 2
+    adaptation_class: CONTROLLED_ADAPTATION
+    faithful_reproduction_possible: RESOURCE_DEPENDENT
+    retrieval_only_extraction_possible: true
+    initial_status: GO_RESOURCE_CONDITIONAL
+    verification_level: PAPER_AND_CODE_VERIFIED
+    implementation_class: CONTROLLED_ADAPTATION
+    foreign_execution_decision: CONDITIONAL
+    project_owned_specification_decision: CONDITIONAL_GO
+    source_traceability: REQUIRES_INSTRUMENTATION
+    exact_source_audit: baseline_audit/memorag_exact_source_audit.yaml
+- architecture_id: kag
+  display_name: KAG
+  family: knowledge_augmented_reasoning_retrieval
+  paper:
+    title: KAG - Boosting LLMs in Professional Domains via Knowledge Augmented Generation
+    arxiv_id: '2409.13731'
+    year: 2024
+    venue: arXiv
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/OpenSPG/KAG
+    default_branch: master
+    resolved_commit: fdab15b3929d2ee40dfcdd388f90233096a6afc9
+    license_spdx: Apache-2.0
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: true
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: KNOWLEDGE_GRAPH
+    retrieval_output: evidence_selected_by_hybrid_reasoning
+    source_id_traceability: RECOVERABLE
+  audit:
+    wave: 2
+    adaptation_class: CONTROLLED_ADAPTATION
+    faithful_reproduction_possible: RESOURCE_DEPENDENT
+    retrieval_only_extraction_possible: true
+    initial_status: GO_COMPONENT_AUDIT_REQUIRED
+    verification_level: PAPER_AND_CODE_VERIFIED
+    implementation_class: CONTROLLED_ADAPTATION
+    foreign_execution_decision: CONDITIONAL
+    project_owned_specification_decision: CONDITIONAL_GO
+    source_traceability: RECOVERABLE
+    exact_source_audit: baseline_audit/kag_exact_source_audit.yaml
+- architecture_id: metadata_rag
+  display_name: Metadata-RAG
+  family: metadata_driven_multistage_retrieval
+  paper:
+    title: Metadata-Driven Retrieval-Augmented Generation for Financial Question Answering
+    arxiv_id: '2510.24402'
+    year: 2025
+    venue: Preprint under major revision
+    verification: PAPER_VERIFIED
+  repository:
+    official: false
+    url: null
+    default_branch: null
+    resolved_commit: null
+    license_spdx: NOT_APPLICABLE
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: false
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: METADATA_ENRICHED_FLAT_INDEX
+    retrieval_output: ranked_contextual_chunks
+    source_id_traceability: PAPER_SUPPORTED
+  audit:
+    wave: 3
+    adaptation_class: PAPER_DERIVED_REIMPLEMENTATION
+    faithful_reproduction_possible: false
+    retrieval_only_extraction_possible: true
+    initial_status: GO_AS_REIMPLEMENTATION_ONLY
+    verification_level: PAPER_VERIFIED
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    foreign_execution_decision: NOT_APPLICABLE
+    project_owned_specification_decision: CONDITIONAL_GO
+    source_traceability: REQUIRES_INDEPENDENT_DESIGN
+    paper_spec_audit: baseline_audit/metadata_rag_paper_spec_audit.yaml
+- architecture_id: hipporag2
+  display_name: HippoRAG 2
+  family: associative_graph_retrieval
+  paper:
+    title: From RAG to Memory - Non-Parametric Continual Learning for Large Language Models
+    arxiv_id: '2502.14802'
+    year: 2025
+    venue: ICML 2025
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/OSU-NLP-Group/HippoRAG
+    default_branch: main
+    resolved_commit: 2bfd831417202b49cda9da7973e141a456e16872
+    package_version: 2.0.0a5
+    license_spdx: MIT
+    verification: CODE_VERIFIED
+  architecture:
+    target_generation: HippoRAG_2
+    offline_llm_required: true
+    online_retrieval_llm_required: CONFIGURATION_DEPENDENT
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: KNOWLEDGE_GRAPH_PPR
+    retrieval_output: ranked_passages
+    source_id_traceability: NATIVE_WITH_CANONICAL_MAPPING
+  audit:
+    wave: 1
+    adaptation_class: FAITHFUL
+    faithful_reproduction_possible: true
+    retrieval_only_extraction_possible: true
+    execution_decision: GO
+    source_traceability: NATIVE_WITH_CANONICAL_MAPPING
+    generation_amendment: baseline_audit/hipporag_generation_amendment.yaml
+    initial_status: GO_VERSION_PIN_REQUIRED
+- architecture_id: lightrag
+  display_name: LightRAG
+  family: dual_level_graph_retrieval
+  paper:
+    title: LightRAG - Simple and Fast Retrieval-Augmented Generation
+    arxiv_id: '2410.05779'
+    year: 2025
+    venue: Findings of EMNLP 2025
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/HKUDS/LightRAG
+    default_branch: main
+    resolved_commit: null
+    license_spdx: MIT
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: PENDING
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: ENTITY_RELATION_GRAPH
+    retrieval_output: local_and_global_evidence
+    source_id_traceability: PENDING
+  audit:
+    wave: 1
+    adaptation_class: UNDECIDED
+    faithful_reproduction_possible: LIKELY
+    retrieval_only_extraction_possible: PENDING
+    initial_status: GO_PAPER_SNAPSHOT_REQUIRED
+- architecture_id: pathrag
+  display_name: PathRAG paper-derived comparator
+  family: relational_path_graph_retrieval
+  paper:
+    title: PathRAG - Pruning Graph-based Retrieval Augmented Generation with Relational Paths
+    arxiv_id: '2502.14902'
+    year: 2025
+    venue: arXiv
+    verification: PAPER_VERIFIED
+  repository:
+    official: true
+    url: https://github.com/BUPT-GAMMA/PathRAG
+    default_branch: main
+    resolved_commit: null
+    license_spdx: UNKNOWN
+    verification: PAPER_VERIFIED
+  architecture:
+    offline_llm_required: true
+    online_retrieval_llm_required: PENDING
+    final_generation_required: false
+    multimodal_required: false
+    graph_or_tree: RELATIONAL_PATH_GRAPH
+    retrieval_output: ranked_relational_paths
+    source_id_traceability: PENDING
+  audit:
+    wave: 1
+    adaptation_class: ARCHITECTURAL_COMPARATOR
+    faithful_reproduction_possible: PENDING
+    retrieval_only_extraction_possible: PENDING
+    initial_status: HOLD_CLEAN_ROOM_SPECIFICATION_PLANNED
+    verification_level: PAPER_AND_CODE_VERIFIED
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    foreign_execution_decision: BLOCKED
+    project_owned_specification_decision: CONDITIONAL_GO
+    source_traceability: REQUIRES_INDEPENDENT_DESIGN
+    blocker_resolution: baseline_audit/pathrag_blocker_resolution.yaml
+    clean_room_specification: baseline_audit/pathrag_clean_room_spec.yaml
+    foreign_repository_status: BLOCKED
+    comparator:
+      implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+      readiness_status: READY_FOR_DATA
+      synthetic_end_to_end_smoke: passed
+      readiness_declaration: baseline_audit/pathrag_readiness.yaml

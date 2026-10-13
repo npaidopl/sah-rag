@@ -1,0 +1,101 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "aggregate_metric_count": {
+      "minimum": 0,
+      "title": "Aggregate Metric Count",
+      "type": "integer"
+    },
+    "aggregate_metrics_path": {
+      "title": "Aggregate Metrics Path",
+      "type": "string"
+    },
+    "aggregate_metrics_sha256": {
+      "title": "Aggregate Metrics Sha256",
+      "type": "string"
+    },
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "case_count": {
+      "minimum": 0,
+      "title": "Case Count",
+      "type": "integer"
+    },
+    "cases_path": {
+      "title": "Cases Path",
+      "type": "string"
+    },
+    "cases_sha256": {
+      "title": "Cases Sha256",
+      "type": "string"
+    },
+    "cutoffs": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Cutoffs",
+      "type": "array"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_count": {
+      "minimum": 0,
+      "title": "Query Count",
+      "type": "integer"
+    },
+    "query_metric_count": {
+      "minimum": 0,
+      "title": "Query Metric Count",
+      "type": "integer"
+    },
+    "query_metrics_path": {
+      "title": "Query Metrics Path",
+      "type": "string"
+    },
+    "query_metrics_sha256": {
+      "title": "Query Metrics Sha256",
+      "type": "string"
+    },
+    "retrieval_only": {
+      "default": true,
+      "title": "Retrieval Only",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "dataset_id",
+    "architecture_id",
+    "query_count",
+    "cutoffs",
+    "case_count",
+    "query_metric_count",
+    "aggregate_metric_count",
+    "cases_path",
+    "query_metrics_path",
+    "aggregate_metrics_path",
+    "cases_sha256",
+    "query_metrics_sha256",
+    "aggregate_metrics_sha256"
+  ],
+  "title": "CommonRetrievalEvaluationManifest",
+  "type": "object"
+}

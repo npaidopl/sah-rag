@@ -1,0 +1,75 @@
+artifact_type: architecture_status_vocabulary
+artifact_version: "1.0"
+
+status_classes:
+
+  DATASET_READY:
+    meaning: >
+      Passed canonical input, persistence, reopen, retrieval,
+      canonical output, leakage, and synthetic acceptance gates.
+    counted_in:
+      - dataset_ready_count
+    requires:
+      implementation_status: DATASET_READY
+      readiness_gate: PASSED
+      dataset_readiness_status: READY
+
+  READY_FOR_DATA:
+    meaning: >
+      Planning or implementation disposition indicating that the
+      architecture may be prepared for data execution, but not
+      necessarily promoted through the formal readiness registry.
+    counted_in: []
+    note: >
+      READY_FOR_DATA must not be used as a synonym for
+      DATASET_READY.
+
+  SYNTHETIC_VALIDATED:
+    meaning: >
+      Synthetic execution passed, but one or more formal dataset
+      readiness gates remain unresolved.
+    counted_in: []
+    note: >
+      SYNTHETIC_VALIDATED is not counted as dataset-ready.
+
+  STRUCTURALLY_VALIDATED:
+    meaning: >
+      Architecture structure passed without complete retrieval
+      acceptance.
+    counted_in: []
+
+  DEFERRED:
+    meaning: >
+      Execution deliberately suspended due to an unresolved
+      architecture-defining component.
+    counted_in:
+      - deferred_count
+    requires:
+      controlled_track_status: DEFERRED
+
+counter_definitions:
+
+  dataset_ready_count:
+    predicate:
+      implementation_status: DATASET_READY
+      readiness_gate: PASSED
+      dataset_readiness_status: READY
+    source: ARCHITECTURE_READINESS_RECORDS
+    manual_counter_edits_allowed: false
+
+  deferred_count:
+    predicate:
+      controlled_track_status: DEFERRED
+    source: ARCHITECTURE_READINESS_RECORDS
+    manual_counter_edits_allowed: false
+
+  synthetic_validated_count:
+    predicate:
+      synthetic_acceptance_status: PASSED
+    source: ARCHITECTURE_READINESS_RECORDS
+    manual_counter_edits_allowed: false
+
+prohibited_counter_edits:
+  - manual_increment_without_record_change
+  - copying_previous_counter_values_without_recomputation
+  - using_READY_FOR_DATA_as_a_proxy_for_DATASET_READY

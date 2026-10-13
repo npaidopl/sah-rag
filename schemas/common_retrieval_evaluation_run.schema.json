@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "answer_evaluation_enabled": {
+      "default": false,
+      "title": "Answer Evaluation Enabled",
+      "type": "boolean"
+    },
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "cutoffs": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Cutoffs",
+      "type": "array"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "evaluation_contract_version": {
+      "default": "0.1.0",
+      "title": "Evaluation Contract Version",
+      "type": "string"
+    },
+    "expected_query_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Expected Query Ids",
+      "type": "array"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "llm_as_judge_enabled": {
+      "default": false,
+      "title": "Llm As Judge Enabled",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "retrieval_only": {
+      "default": true,
+      "title": "Retrieval Only",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "dataset_id",
+    "architecture_id",
+    "cutoffs",
+    "expected_query_ids"
+  ],
+  "title": "CommonRetrievalEvaluationRun",
+  "type": "object"
+}

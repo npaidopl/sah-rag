@@ -1,0 +1,147 @@
+﻿pipeline:
+  id: proposed_hierarchical_hybrid_rag
+  version: "0.1.0"
+  status: experimental
+  description: >
+    Structure-aware hierarchical RAG using semantic parents,
+    child retrieval chunks, BGE-M3 dense and learned-sparse
+    representations, hybrid rank fusion, and parent resolution.
+
+canonical_input:
+  immutable: true
+  documents_file: documents.jsonl
+  examples_file: examples.jsonl
+  validation_file: validation.json
+  manifest_file: manifest.json
+  retrieval_text_field: text_normalized
+  exact_text_field: text_raw
+  preserve_doc_id: true
+  preserve_query_id: true
+  streaming_jsonl: true
+
+preprocessing:
+  enabled: true
+  modify_canonical_input: false
+  unicode_normalization: preserve
+  whitespace_policy: conservative
+  preserve_line_breaks: true
+  preserve_structural_markers: true
+
+parser:
+  id: hybrid_structural_semantic_parser
+  version: "0.1.0"
+  mode: layered
+  produce_hierarchy: true
+  record_boundary_provenance: true
+
+  structural_signals:
+    headings: true
+    numbered_hierarchy: true
+    paragraph_breaks: true
+    list_markers: true
+    capitalization_patterns: true
+
+  semantic_boundaries:
+    enabled: false
+    reason: Enabled after the first deterministic vertical pipeline works.
+    representation: dense
+    threshold_strategy: adaptive
+    local_window_size: 3
+
+  fallback:
+    enabled: true
+    strategy: paragraph_groups
+    maximum_parent_tokens: 4096
+
+chunking:
+  id: hierarchical_child_chunker
+  version: "0.1.0"
+  tokenizer: BAAI/bge-m3
+  unit: tokens
+  chunk_size: 256
+  chunk_overlap: 32
+  respect_parent_boundaries: true
+  allow_cross_parent_chunks: false
+  preserve_offsets: true
+
+embedding:
+  model_name: BAAI/bge-m3
+  dense:
+    enabled: true
+    dimension: 1024
+    normalize: true
+  sparse:
+    enabled: true
+    type: learned_sparse
+  multi_vector:
+    enabled: false
+
+storage:
+  children:
+    backend: qdrant
+    collection_prefix: ragbench_children
+    dense_vector_name: dense
+    sparse_vector_name: sparse
+
+  parents:
+    backend: sqlite
+    database_name: parents.sqlite3
+
+  canonical_documents:
+    backend: reference
+    source: canonical_documents_jsonl
+
+retrieval:
+  scope:
+    honor_query_doc_ids: true
+    unrestricted_mode_available: true
+
+  dense:
+    enabled: true
+
+  sparse:
+    enabled: true
+
+  fusion:
+    method: rrf
+
+  top_k: 10
+  prefetch_limit: 50
+
+reranking:
+  enabled: false
+  reason: Not required for the first end-to-end implementation.
+
+resolution:
+  return_children: true
+  return_semantic_parents: true
+  return_canonical_documents: true
+  deduplicate_parents: true
+  deduplicate_documents: true
+
+evaluation:
+  route_by_ground_truth_type: true
+
+  retrieval_metrics:
+    - recall_at_k
+    - precision_at_k
+    - hit_rate_at_k
+    - mrr
+    - ndcg_at_k
+    - child_recall
+    - parent_recall
+    - source_document_recall
+
+  context_metrics:
+    - retrieved_token_count
+    - context_redundancy
+    - unique_parent_count
+
+artifacts:
+  write_parsed_documents: true
+  write_child_chunks: true
+  write_embedding_shards: true
+  write_predictions: true
+  write_metrics: true
+  write_manifest: true
+  write_checksums: true

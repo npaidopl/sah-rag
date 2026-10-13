@@ -1,0 +1,49 @@
+architecture_id: my_rag
+artifact_type: my_rag_m8_closure_manifest
+artifact_version: '1.0'
+best_by_mean_r10_on_dev: c256_o128_hybrid_rrf_k200
+code_revision: 0b51523ff86e4382c693d1e0a3342a358cbc4f5a
+documented_limitations:
+- Reduced dataset scope (4 of 7 datasets).
+- 'Two controlled adaptations carried from M0: numpy-based retrieval substrate and
+  query dense re-exposure.'
+- Two hypotheses (H6, H7) not testable under current pipeline (no context builder,
+  no reranker).
+- Bootstrap SEs not adjusted for multiple comparisons across the confirmatory set.
+- Locked test executed once with no re-tuning; performance delta vs. dev is small
+  (0.4068 -> 0.3961).
+execution_id: my-rag-m8-closure-v1
+fidelity_class: PROJECT_OWNED_REFERENCE
+hypothesis_verdicts:
+  H1_chunk_size: NOT_SUPPORTED
+  H2_overlap: PARTIALLY_SUPPORTED
+  H3_candidate_k: SUPPORTED
+  H4_top_k: TESTED_AS_EVALUATION_VIEW
+  H5_hybrid: SUPPORTED
+  H6_context_per_row: NOT_TESTABLE
+  H7_rerank_depth: NOT_TESTABLE
+next_gate: portfolio_integration
+primary_metric_dev: 0.40679483208432793
+primary_metric_test: 0.3961208545201177
+scope:
+  candidate_limits: 3
+  confirmatory_configs: 8
+  datasets:
+  - clerk
+  - cuad
+  - greek_bar_bench
+  - lara
+  grid_size: 9
+  retrieval_modes: 3
+  screening_configs: 81
+selected_config_id: c256_o32_hybrid_rrf_k200
+stages:
+  m1_contract_freeze: SUCCEEDED
+  m2_chunking_grid: SUCCEEDED
+  m3_colab_embeddings: SUCCEEDED
+  m4a_screening: SUCCEEDED
+  m4b_reduce: SUCCEEDED
+  m5_confirmatory: SUCCEEDED
+  m6_best_config_selection: SUCCEEDED
+  m7_locked_test: SUCCEEDED
+status: MY_RAG_OPTIMAL_OPERATION_STUDY_CLOSED

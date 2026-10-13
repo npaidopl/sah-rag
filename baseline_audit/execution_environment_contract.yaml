@@ -1,0 +1,111 @@
+artifact_type: execution_environment_contract
+artifact_version: "1.0"
+
+contract:
+  id: architecture_execution_environment
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+scope:
+  architecture_count: 10
+  portfolio_registry: baseline_audit/architecture_portfolio_dispositions.yaml
+  execution_contract: baseline_audit/cross_baseline_execution_contract.yaml
+
+capability_fields:
+  compute:
+    - cpu_model
+    - physical_cpu_count
+    - logical_cpu_count
+    - system_ram_bytes
+  accelerator:
+    - gpu_available
+    - cuda_capable_gpu_available
+    - cuda_runtime_available
+    - cuda_version
+    - nvidia_driver_version
+    - gpu_devices
+  storage:
+    - working_directory_free_bytes
+    - working_directory_total_bytes
+  runtime:
+    - operating_system
+    - machine_architecture
+    - python_version
+    - docker_cli_available
+    - docker_engine_reachable
+    - git_available
+    - git_version
+  policy:
+    - network_policy
+    - hosted_model_policy
+    - maximum_approved_cost
+    - secrets_available
+
+execution_status_vocabulary:
+  allowed:
+    - EXECUTABLE_ON_CURRENT_HOST
+    - EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    - REQUIRES_REMOTE_GPU
+    - REQUIRES_HOSTED_SERVICE
+    - REQUIRES_SERVICE_ENVIRONMENT
+    - REQUIRES_MULTIMODAL_CONTRACT
+    - NOT_EXECUTABLE
+
+blocker_vocabulary:
+  allowed:
+    - MISSING_GPU
+    - INSUFFICIENT_VRAM
+    - MISSING_SERVICE
+    - MISSING_MODEL_LICENSE
+    - MODEL_NOT_APPROVED
+    - NETWORK_POLICY_BLOCKED
+    - HOSTED_COST_NOT_APPROVED
+    - MULTIMODAL_CONTRACT_MISSING
+    - DATASET_SOURCE_FORMAT_UNVERIFIED
+    - FOREIGN_EXECUTION_BLOCKED
+    - IMPLEMENTATION_NOT_READY
+
+architecture_mapping_requirements:
+  one_entry_per_architecture: true
+  architecture_count: 10
+  required_fields:
+    - architecture_id
+    - portfolio_status
+    - environment_status
+    - blockers
+    - executable_components
+    - prohibited_components
+    - required_environment
+    - pilot_eligible
+    - reason
+    - next_action
+
+pilot_policy:
+  publishable_execution_allowed: false
+  infrastructure_only: true
+  eligible_portfolio_status:
+    - READY_FOR_DATA
+  requirements:
+    - Environment status permits execution.
+    - Dataset envelope validates.
+    - Model licenses are approved.
+    - Required services are available.
+    - Output root is clean.
+    - Execution manifest is PLANNED.
+    - Generation remains disabled.
+
+safety:
+  foreign_blocked_repositories_must_not_execute: true
+  unapproved_hosted_services_must_not_execute: true
+  missing_model_license_blocks_execution: true
+  missing_multimodal_contract_blocks_hikey: true
+  no_secrets_written_to_artifacts: true
+
+versioning:
+  environment_contract_version: "0.1.0"
+  requires_version_bump:
+    - Capability-field semantics change.
+    - Environment-status vocabulary changes.
+    - Blocker vocabulary changes.
+    - Pilot-eligibility rules change.
+    - Network or hosted-model policy semantics change.

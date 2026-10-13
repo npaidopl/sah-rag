@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "chunk_id": {
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "content_group_id": {
+      "title": "Content Group Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "string"
+    },
+    "source_order": {
+      "title": "Source Order",
+      "type": "integer"
+    },
+    "source_text_sha256": {
+      "title": "Source Text Sha256",
+      "type": "string"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "token_count": {
+      "title": "Token Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "doc_id",
+    "parent_id",
+    "chunk_id",
+    "content_group_id",
+    "source_order",
+    "text",
+    "token_count",
+    "source_text_sha256",
+    "split"
+  ],
+  "title": "PilotCanonicalChunk",
+  "type": "object"
+}

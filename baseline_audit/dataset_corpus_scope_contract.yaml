@@ -1,0 +1,72 @@
+artifact_type: dataset_corpus_scope_contract
+artifact_version: "1.0"
+
+contract:
+  id: seven_dataset_corpus_scope
+  version: "0.1.0"
+  status: FROZEN_FOR_REGISTRATION
+  note: >
+    Classification values reflect the actual canonical structure of
+    each dataset. During registration, the collector verifies that
+    observed query.doc_ids reference patterns are consistent with
+    the declared scope. Any inconsistency is recorded as a blocker.
+
+allowed_scopes:
+  - GLOBAL_DATASET_CORPUS
+  - SHARED_DOMAIN_CORPUS
+  - QUERY_SPECIFIC_CORPUS
+  - QUERY_DOCUMENT_BUNDLE
+
+datasets:
+  ruler:
+    expected_scope: QUERY_SPECIFIC_CORPUS
+    corpus_selector: query.doc_ids
+    note: >
+      Each RULER example contains its own per-example long prompt
+      context (query text embeds the supplied context).
+  loong:
+    expected_scope: QUERY_DOCUMENT_BUNDLE
+    corpus_selector: query.doc_ids
+    note: >
+      Each example references its authoritative multi-document
+      bundle; the canonical document preserves the full upstream
+      document bundle.
+  long_bench_v2:
+    expected_scope: QUERY_SPECIFIC_CORPUS
+    corpus_selector: query.doc_ids
+    note: >
+      Per-example isolated long-context document. Retrieval for one
+      benchmark item must not access another item's context.
+  lara:
+    expected_scope: SHARED_DOMAIN_CORPUS
+    corpus_selector: frozen_dataset_partition
+    note: >
+      131 shared source documents are queried by 2,326 examples.
+      Document-level retrieval is meaningful.
+  greek_bar_bench:
+    expected_scope: QUERY_SPECIFIC_CORPUS
+    corpus_selector: query.doc_ids
+    note: >
+      Legal context per example; primary retrieval unit may need
+      evidence/span projection.
+  cuad:
+    expected_scope: SHARED_DOMAIN_CORPUS
+    corpus_selector: frozen_dataset_partition
+    note: >
+      510 contracts; 20,910 clause queries (6,702 answerable and
+      14,208 unanswerable). Document-level retrieval is meaningful.
+  clerk:
+    expected_scope: GLOBAL_DATASET_CORPUS
+    corpus_selector: frozen_dataset_partition
+    note: >
+      2,756 passages and 1,000 queries with qrels. Standard passage
+      retrieval evaluation.
+
+trivial_document_selection_risks:
+  ruler: HIGH
+  long_bench_v2: MEDIUM
+  greek_bar_bench: LOW
+  loong: LOW
+  lara: LOW
+  cuad: LOW
+  clerk: LOW

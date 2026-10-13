@@ -1,0 +1,32 @@
+artifact_type: architecture_readiness_declaration
+artifact_version: '1.0'
+architecture:
+  architecture_id: longrag
+  fidelity_class: CONTROLLED_ADAPTATION
+readiness:
+  status: SYNTHETIC_ACCEPTANCE_PASSED
+  canonical_input_validated: true
+  long_unit_construction_validated: true
+  controlled_embedding_validated: true
+  persistent_state_validated: true
+  state_reopen_validated: true
+  retrieval_validated: true
+  storage_equivalence_validated: true
+  canonical_identity_expansion_validated: true
+  evaluation_case_mapping_validated: true
+  generation_disabled: true
+  dataset_ready: true
+track:
+  controlled_track_eligible: true
+  native_track_eligible: false
+  native_track_potential_candidate: true
+claims:
+  faithful_reproduction: false
+  controlled_adaptation: true
+  native_embedder_equivalence: false
+  real_dataset_validated: false
+  publishable_result: false
+next_action:
+  class: DATASET_RESOURCE_PLANNING
+  value: Freeze LongRAG long-unit, embedding, index, and transfer sizing for the external
+    canonical suite.

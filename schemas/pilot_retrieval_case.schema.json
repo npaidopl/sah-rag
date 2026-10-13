@@ -1,0 +1,74 @@
+{
+  "$defs": {
+    "RetrievalJudgment": {
+      "additionalProperties": false,
+      "description": "Relevance judgment for one retrievable identifier.",
+      "properties": {
+        "item_id": {
+          "title": "Item Id",
+          "type": "string"
+        },
+        "relevance": {
+          "minimum": 0,
+          "title": "Relevance",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "item_id",
+        "relevance"
+      ],
+      "title": "RetrievalJudgment",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One query, judgments, and ranked retrieval output.",
+  "properties": {
+    "evaluation_level": {
+      "title": "Evaluation Level",
+      "type": "string"
+    },
+    "judgments": {
+      "items": {
+        "$ref": "#/$defs/RetrievalJudgment"
+      },
+      "title": "Judgments",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "query_text": {
+      "title": "Query Text",
+      "type": "string"
+    },
+    "retrieval_method": {
+      "title": "Retrieval Method",
+      "type": "string"
+    },
+    "retrieved_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Retrieved Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "query_id",
+    "query_text",
+    "retrieval_method",
+    "evaluation_level",
+    "judgments",
+    "retrieved_ids"
+  ],
+  "title": "RetrievalEvaluationCase",
+  "type": "object"
+}

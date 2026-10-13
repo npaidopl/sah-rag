@@ -1,0 +1,55 @@
+artifact_type: metadata_rag_clean_room_spec_amendment
+artifact_version: "1.0"
+
+amendment:
+  id: metadata_rag_clean_room_spec_amendment_01
+  version: "0.1.0"
+  status: FROZEN
+  applies_to:
+    artifact_type: metadata_rag_clean_room_spec
+    path: baseline_audit/metadata_rag_clean_room_spec.yaml
+    sha256: A02DBA61EE1DD922F3B2DE0CED932E7E20E748C381E8AACC655A070BEC50DB02
+    artifact_version: "1.0"
+  reason: >
+    During pre-code reconnaissance against infrastructure-pilot-synthetic-v1,
+    the frozen capitalized_phrase regex was found to absorb sentence-initial
+    articles into the matched phrase. The document text
+    "The Amber Observatory records ..." produced the phrase
+    "the amber observatory", while the corresponding query text
+    "at the Amber Observatory?" produced "amber observatory". This
+    asymmetry would silently break the query/document metadata symmetry
+    that the frozen design relies on, without changing the outward
+    validator surface. The regex is therefore replaced by an amended
+    version that excludes sentence-initial articles The/A/An via
+    negative lookahead, restoring exact document/query symmetry.
+  reason_scope:
+    kind: regex_correctness_only
+    post_retrieval_threshold_tuning: false
+    coefficient_changes: none
+    min_match_ratio_changes: none
+  patch:
+    metadata_schema:
+      derived_tier:
+        frozen_patterns:
+          capitalized_phrase: '(?<!\S)(?!(?:The|A|An)\b)(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)'
+          year_mention: '\b(?:19|20)\d{2}\b'
+          numeric_token: '\b\d+(?:\.\d+)?\b'
+
+effective_spec:
+  composed_from:
+    - baseline_audit/metadata_rag_clean_room_spec.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_01.yaml
+  merge_rule: >
+    The amendment patch is deep-merged into the frozen spec. Scalars
+    and lists in the patch replace the corresponding values in the
+    spec. Unmentioned keys are unchanged.
+  merge_is_applied_at:
+    - src/rag_system/baselines/metadata_rag_metadata.py
+
+claims:
+  silent_substitution: false
+  affects_architecture_defining_components: true
+  affected_components:
+    - metadata_extraction
+    - query_metadata_inference
+  changes_outward_validator_surface: false

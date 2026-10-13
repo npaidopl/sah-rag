@@ -1,0 +1,221 @@
+artifact_type: infrastructure_pilot_contract
+artifact_version: "1.0"
+
+contract:
+  id: wave1_infrastructure_only_pilot
+  version: "0.1.0"
+  status: FROZEN_FOR_PLANNING
+
+dependencies:
+  portfolio_dispositions:
+    path: baseline_audit/architecture_portfolio_dispositions.yaml
+    version: "0.1.0"
+  environment_contract:
+    path: baseline_audit/execution_environment_contract.yaml
+    version: "0.1.0"
+  host_profile:
+    path: baseline_audit/execution_host_profile.yaml
+  architecture_environment_matrix:
+    path: baseline_audit/architecture_environment_matrix.yaml
+  execution_contract:
+    path: baseline_audit/cross_baseline_execution_contract.yaml
+    version: "0.1.0"
+  evaluation_contract:
+    path: baseline_audit/common_retrieval_evaluation_contract.yaml
+    version: "0.1.0"
+  orchestrator_contract:
+    path: baseline_audit/common_orchestrator_contract.yaml
+    version: "0.1.0"
+
+scope:
+  execution_role: INFRASTRUCTURE_VALIDATION_ONLY
+
+  architectures:
+    - longrag
+    - raptor
+    - lightrag
+    - pathrag
+
+  excluded_architectures:
+    hipporag2:
+      reason: REQUIRES_REMOTE_GPU
+    disretrieval:
+      reason: IMPLEMENTATION_NOT_READY
+    memorag:
+      reason: REQUIRES_REMOTE_GPU
+    kag:
+      reason: REQUIRES_SERVICE_ENVIRONMENT
+    metadata_rag:
+      reason: IMPLEMENTATION_NOT_READY
+    hikey:
+      reason: REQUIRES_MULTIMODAL_CONTRACT
+
+  publishable_result: false
+  included_in_final_comparison: false
+  retrieval_effectiveness_claimed: false
+
+execution:
+  planning_enabled: true
+  pilot_execution_enabled: false
+  baseline_execution_enabled: false
+
+  architecture_execution_count: 0
+  model_execution_count: 0
+  hosted_request_count: 0
+  generated_answer_count: 0
+
+retrieval_boundary:
+  retrieval_only: true
+  final_generation_enabled: false
+  answer_evaluation_enabled: false
+  llm_as_judge_enabled: false
+  generated_answers_prohibited: true
+  architecture_specific_metric_overrides_prohibited: true
+
+dataset:
+  dataset_id: infrastructure-pilot-synthetic-v1
+  dataset_revision: "1.0.0"
+  split: pilot
+  synthetic: true
+  project_owned: true
+  real_dataset: false
+  publishable_dataset_result: false
+
+  expected_counts:
+    document_count: 12
+    duplicate_content_pair_count: 6
+    chunk_count: 24
+    query_count: 6
+    judgment_count: 12
+
+  constraints:
+    two_relevant_documents_per_query: true
+    duplicate_content_lineage_required: true
+    identifiers_unique: true
+    deterministic_generation_required: true
+    sensitive_data_prohibited: true
+    copyrighted_passages_prohibited: true
+
+planning:
+  experiment_cell_count: 4
+  one_cell_per_architecture: true
+  random_seed: 0
+  architecture_order:
+    - longrag
+    - raptor
+    - lightrag
+    - pathrag
+
+  required_stages:
+    - preflight
+    - input_snapshot
+    - architecture_preprocessing
+    - architecture_indexing
+    - architecture_retrieval
+    - canonical_document_expansion
+    - common_evaluation
+    - artifact_finalization
+
+  all_stage_execution_enabled: false
+
+artifact_layout:
+  root: outputs/infrastructure_pilot
+  dataset_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1
+
+  required_planning_files:
+    - infrastructure-pilot.plan.json
+    - infrastructure-pilot.manifest.json
+    - checksums.json
+
+  per_architecture_required:
+    - dry-run.plan.json
+    - execution.manifest.json
+    - dry-run.manifest.json
+    - checksums.json
+
+  runtime_outputs_prohibited_during_planning:
+    - retrieval_cases.jsonl
+    - ranked_items.jsonl
+    - expanded_documents.jsonl
+    - query_metrics.jsonl
+    - aggregate_metrics.json
+    - architecture_indexes
+    - embeddings
+    - generated_answers
+
+host_policy:
+  profile_id_source: baseline_audit/execution_host_profile.yaml
+  cpu_only_ml_execution: true
+  cuda_required: false
+  docker_required: false
+  hosted_model_calls_allowed: false
+  paid_requests_allowed: false
+  secrets_required: false
+
+architecture_constraints:
+  longrag:
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    execution_mode: CPU_LIMITED
+    llm_calls_allowed: false
+    deterministic_fixture_mode_required: true
+  raptor:
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    execution_mode: CPU_LIMITED
+    llm_calls_allowed: false
+    deterministic_fixture_mode_required: true
+  lightrag:
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    execution_mode: CPU_LIMITED
+    llm_calls_allowed: false
+    deterministic_fixture_mode_required: true
+  pathrag:
+    environment_status: EXECUTABLE_ON_CURRENT_HOST
+    execution_mode: PROJECT_OWNED_COMPARATOR
+    foreign_repository_execution_allowed: false
+    required_execution_label: PathRAG paper-derived architectural comparator
+
+evaluation:
+  execution_enabled: false
+  contract_cutoffs: [1, 5, 10, 100]
+  planned_only: true
+  metrics_persisted_during_step_77: false
+
+acceptance_gates:
+  contract_valid: true
+  manifest_valid: true
+  all_architectures_ready_for_data: true
+  all_architectures_pilot_eligible: true
+  all_environment_statuses_compatible: true
+  experiment_cells_unique: true
+  plans_deterministic: true
+  planned_manifests_valid: true
+  architecture_execution_performed: false
+  model_execution_performed: false
+  hosted_requests_performed: false
+  final_generation_performed: false
+  evaluation_execution_performed: false
+  publishable_execution_enabled: false
+
+safety:
+  foreign_code_execution_allowed: false
+  network_access_required: false
+  credentials_required: false
+  outputs_must_not_contain:
+    - API keys
+    - access tokens
+    - environment files
+    - foreign source copies
+    - model weights
+    - unsafe pickle artifacts
+    - generated answers
+
+versioning:
+  contract_version: "0.1.0"
+  requires_version_bump:
+    - Architecture set changes.
+    - Dataset counts change.
+    - Synthetic corpus semantics change.
+    - Pilot role changes.
+    - Host policy changes.
+    - Execution is enabled.
+    - Evaluation is enabled.

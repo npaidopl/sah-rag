@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "description": "One source segment supplied to long-unit construction.",
+  "properties": {
+    "chunk_id": {
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "chunk_order": {
+      "minimum": 0,
+      "title": "Chunk Order",
+      "type": "integer"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "document_order": {
+      "minimum": 0,
+      "title": "Document Order",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "string"
+    },
+    "parent_order": {
+      "minimum": 0,
+      "title": "Parent Order",
+      "type": "integer"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "token_count": {
+      "exclusiveMinimum": 0,
+      "title": "Token Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "doc_id",
+    "parent_id",
+    "chunk_id",
+    "document_order",
+    "parent_order",
+    "chunk_order",
+    "text",
+    "token_count"
+  ],
+  "title": "LongRAGSourceSegment",
+  "type": "object"
+}

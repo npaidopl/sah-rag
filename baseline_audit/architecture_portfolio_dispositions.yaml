@@ -1,0 +1,271 @@
+artifact_type: architecture_portfolio_disposition_registry
+artifact_version: "1.0"
+
+portfolio:
+  id: rag_architecture_portfolio
+  version: "0.1.0"
+  frozen_at_commit: 49327ac61461d2eaf3dcdb73c4d414d56a5a5bc7
+
+  registry_architecture_count: 10
+  disposition_count: 10
+
+  audit_complete: true
+  terminal_disposition_freeze_complete: true
+
+  publishable_execution_allowed: false
+  infrastructure_only_pilot_allowed: true
+
+status_vocabulary:
+  allowed:
+    - READY_FOR_DATA
+    - CONDITIONAL_GO
+    - DEFERRED_WITH_REASON
+    - BLOCKED_WITH_REASON
+  prohibited:
+    - NOT_STARTED
+    - UNKNOWN
+    - PENDING
+    - PENDING_UNBOUNDED
+    - UNDECIDED
+
+summary:
+  ready_for_data_count: 5
+  conditional_go_count: 3
+  deferred_with_reason_count: 2
+  blocked_with_reason_count: 0
+  total_count: 10
+
+architectures:
+
+  longrag:
+    wave: 1
+    operational_status: READY_FOR_DATA
+    classification: CONTROLLED_ADAPTATION
+    implementation_class: CONTROLLED_ADAPTATION
+    verification_level: CODE_VERIFIED
+    foreign_execution_status: CONDITIONAL
+    execution_target: controlled_adaptation
+    readiness_declaration: baseline_audit/longrag_readiness.yaml
+    audit_artifact: null
+    reason: >
+      The typed retrieval adapter, persistence layer, synthetic smoke,
+      readiness declaration, and execution-contract integration have
+      completed successfully.
+    next_action: >
+      Include in the infrastructure-only pilot after dataset-envelope
+      and environment preflight.
+
+  raptor:
+    wave: 1
+    operational_status: READY_FOR_DATA
+    classification: CONTROLLED_ADAPTATION
+    implementation_class: CONTROLLED_ADAPTATION
+    verification_level: CODE_VERIFIED
+    foreign_execution_status: CONDITIONAL
+    execution_target: controlled_adaptation
+    readiness_declaration: baseline_audit/raptor_readiness.yaml
+    audit_artifact: null
+    reason: >
+      The typed retrieval adapter, persistence layer, synthetic smoke,
+      readiness declaration, and execution-contract integration have
+      completed successfully.
+    next_action: >
+      Include in the infrastructure-only pilot after dataset-envelope
+      and environment preflight.
+
+  hipporag2:
+    wave: 1
+    operational_status: READY_FOR_DATA
+    classification: FAITHFUL
+    implementation_class: NATIVE_WITH_CANONICAL_MAPPING
+    verification_level: CODE_VERIFIED
+    foreign_execution_status: GO
+    execution_target: pinned_foreign_implementation
+    readiness_declaration: baseline_audit/hipporag2_readiness.yaml
+    audit_artifact: null
+    reason: >
+      The pinned implementation, canonical mapping, persistence layer,
+      synthetic smoke, and readiness declaration have validated.
+    next_action: >
+      Include in the infrastructure-only pilot after environment and
+      model preflight.
+
+  lightrag:
+    wave: 1
+    operational_status: READY_FOR_DATA
+    classification: CONTROLLED_ADAPTATION
+    implementation_class: CONTROLLED_ADAPTATION
+    verification_level: CODE_VERIFIED
+    foreign_execution_status: CONDITIONAL
+    execution_target: controlled_adaptation
+    readiness_declaration: baseline_audit/lightrag_readiness.yaml
+    audit_artifact: null
+    reason: >
+      The typed retrieval adapter, deterministic hybrid retrieval
+      smoke, persistence, and readiness declaration have validated.
+    next_action: >
+      Include in the infrastructure-only pilot after dataset-envelope
+      and environment preflight.
+
+  pathrag:
+    wave: 1
+    operational_status: READY_FOR_DATA
+    classification: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    verification_level: CODE_VERIFIED
+    foreign_execution_status: BLOCKED
+    execution_target: project_owned_comparator
+    readiness_declaration: baseline_audit/pathrag_readiness.yaml
+    audit_artifact: baseline_audit/pathrag_blocker_resolution.yaml
+    reason: >
+      The foreign repository remains blocked. The project-owned
+      paper-derived architectural comparator has completed typed
+      artifacts, deterministic retrieval, persistence, synthetic
+      smoke, and formal readiness validation.
+    next_action: >
+      Include only the project-owned comparator in the
+      infrastructure-only pilot.
+
+  disretrieval:
+    wave: 2
+    operational_status: CONDITIONAL_GO
+    classification: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    verification_level: PAPER_AND_CODE_VERIFIED
+    foreign_execution_status: BLOCKED
+    execution_target: project_owned_comparator
+    readiness_declaration: null
+    audit_artifact: baseline_audit/disretrieval_exact_source_audit.yaml
+    reason: >
+      The paper and source implementation are verified, but the
+      repository has no explicit software license. Foreign execution,
+      reuse, modification, and redistribution remain blocked.
+      Retrieval lineage is recoverable through a clean-room adapter.
+    next_action: >
+      Freeze a clean-room specification, environment plan, canonical
+      mapping contract, typed artifacts, and synthetic retrieval smoke.
+
+  memorag:
+    wave: 2
+    operational_status: CONDITIONAL_GO
+    classification: CONTROLLED_ADAPTATION
+    implementation_class: CONTROLLED_ADAPTATION
+    verification_level: PAPER_AND_CODE_VERIFIED
+    foreign_execution_status: CONDITIONAL
+    execution_target: instrumented_licensed_implementation
+    readiness_declaration: null
+    audit_artifact: baseline_audit/memorag_exact_source_audit.yaml
+    reason: >
+      The repository is Apache-2.0 licensed and the architecture is
+      code-verified. Model-weight licensing, GPU feasibility, ranked
+      evidence exposure, and canonical lineage instrumentation remain
+      unresolved gates.
+    next_action: >
+      Create the environment plan and adapter specification only after
+      model-license and approved-host gates are resolved.
+
+  kag:
+    wave: 2
+    operational_status: DEFERRED_WITH_REASON
+    classification: CONTROLLED_ADAPTATION
+    implementation_class: CONTROLLED_ADAPTATION
+    verification_level: PAPER_AND_CODE_VERIFIED
+    foreign_execution_status: CONDITIONAL
+    execution_target: instrumented_licensed_implementation
+    readiness_declaration: null
+    audit_artifact: baseline_audit/kag_exact_source_audit.yaml
+    reason: >
+      The repository is Apache-2.0 licensed and evidence lineage is
+      recoverable, but the complete architecture requires an approved
+      OpenSPG service environment, graph backend, and LLM access.
+    next_action: >
+      Re-evaluate only after the service environment, graph backend,
+      credentials policy, and hosted-model budget are approved.
+
+  metadata_rag:
+    wave: 3
+    operational_status: CONDITIONAL_GO
+    classification: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    verification_level: PAPER_VERIFIED
+    foreign_execution_status: NOT_APPLICABLE
+    execution_target: project_owned_comparator
+    readiness_declaration: null
+    audit_artifact: baseline_audit/metadata_rag_paper_spec_audit.yaml
+    reason: >
+      The paper identity is resolved and no foreign source repository
+      exists. A project-owned implementation is feasible, but the
+      metadata schema, query metadata inference, score fusion,
+      fallback semantics, and canonical lineage must be independently
+      frozen.
+    next_action: >
+      Create a clean-room specification followed by typed metadata
+      artifacts, deterministic hybrid retrieval, persistence, smoke,
+      and readiness declaration.
+
+  hikey:
+    wave: 3
+    operational_status: DEFERRED_WITH_REASON
+    classification: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    verification_level: PAPER_VERIFIED
+    foreign_execution_status: NOT_APPLICABLE
+    execution_target: none
+    readiness_declaration: null
+    audit_artifact: baseline_audit/hikey_multimodal_feasibility_audit.yaml
+    reason: >
+      The architecture requires multimodal PDF, table, image, layout,
+      and hierarchy artifacts. The current input contract is
+      text-only, no verified implementation is available, and the
+      parser, model licenses, dataset compatibility, and approved
+      multimodal compute environment remain unresolved.
+    next_action: >
+      Preserve the slot as deferred until execution-contract version
+      0.2.0 is approved and all parser, dataset, model-license, and
+      multimodal-host gates are satisfied.
+
+execution_gate:
+  publishable_execution_allowed: false
+  blockers:
+    - Three CONDITIONAL_GO architectures have not reached READY_FOR_DATA.
+    - Two architectures are deferred with validated reasons.
+    - Dataset-envelope validation has not run against a real dataset.
+    - Execution-environment registry has not been frozen.
+    - No infrastructure-only execution pilot has completed.
+  allowed_now:
+    - Infrastructure-only pilot planning.
+    - Dataset-envelope validation.
+    - Environment preflight.
+    - Resource estimation.
+    - Failure and resume simulation.
+    - Project-owned implementation work for CONDITIONAL_GO slots.
+  prohibited_now:
+    - Publishable benchmark execution.
+    - Full dataset-by-architecture matrix execution.
+    - Final comparison tables.
+    - Paper-level effectiveness claims.
+    - Execution of blocked foreign repositories.
+
+re_evaluation_policy:
+  semantic_status_changes_require_new_registry_version: true
+  triggers:
+    disretrieval:
+      - Explicit software license is published.
+      - Clean-room comparator reaches retrieval readiness.
+    memorag:
+      - Model licenses are approved.
+      - Approved GPU environment becomes available.
+      - Canonical retrieval instrumentation validates.
+    kag:
+      - OpenSPG service environment is approved.
+      - Graph backend is available.
+      - LLM access and cost budget are approved.
+    metadata_rag:
+      - Clean-room specification is frozen.
+      - Typed implementation and smoke validate.
+    hikey:
+      - Official source becomes available.
+      - Multimodal contract version 0.2.0 is approved.
+      - Compatible PDF datasets are verified.
+      - Parser and model licenses are approved.
+      - Multimodal GPU environment is approved.

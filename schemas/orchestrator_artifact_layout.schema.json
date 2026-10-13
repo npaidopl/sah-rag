@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_directory": {
+      "title": "Architecture Directory",
+      "type": "string"
+    },
+    "checkpoints_directory": {
+      "title": "Checkpoints Directory",
+      "type": "string"
+    },
+    "checksums_path": {
+      "title": "Checksums Path",
+      "type": "string"
+    },
+    "dry_run_plan_path": {
+      "title": "Dry Run Plan Path",
+      "type": "string"
+    },
+    "evaluation_directory": {
+      "title": "Evaluation Directory",
+      "type": "string"
+    },
+    "execution_manifest_path": {
+      "title": "Execution Manifest Path",
+      "type": "string"
+    },
+    "experiment_root": {
+      "title": "Experiment Root",
+      "type": "string"
+    },
+    "input_directory": {
+      "title": "Input Directory",
+      "type": "string"
+    },
+    "logs_directory": {
+      "title": "Logs Directory",
+      "type": "string"
+    },
+    "plan_manifest_path": {
+      "title": "Plan Manifest Path",
+      "type": "string"
+    },
+    "retrieval_directory": {
+      "title": "Retrieval Directory",
+      "type": "string"
+    }
+  },
+  "required": [
+    "experiment_root",
+    "input_directory",
+    "architecture_directory",
+    "retrieval_directory",
+    "evaluation_directory",
+    "logs_directory",
+    "checkpoints_directory",
+    "dry_run_plan_path",
+    "execution_manifest_path",
+    "plan_manifest_path",
+    "checksums_path"
+  ],
+  "title": "OrchestratorArtifactLayout",
+  "type": "object"
+}

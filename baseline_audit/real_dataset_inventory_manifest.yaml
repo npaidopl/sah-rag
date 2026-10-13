@@ -1,0 +1,51 @@
+artifact_type: real_dataset_inventory_manifest
+artifact_version: '1.0'
+execution:
+  execution_id: seven-real-datasets-read-only-inventory-v1
+  contract_version: 0.1.0
+  status: SUCCEEDED_WITH_BLOCKERS
+approval:
+  path_discovery_approved: true
+  read_only_inventory_approved: true
+  checksum_computation_approved: true
+  structural_sizing_approved: true
+  parser_execution_approved: false
+  chunker_execution_approved: false
+  tokenizer_loading_approved: false
+  model_loading_approved: false
+  embedding_execution_approved: false
+  retrieval_execution_approved: false
+  evaluation_execution_approved: false
+  generation_execution_approved: false
+plan:
+  expected_dataset_count: 7
+  expected_dataset_ids:
+  - ruler
+  - loong
+  - long_bench_v2
+  - lara
+  - greek_bar_bench
+  - cuad
+  - clerk
+results:
+  resolved_dataset_count: 0
+  inventoried_dataset_count: 0
+  blocked_dataset_count: 7
+  source_files_hashed: 0
+  source_files_unchanged: true
+  total_documents: 0
+  total_examples: 0
+  total_whitespace_tokens: 0
+  inventory_registry_created: true
+  inventory_status: INCOMPLETE_WITH_BLOCKERS
+  parser_executed: false
+  chunker_executed: false
+  tokenizer_loaded: false
+  model_loaded: false
+  embedding_executed: false
+  retrieval_executed: false
+  evaluation_executed: false
+  generation_executed: false
+next_gate:
+  required_step: model_tokenizer_sizing_plan
+  approved: false

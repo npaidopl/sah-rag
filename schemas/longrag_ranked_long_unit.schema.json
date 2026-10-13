@@ -1,0 +1,66 @@
+{
+  "additionalProperties": false,
+  "description": "One retrieved long unit with similarity score and rank.",
+  "properties": {
+    "construction_policy": {
+      "enum": [
+        "adjacent_segments",
+        "adjacent_document_segments",
+        "single_document_if_within_budget",
+        "structure_preserving_parent_groups"
+      ],
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "long_unit_id": {
+      "title": "Long Unit Id",
+      "type": "string"
+    },
+    "member_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Chunk Ids",
+      "type": "array"
+    },
+    "member_doc_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Doc Ids",
+      "type": "array"
+    },
+    "member_parent_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Parent Ids",
+      "type": "array"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "rank": {
+      "minimum": 1,
+      "title": "Rank",
+      "type": "integer"
+    },
+    "score": {
+      "title": "Score",
+      "type": "number"
+    }
+  },
+  "required": [
+    "query_id",
+    "rank",
+    "long_unit_id",
+    "score",
+    "construction_policy",
+    "member_doc_ids",
+    "member_parent_ids",
+    "member_chunk_ids"
+  ],
+  "title": "RankedLongUnit",
+  "type": "object"
+}

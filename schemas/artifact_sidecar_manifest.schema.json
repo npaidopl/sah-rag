@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "ArtifactComponentReference": {
+      "additionalProperties": false,
+      "description": "Component that produced an artifact.",
+      "properties": {
+        "component_id": {
+          "title": "Component Id",
+          "type": "string"
+        },
+        "component_type": {
+          "title": "Component Type",
+          "type": "string"
+        },
+        "component_version": {
+          "title": "Component Version",
+          "type": "string"
+        },
+        "configuration": {
+          "additionalProperties": true,
+          "title": "Configuration",
+          "type": "object"
+        },
+        "configuration_hash": {
+          "title": "Configuration Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_type",
+        "component_id",
+        "component_version",
+        "configuration_hash"
+      ],
+      "title": "ArtifactComponentReference",
+      "type": "object"
+    },
+    "ArtifactInputReference": {
+      "additionalProperties": false,
+      "description": "Reference to one consumed input artifact.",
+      "properties": {
+        "artifact_type": {
+          "title": "Artifact Type",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "ArtifactInputReference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Completed sidecar manifest for one artifact file.",
+  "properties": {
+    "artifact_path": {
+      "title": "Artifact Path",
+      "type": "string"
+    },
+    "artifact_sha256": {
+      "title": "Artifact Sha256",
+      "type": "string"
+    },
+    "artifact_size_bytes": {
+      "minimum": 0,
+      "title": "Artifact Size Bytes",
+      "type": "integer"
+    },
+    "artifact_type": {
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "code_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Revision"
+    },
+    "completed": {
+      "default": true,
+      "title": "Completed",
+      "type": "boolean"
+    },
+    "component": {
+      "$ref": "#/$defs/ArtifactComponentReference"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "dataset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dataset Id"
+    },
+    "execution_profile": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Profile"
+    },
+    "experiment_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Experiment Id"
+    },
+    "inputs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ArtifactInputReference"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "manifest_type": {
+      "default": "artifact_sidecar_manifest",
+      "title": "Manifest Type",
+      "type": "string"
+    },
+    "manifest_version": {
+      "default": "1.0",
+      "title": "Manifest Version",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "record_count": {
+      "minimum": 0,
+      "title": "Record Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "artifact_type",
+    "artifact_path",
+    "artifact_sha256",
+    "artifact_size_bytes",
+    "record_count",
+    "component"
+  ],
+  "title": "ArtifactSidecarManifest",
+  "type": "object"
+}

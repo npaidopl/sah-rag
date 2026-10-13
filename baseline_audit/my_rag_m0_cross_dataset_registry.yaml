@@ -1,0 +1,182 @@
+architecture_id: my_rag
+artifact_type: my_rag_m0_cross_dataset_registry
+artifact_version: '1.0'
+dataset_count: 4
+datasets:
+- chunks:
+    chunk_count: 5317
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    manifest_sha256: 228dd52712e5db4c33cb1133bdf3582321521363f62ef493b6f06a682aed23c0
+    parent_count: 2756
+    wall_clock_seconds: 4.856
+  dataset_id: clerk
+  embeddings:
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    dense_dimension: 1024
+    dense_precision: float16
+    embedding_config_hash: a706c1417b72296e9d96250b3cd491328ffbb113ff9587495a8aa36767bc8bd3
+    embedding_kind: hybrid
+    manifest_sha256: d122797c3da3b891a5d83fcf0d720a41686d033951b6cc657384da23033f59b9
+    record_count: 5317
+  evaluation:
+    macro_metrics:
+      hit@1: 0.245
+      hit@10: 0.543
+      hit@20: 0.635
+      hit@5: 0.451
+      hit@50: 0.743
+      mrr@1: 0.245
+      mrr@10: 0.33359761904761903
+      mrr@20: 0.3402109069980587
+      mrr@5: 0.32125
+      mrr@50: 0.34363641442530524
+      ndcg@10: 0.2874794131216944
+      ndcg@50: 0.35062585767422705
+      precision@10: 0.0964
+      recall@1: 0.0955765873015873
+      recall@10: 0.354609126984127
+      recall@20: 0.44377936507936505
+      recall@5: 0.27011825396825395
+      recall@50: 0.5635706349206349
+    manifest_sha256: 3b023c50264b85c50d55a1feddd0eb240aef344326227bf909239362b365b498
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 1000
+    wall_clock_seconds: 0.334
+  retrieval:
+    manifest_sha256: 6ab08a786c13256ad7a4e9c5b8372e39fa722df77093ce96aac3d673b386b102
+    query_count: 1000
+    retrieval_method: hybrid_rrf_numpy
+    wall_clock_seconds: 2.717
+- chunks:
+    chunk_count: 30932
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    manifest_sha256: c1ade5c57942011cb53ccc6ac83f88b696693570348e7e82063a0790953ac0d1
+    parent_count: 6922
+    wall_clock_seconds: 32.575
+  dataset_id: cuad
+  embeddings:
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    dense_dimension: 1024
+    dense_precision: float16
+    embedding_config_hash: a706c1417b72296e9d96250b3cd491328ffbb113ff9587495a8aa36767bc8bd3
+    embedding_kind: hybrid
+    manifest_sha256: a3e31cb7eca41d81e53d1f9bf9ab0af00a6a2b57ecd01fecea964a2319cbf059
+    record_count: 30932
+  evaluation:
+    macro_metrics:
+      hit@1: 0.00462548492987168
+      hit@10: 0.04312145628170695
+      hit@20: 0.0801253357206804
+      hit@5: 0.022381378692927483
+      hit@50: 0.17636526410026857
+      mrr@1: 0.00462548492987168
+      mrr@10: 0.013038218868568017
+      mrr@20: 0.015548597139947811
+      mrr@5: 0.010340196956132497
+      mrr@50: 0.018462380752952593
+      ndcg@10: 0.019925776012134234
+      ndcg@50: 0.04803725130452944
+      precision@10: 0.004312145628170696
+      recall@1: 0.00462548492987168
+      recall@10: 0.04312145628170695
+      recall@20: 0.0801253357206804
+      recall@5: 0.022381378692927483
+      recall@50: 0.17636526410026857
+    manifest_sha256: c537e42c498da2b3a8209c3051ea76fae9befd82d1308c6d9ab5d4f07dbbebbb
+    queries_excluded_zero_relevance: 14208
+    query_count_evaluated: 6702
+    wall_clock_seconds: 4.966
+  retrieval:
+    manifest_sha256: 03093941a6e826c117262bb8a5c39bf654fe4b0419814f49904b48f61f859ce2
+    query_count: 20910
+    retrieval_method: hybrid_rrf_numpy
+    wall_clock_seconds: 72.873
+- chunks:
+    chunk_count: 23863
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    manifest_sha256: 1204dd8f67a33146da002a3a70422c11508926e57e5ff40e3a541fb4308c7f9d
+    parent_count: 334
+    wall_clock_seconds: 36.583
+  dataset_id: greek_bar_bench
+  embeddings:
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    dense_dimension: 1024
+    dense_precision: float16
+    embedding_config_hash: a706c1417b72296e9d96250b3cd491328ffbb113ff9587495a8aa36767bc8bd3
+    embedding_kind: hybrid
+    manifest_sha256: ee7b175440e082470392db0d530238d1b9491bdae7b9e945339eb44aee2fab9c
+    record_count: 23863
+  evaluation:
+    macro_metrics:
+      hit@1: 0.02112676056338028
+      hit@10: 0.2852112676056338
+      hit@20: 0.4823943661971831
+      hit@5: 0.15845070422535212
+      hit@50: 0.7464788732394366
+      mrr@1: 0.02112676056338028
+      mrr@10: 0.08504359490274983
+      mrr@20: 0.09901251469379277
+      mrr@5: 0.06784037558685446
+      mrr@50: 0.10735059363020485
+      ndcg@10: 0.13143290375107228
+      ndcg@50: 0.2339599171775739
+      precision@10: 0.02852112676056338
+      recall@1: 0.02112676056338028
+      recall@10: 0.2852112676056338
+      recall@20: 0.4823943661971831
+      recall@5: 0.15845070422535212
+      recall@50: 0.7464788732394366
+    manifest_sha256: 34d7e7e87ea2a45b301ccd87471d1c00c33351f2f740ea8cd5476c9753e93872
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 284
+    wall_clock_seconds: 0.115
+  retrieval:
+    manifest_sha256: a8594f3399af469a79401f7016dfb3e33c567f17bfbf3de64968606dcd516179
+    query_count: 284
+    retrieval_method: hybrid_rrf_numpy
+    wall_clock_seconds: 0.904
+- chunks:
+    chunk_count: 41702
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    manifest_sha256: e4c30fa85d4e02608d19615bc41ffbf32916b84df319cfc59a0b28cdb510c3eb
+    parent_count: 2512
+    wall_clock_seconds: 52.948
+  dataset_id: lara
+  embeddings:
+    chunker_config_hash: 71ae928046e1b4e4be3026fcb9952a9ed6181c9ecdaca09a298a5dd1ff7f8d93
+    dense_dimension: 1024
+    dense_precision: float16
+    embedding_config_hash: a706c1417b72296e9d96250b3cd491328ffbb113ff9587495a8aa36767bc8bd3
+    embedding_kind: hybrid
+    manifest_sha256: ed227f35b4b95c0ecc9d95bb7bc54ba00973851bcbc6309af6328ecfbb01d190
+    record_count: 41702
+  evaluation:
+    macro_metrics:
+      hit@1: 0.7506448839208942
+      hit@10: 0.9368013757523646
+      hit@20: 0.9690455717970765
+      hit@5: 0.9067067927773
+      hit@50: 0.9974204643164231
+      mrr@1: 0.7506448839208942
+      mrr@10: 0.8174135719062632
+      mrr@20: 0.8196560211661077
+      mrr@5: 0.813499570077386
+      mrr@50: 0.8206696002694371
+      ndcg@10: 0.8466330442967862
+      ndcg@50: 0.8606209339125744
+      precision@10: 0.09368013757523647
+      recall@1: 0.7506448839208942
+      recall@10: 0.9368013757523646
+      recall@20: 0.9690455717970765
+      recall@5: 0.9067067927773
+      recall@50: 0.9974204643164231
+    manifest_sha256: bb2bdc585d1c7f82db56e520076358b25cb3f21bcae9fb94ca54954e3b7116b3
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 2326
+    wall_clock_seconds: 0.406
+  retrieval:
+    manifest_sha256: 93342e872394264d3a7fa52e041eed308c76534957843f5726d906f4ebbc3800
+    query_count: 2326
+    retrieval_method: hybrid_rrf_numpy
+    wall_clock_seconds: 8.594
+fidelity_class: PROJECT_OWNED_REFERENCE

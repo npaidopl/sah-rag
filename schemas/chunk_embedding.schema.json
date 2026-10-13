@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "SparseVector": {
+      "additionalProperties": false,
+      "description": "One sparse vector represented by aligned arrays.",
+      "properties": {
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "indices",
+        "values"
+      ],
+      "title": "SparseVector",
+      "type": "object"
+    },
+    "VectorPrecision": {
+      "description": "Supported dense-vector storage precision.",
+      "enum": [
+        "float16",
+        "float32"
+      ],
+      "title": "VectorPrecision",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Embeddings generated for one child chunk.",
+  "properties": {
+    "artifact_type": {
+      "default": "chunk_embedding",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "chunk_id": {
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "dataset": {
+      "title": "Dataset",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dense Dimension"
+    },
+    "dense_normalized": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dense Normalized"
+    },
+    "dense_precision": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VectorPrecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "dense_vector": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dense Vector"
+    },
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "string"
+    },
+    "source_chunk_sha256": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Chunk Sha256"
+    },
+    "sparse_vector": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SparseVector"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "chunk_id",
+    "parent_id",
+    "doc_id",
+    "dataset",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "embedding_config_hash"
+  ],
+  "title": "ChunkEmbeddingRecord",
+  "type": "object"
+}

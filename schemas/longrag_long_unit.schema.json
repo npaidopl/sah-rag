@@ -1,0 +1,77 @@
+{
+  "additionalProperties": false,
+  "description": "One constructed long retrieval unit.",
+  "properties": {
+    "construction_policy": {
+      "enum": [
+        "adjacent_segments",
+        "adjacent_document_segments",
+        "single_document_if_within_budget",
+        "structure_preserving_parent_groups"
+      ],
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "long_unit_id": {
+      "title": "Long Unit Id",
+      "type": "string"
+    },
+    "member_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Chunk Ids",
+      "type": "array"
+    },
+    "member_doc_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Doc Ids",
+      "type": "array"
+    },
+    "member_parent_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Parent Ids",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "token_count": {
+      "exclusiveMinimum": 0,
+      "title": "Token Count",
+      "type": "integer"
+    },
+    "unit_order": {
+      "minimum": 0,
+      "title": "Unit Order",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "long_unit_id",
+    "dataset_id",
+    "construction_policy",
+    "unit_order",
+    "text",
+    "token_count",
+    "member_doc_ids",
+    "member_parent_ids",
+    "member_chunk_ids"
+  ],
+  "title": "LongUnit",
+  "type": "object"
+}

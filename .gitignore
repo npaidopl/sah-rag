@@ -1,0 +1,126 @@
+# ============================================================
+# SAH-RAG - Structure-Aware Hierarchical RAG Comparison
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual environments ---
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# --- Testing ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.cover
+
+# --- Type checkers / linters ---
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Model & data artifacts (large, regenerable) ---
+models/
+cache/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.pkl
+*.joblib
+
+# --- Local data (never commit real datasets) ---
+data/real/
+data/downloads/
+processed/
+raw/
+*.parquet
+*.arrow
+*.feather
+*.hdf5
+*.h5
+
+# --- Qdrant & local services ---
+qdrant_storage/
+storage/
+snapshots/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Reports & drafts (only docs/data/ is committed) ---
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.out
+*.nav
+*.snm
+
+# --- IDE / editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Environment files ---
+.env
+.env.*
+!.env.example
+*.secret
+
+# --- Archive (work-in-progress, not for public repo) ---
+_archive/
+_review/
+
+# --- PowerShell session artifacts ---
+*.tmp
+tmp/
+
+# --- Hugging Face cache ---
+.huggingface/
+hf_cache/

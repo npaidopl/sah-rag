@@ -1,0 +1,221 @@
+artifact_type: project_owned_rag_static_inspection
+artifact_version: "1.0"
+
+pipeline:
+  id: my_rag
+  display_name: rag_system
+  root: src/rag_system
+  ownership: PROJECT_OWNED
+  verification_level: STATIC_CODE_INSPECTION
+  description: Structure-Aware Hierarchical Hybrid RAG
+  language: python >=3.12,<3.13
+  pydantic_major: 2
+
+source_counts:
+  total_files: 99
+  python_files: 96
+  config_files: 0
+  py_typed_markers: 3
+  subpackages:
+    artifacts: 9
+    baselines: 26
+    canonical: 6
+    chunking: 7
+    cleaning: 1
+    embedding: 7
+    evaluation: 8
+    generation: 8
+    orchestration: 2
+    parsing: 8
+    resolution: 1
+    retrieval: 5
+    storage: 4
+
+entrypoints:
+  canonical_input_validation: rag_system.canonical.paths.resolve_dataset_paths
+  parsing: rag_system.parsing.pipeline.parse_canonical_dataset
+  chunking: rag_system.chunking.pipeline.chunk_parsed_artifacts
+  embedding: rag_system.embedding.shards.write_embedding_shard
+  storage_ingestion: rag_system.storage.qdrant.ingest_embedding_records
+  dense_retrieval: rag_system.retrieval.qdrant.retrieve_dense
+  sparse_retrieval: rag_system.retrieval.qdrant.retrieve_sparse
+  hybrid_retrieval: rag_system.retrieval.qdrant.retrieve_hybrid_rrf
+  parent_aggregation: rag_system.retrieval.aggregation.aggregate_chunks_to_parents
+  evaluation: rag_system.evaluation_contracts.evaluate_retrieval_run
+  clerk_evaluation_adapter: rag_system.evaluation.clerk.load_clerk_retrieval_dataset
+  generation_optional: rag_system.generation.prompts.build_generation_prompt
+
+stages:
+  offline:
+    - stage_id: canonical_input_validation
+      executable: true
+      implementation: canonical.loaders, canonical.inspection
+    - stage_id: derived_preprocessing
+      executable: partial
+      implementation: inline in parsing
+    - stage_id: structural_parsing
+      executable: true
+      implementation: parsing.pipeline.parse_canonical_dataset
+    - stage_id: semantic_parent_construction
+      executable: partial
+      implementation: parsing + chunking
+    - stage_id: hierarchical_child_chunking
+      executable: true
+      implementation: chunking.hierarchical.HierarchicalChildChunker
+    - stage_id: dense_and_sparse_embedding
+      executable: true
+      implementation: embedding.shards.write_embedding_shard
+    - stage_id: vector_store_ingestion
+      executable: true
+      implementation: storage.qdrant.ingest_embedding_records
+    - stage_id: parent_and_document_storage
+      executable: true
+      implementation: Qdrant payload + embedding catalog
+  online:
+    - stage_id: canonical_query_loading
+      executable: true
+    - stage_id: dense_query_embedding
+      executable: true
+    - stage_id: sparse_query_embedding
+      executable: true
+    - stage_id: dense_retrieval
+      executable: true
+    - stage_id: sparse_retrieval
+      executable: true
+    - stage_id: rank_fusion
+      executable: true
+      method: RRF
+    - stage_id: top_k_child_retrieval
+      executable: true
+    - stage_id: semantic_parent_resolution
+      executable: true
+    - stage_id: canonical_document_resolution
+      executable: true
+    - stage_id: evaluation
+      executable: true
+  stubbed: []
+  not_executable: []
+
+chunking:
+  splitter: HierarchicalChildChunker
+  chunker_version: "0.3.0"
+  chunk_size_tokens: 256
+  chunk_overlap_tokens: 32
+  unit: tokens
+  deterministic: true
+  parent_boundaries_preserved: true
+  parent_chunking_present: true
+  child_chunking_present: true
+  chunk_id_policy: rag_system.artifacts.identity.build_chunk_id
+  parent_id_preserved: true
+  source_order_preserved: true
+
+embedding:
+  provider: FlagEmbedding
+  dense_model_id: BAAI/bge-m3
+  dense_model_revision: UNPINNED
+  dense_dimension: 1024
+  sparse_model_id: BAAI/bge-m3
+  sparse_model_revision: UNPINNED
+  normalization: true
+  pooling: BGE-M3 default
+  batch_size_default: 2
+  batch_size_clerk: 4
+  device: cpu
+  local_or_hosted: local
+  model_license_status: UNPINNED
+  model_license_review_required: true
+  network_required_on_first_load: true
+  cache_location_env: HUGGINGFACE_HUB_CACHE
+  reproducibility_status: MIXED
+  isolated_env_required: .venv-embed
+
+storage:
+  backend: Qdrant
+  index_type: named dense + sparse hybrid
+  local_or_remote: both
+  persistence_path_env: RAG_QDRANT_STORAGE
+  server_url_env: QDRANT_URL
+  metadata_support: true
+  score_type: cosine_similarity
+  distance_metric_dense: COSINE
+  distance_metric_sparse: IP
+  unsafe_serialization: false
+  checksum_bound: true
+  deterministic_rebuild: true
+  point_id_algorithm: uuid5(NAMESPACE_URL, "rag-chunk:{chunk_id}")
+
+retrieval:
+  default_child_candidate_limit: 200
+  default_document_limit: 100
+  rank_fusion_method: RRF
+  reranker_required: optional
+  reranker_identity: UNPINNED
+  duplicate_handling: canonical_document_identity_preserved
+  ranked_item_identity: chunk_id
+  score_direction: higher_is_better
+  canonical_doc_ids_exposed: true
+  filters_supported: true
+
+generation_boundary:
+  status: PASS
+  retrieval_callable_independently: true
+  generation_can_be_disabled: true
+  ranked_items_returned_without_llm: true
+  retrieval_only_entrypoint: scripts/run_clerk_test_retrieval_evaluation.py
+  final_generation_enabled_for_pilot: false
+
+canonical_compatibility:
+  status: ADAPTER_REQUIRED
+  real_envelope_shape:
+    - documents.jsonl
+    - examples.jsonl
+    - validation.json
+    - manifest.json
+  pilot_envelope_shape:
+    - documents.jsonl
+    - chunks.jsonl
+    - queries.jsonl
+    - judgments.jsonl
+    - dataset.manifest.json
+    - checksums.json
+  documents_supported: true
+  chunks_supported: partial
+  queries_supported: false
+  judgments_supported: false
+  stable_ids_preserved: true
+  parent_lineage_preserved: true
+  adapter_required: true
+  adapter_scope:
+    - Merge queries.jsonl + judgments.jsonl into examples.jsonl.
+    - Emit manifest.json in the shape expected by canonical.paths.
+    - Generate validation.json (empty or checksum-only).
+    - Either consume chunks.jsonl as-is or regenerate from documents.jsonl.
+
+host_feasibility:
+  current_host_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+  cpu_only_supported: true
+  mandatory_gpu: false
+  mandatory_qdrant_server: false
+  mandatory_hosted_llm: false
+  mandatory_secrets: false
+  network_required: first_model_load_only
+  estimated_cpu_wall_clock_minutes: UNPINNED
+  cpu_wall_clock_measurement_required: true
+  blockers: []
+
+pilot_recommendation:
+  eligible: true
+  execution_mode: retrieval_only_after_adapter
+  required_changes:
+    - Build canonical-envelope adapter (Step 80).
+  prohibited_stages:
+    - generation
+    - hosted LLM calls
+    - foreign baseline execution
+
+blocked_claims:
+  - Static inspection is not an execution result.
+  - Compatibility assessment is not retrieval validation.
+  - CPU feasibility is not runtime benchmarking.
+  - No index, embedding, retrieval, evaluation, or generation ran.

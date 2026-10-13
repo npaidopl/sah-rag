@@ -1,0 +1,47 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "failure_stage": {
+      "title": "Failure Stage",
+      "type": "string"
+    },
+    "failure_type": {
+      "title": "Failure Type",
+      "type": "string"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "occurred_at_utc": {
+      "format": "date-time",
+      "title": "Occurred At Utc",
+      "type": "string"
+    },
+    "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+    },
+    "traceback_sha256": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceback Sha256"
+    }
+  },
+  "required": [
+    "failure_type",
+    "failure_stage",
+    "message",
+    "retryable",
+    "occurred_at_utc"
+  ],
+  "title": "ExecutionFailure",
+  "type": "object"
+}

@@ -1,0 +1,73 @@
+architecture_id: longrag
+architecture_identity:
+  canonical_projection: unit-level retrieval expanded to document-level via first_occurrence_by_long_unit_rank
+  dense_only_retrieval: BGE-M3 dense, cosine, top-K units
+  long_document_grouping: adjacent_document_segments (K consecutive docs) @ target_token_size=4096
+artifact_type: longrag_full_track_closure_manifest
+artifact_version: '1.0'
+code_revision: 0920ce5ffa769850ae109458e8c4417af6ea88f8
+documented_limitations:
+- 'Reduced dataset scope: 4 of 7 canonical datasets executed. ruler, loong, long_bench_v2
+  excluded.'
+- LongRAG's unit granularity (K consecutive documents grouped into a ~4096-token unit)
+  causes coarse document-level ranking on corpora whose documents are much shorter
+  than the unit budget (clerk, cuad, greek_bar_bench). This is intrinsic to the paper's
+  grouping policy when the corpus lacks Wikipedia-style hyperlink adjacency.
+- Document-level metrics use first_occurrence_by_long_unit_rank expansion. When a
+  document appears in multiple retrieved units, only its first occurrence is scored.
+  This matches the reference implementation in rag_system.baselines.longrag.
+- 'Embeddings: FP16 GPU (Colab T4). Query embeddings: FP16 GPU, max_length=4098. Both
+  use the pinned BGE-M3 revision 5617a9f61b028005a4858fdac845db406aefb181.'
+- 'cuad: 14208 of 20910 queries have zero relevant documents and are excluded per
+  common_retrieval_evaluation_contract.yaml.'
+execution_id: longrag-l7-closure-v1
+fidelity_class: CONTROLLED_ADAPTATION
+macro_average_across_datasets:
+  hit@1: 0.19572560011854337
+  hit@10: 0.31825307052486906
+  hit@20: 0.38809464393683024
+  hit@5: 0.2605812289114601
+  hit@50: 0.492915900443778
+  mrr@1: 0.19572560011854337
+  mrr@10: 0.22676927810926809
+  mrr@20: 0.23163402411345363
+  mrr@5: 0.21925192782762215
+  mrr@50: 0.23494172936627675
+  ndcg@10: 0.24764845000696653
+  ndcg@50: 0.2879713509588319
+  precision@10: 0.03622530705248691
+  recall@1: 0.19046131440425765
+  recall@10: 0.31440545147725
+  recall@20: 0.3833300606034969
+  recall@5: 0.2569374789114601
+  recall@50: 0.4870022099675875
+next_gate: my_rag_full_pipeline
+primary_metric: macro_document_Recall_at_10
+primary_metric_value: 0.31440545147725
+scope:
+  datasets_executed:
+  - clerk
+  - cuad
+  - greek_bar_bench
+  - lara
+  datasets_in_full_canonical_suite:
+  - ruler
+  - loong
+  - long_bench_v2
+  - lara
+  - greek_bar_bench
+  - cuad
+  - clerk
+  reduced_scope_reason: 'User decision at L2-prep: exclude ruler, loong, long_bench_v2
+    from the LongRAG run to save compute for the My_RAG track. The three datasets
+    have canonical documents with 8K-5M tokens each; after the oversize-split policy
+    they yield very large unit corpora. The remaining four datasets preserve the architectural
+    comparison (small-doc vs medium-doc vs large-doc corpora).'
+stage_summary:
+  l1_architecture_freeze: true
+  l2_unit_materialization: true
+  l3_colab_embeddings: true
+  l4_qdrant_storage: true
+  l5_full_retrieval: true
+  l6_evaluation: true
+status: LONGRAG_FULL_PIPELINE_CLOSED_WITH_CLASSIFIED_LIMITATIONS

@@ -1,0 +1,62 @@
+artifact_type: precision_equivalence_protocol
+artifact_version: "1.0"
+
+protocol:
+  id: fp32_vs_fp16_equivalence
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+  purpose: >
+    Pre-register the equivalence test that will decide whether the
+    primary benchmark uses FP16 or FP32 embeddings.
+
+stages:
+  - id: FP32_REFERENCE
+    scope: stratified_small_sample
+  - id: FP16_CANDIDATE
+    scope: same_exact_records
+  - id: RETRIEVAL_EQUIVALENCE
+    scope: same_exact_index_and_queries
+
+sample_design:
+  stratified_by:
+    - dataset
+    - document_token_length_bin
+  minimum_documents_per_dataset: 100
+  minimum_queries_per_dataset: 50
+  random_seed: 0
+
+embedding_equivalence:
+  metrics:
+    - cosine_similarity_same_record
+    - maximum_absolute_difference
+    - mean_absolute_difference
+
+retrieval_equivalence:
+  metrics:
+    - top_10_overlap
+    - top_100_overlap
+    - kendall_tau
+    - recall_at_10_delta
+    - recall_at_100_delta
+    - ndcg_at_10_delta
+
+acceptance_thresholds:
+  median_same_record_cosine_minimum: 0.999
+  p01_same_record_cosine_minimum: 0.995
+  mean_top_10_overlap_minimum: 0.99
+  mean_top_100_overlap_minimum: 0.99
+  absolute_recall_at_10_delta_maximum: 0.005
+  absolute_ndcg_at_10_delta_maximum: 0.005
+
+decision_rule:
+  if_pass:
+    production_precision: FP16
+    rationale: throughput_and_memory
+  if_fail:
+    production_precision: FP32
+
+execution:
+  tokenizer_loaded: false
+  model_loaded: false
+  embedding_executed: false
+  retrieval_executed: false

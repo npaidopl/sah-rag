@@ -1,0 +1,59 @@
+﻿profile:
+  id: local_cpu
+  description: Local Windows CPU execution profile
+
+runtime:
+  environment: local
+  operating_system: windows
+  python: "3.12"
+  device: cpu
+  precision: float32
+  deterministic: true
+  random_seed: 42
+
+resources:
+  cpu_workers: 4
+  parser_workers: 4
+  chunker_workers: 4
+  embedding_workers: 1
+  maximum_memory_gb: 12
+  preserve_memory_gb: 3
+  batch_size_autotune: false
+
+embedding:
+  enabled: true
+  backend: flagembedding
+  model_name: BAAI/bge-m3
+  device: cpu
+  use_fp16: false
+  batch_size: 2
+  max_length: 8192
+  cache_directory: ${RAG_HF_CACHE}
+
+storage:
+  qdrant:
+    mode: server
+    url: ${QDRANT_URL}
+    grpc_port: 6334
+    prefer_grpc: false
+
+  parent_store:
+    backend: sqlite
+    root: ${RAG_PARENT_STORE_ROOT}
+
+artifacts:
+  parsed_root: ${RAG_PARSED_ROOT}
+  chunks_root: ${RAG_CHUNKS_ROOT}
+  embeddings_root: ${RAG_EMBEDDINGS_ROOT}
+  experiments_root: ${RAG_EXPERIMENT_ROOT}
+  temporary_root: ${RAG_TEMP_ROOT}
+
+logging:
+  level: INFO
+  root: ${RAG_LOG_ROOT}
+
+profiling:
+  enabled: true
+  record_stage_times: true
+  record_peak_memory: true
+  record_disk_usage: true

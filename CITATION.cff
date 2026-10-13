@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software or reference its results, please cite the accompanying thesis."
+title: "SAH-RAG: Structure-Aware Hierarchical Hybrid Retrieval for Long-Context RAG Systems"
+abstract: >-
+  Reference implementation and evaluation framework for SAH-RAG, a
+  structure-aware, hierarchical, hybrid retrieval architecture for
+  Retrieval-Augmented Generation (RAG) systems in long-context scenarios.
+  The work includes a fair-comparison protocol applied to four heterogeneous
+  legal corpora (CLERC, CUAD, GreekBarBench, LaRA) against LongRAG and
+  Metadata-RAG under a shared canonical dataset envelope.
+authors:
+  - family-names: Paidopoulos
+    given-names: Nikolaos
+    affiliation: "University of Thessaly, Department of Electrical and Computer Engineering"
+type: software
+license: MIT
+repository-code: "https://github.com/npaidopl/sah-rag"
+url: "https://github.com/npaidopl/sah-rag"
+version: 1.0.0
+date-released: 2026-07-01
+keywords:
+  - retrieval-augmented generation
+  - RAG
+  - long-context
+  - hierarchical retrieval
+  - hybrid retrieval
+  - dense retrieval
+  - learned sparse
+  - reciprocal rank fusion
+  - information retrieval
+  - legal NLP
+  - Greek NLP

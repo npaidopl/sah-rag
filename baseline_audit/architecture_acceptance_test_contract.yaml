@@ -1,0 +1,74 @@
+artifact_type: architecture_acceptance_test_contract
+artifact_version: "1.0"
+
+contract:
+  id: common_architecture_synthetic_acceptance
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+fixture:
+  source: infrastructure-pilot-synthetic-v1
+  documents: 12
+  queries: 6
+  relevant_documents_per_query: 2
+
+required_stages:
+  - canonical_input_load
+  - architecture_preprocessing
+  - architecture_state_creation
+  - architecture_state_persistence
+  - architecture_state_reopen
+  - retrieval
+  - canonical_identity_expansion
+  - common_evaluation_case_construction
+
+generation:
+  enabled: false
+
+acceptance:
+  canonical_input_accepted: true
+  persistent_state_created: true
+  persistent_state_reopened: true
+  query_count: 6
+  retrieval_completed_for_every_query: true
+  ranked_results_nonempty: true
+  canonical_ids_recovered: true
+  duplicate_document_identities_preserved: true
+  ground_truth_not_used_by_retriever: true
+  deterministic_or_classified: true
+  retrieval_artifacts_checksum_bound: true
+  source_artifacts_unchanged: true
+
+prohibited:
+  - generated_answers
+  - LLM_judge
+  - architecture_comparison
+  - publishable_claims
+  - test_ground_truth_during_retrieval
+
+architecture_specific_extensions_allowed: true
+common_gates_may_not_be_removed: true
+
+architecture_specific_examples:
+  pathrag:
+    additional:
+      - graph_nodes_nonempty
+      - graph_edges_nonempty
+      - path_evidence_nonempty
+  raptor:
+    additional:
+      - summary_tree_nonempty
+      - leaf_to_root_lineage_valid
+  lightrag:
+    additional:
+      - entities_nonempty
+      - relations_nonempty
+      - graph_lineage_valid
+  hipporag2:
+    additional:
+      - openie_triples_nonempty
+      - ppr_convergence_valid
+  longrag:
+    additional:
+      - long_units_nonempty
+      - long_unit_lineage_valid

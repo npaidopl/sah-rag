@@ -1,0 +1,58 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "execution_label": {
+      "title": "Execution Label",
+      "type": "string"
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "foreign_repository_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Foreign Repository Status"
+    },
+    "implementation_class": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Implementation Class"
+    },
+    "readiness_declaration": {
+      "title": "Readiness Declaration",
+      "type": "string"
+    },
+    "readiness_status": {
+      "title": "Readiness Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "architecture_id",
+    "readiness_status",
+    "readiness_declaration",
+    "execution_label"
+  ],
+  "title": "ReadinessRegistryEntry",
+  "type": "object"
+}

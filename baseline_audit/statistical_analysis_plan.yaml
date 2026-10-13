@@ -1,0 +1,61 @@
+artifact_type: statistical_analysis_plan
+artifact_version: "1.0"
+
+plan:
+  id: wave1_statistical_analysis
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+aggregation:
+  per_query_metrics: true
+  per_dataset:
+    method: macro_average_over_queries
+  cross_dataset:
+    method: macro_average_over_datasets
+  global_micro_average:
+    reported: true
+    primary: false
+
+pairwise_comparison:
+  pairing_unit: query
+  comparisons:
+    - rag_system_vs_each_eligible_baseline
+  uncertainty:
+    method: paired_bootstrap
+    resamples: 10000
+    confidence_level: 0.95
+    random_seed: 0
+  multiple_testing:
+    correction: HOLM
+    family: all_rag_system_vs_baseline_comparisons
+
+effect_reporting:
+  - mean_metric_difference
+  - confidence_interval
+  - win_tie_loss_count
+  - per_dataset_difference
+
+context_length_analysis:
+  unit: model_input_tokens
+  bins_frozen_after_inventory_before_quality_results: true
+  candidate_bins:
+    - "[0, 8192]"
+    - "(8192, 32768]"
+    - "(32768, 131072]"
+    - "(131072, 524288]"
+    - "(524288, +inf)"
+  minimum_queries_per_bin: 30
+  merge_sparse_bins: true
+
+zero_relevance_reporting:
+  cuad_zero_evidence_subset:
+    separate_report: true
+    never_mixed_with_recall_metrics: true
+    metrics:
+      - false_positive_retrieval_rate
+      - zero_result_rate
+      - minimum_score_distribution
+
+execution:
+  metrics_computed: false
+  statistical_tests_executed: false

@@ -1,0 +1,528 @@
+artifact_type: metadata_rag_clean_room_spec
+artifact_version: "1.0"
+
+contract:
+  id: metadata_rag_clean_room_specification
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+  supersedes: null
+  derived_from:
+    - baseline_audit/metadata_rag_paper_spec_audit.yaml
+    - baseline_audit/component_substitution_policy.yaml
+    - baseline_audit/common_retrieval_evaluation_contract.yaml
+    - baseline_audit/dataset_corpus_scope_contract.yaml
+    - baseline_audit/dataset_ground_truth_projection_contract.yaml
+    - baseline_audit/architecture_acceptance_test_contract.yaml
+    - baseline_audit/longrag_storage_equivalence_contract.yaml
+    - baseline_audit/pilot_qdrant_payload_contract.yaml
+
+architecture:
+  architecture_id: metadata_rag
+  display_name: Metadata-RAG
+  family: metadata_driven_multistage_retrieval
+  paper:
+    title: Metadata-Driven Retrieval-Augmented Generation for Financial Question Answering
+    arxiv_id: "2510.24402"
+    year: 2025
+    venue: Preprint under major revision
+    verification: PAPER_VERIFIED
+    status: RESOLVED
+    paper_quality_caveat: >
+      The paper is a preprint under major revision. Its algorithmic
+      claims are the design reference only. No paper-level effectiveness
+      claim is made against this comparator.
+  reimplementation_class: PAPER_DERIVED_REIMPLEMENTATION
+  fidelity_class: PAPER_DERIVED_COMPARATOR
+  classification:
+    architecture_class: ARCHITECTURAL_COMPARATOR
+    implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+    foreign_execution_decision: NOT_APPLICABLE
+    project_owned_implementation_decision: CONDITIONAL_GO
+
+foreign_source:
+  repository_registered: false
+  repository_url: null
+  checkout_present: false
+  foreign_source_license_applicable: false
+  foreign_source_execution_applicable: false
+  foreign_source_reuse_applicable: false
+  license_status: NOT_APPLICABLE
+
+tracks:
+  controlled:
+    eligible: true
+    purpose: >
+      Primary comparison track. Architecture-defining retrieval logic
+      preserved under a frozen project-owned specification.
+    common_envelope:
+      - dataset_envelope_identical_to_rag_system
+      - embedder_BGE_M3_dense_only
+      - dense_normalized_vectors
+      - evaluation_protocol_identical
+      - query_projection_identical
+      - ground_truth_projection_identical
+  native:
+    eligible: false
+    potential_candidate: false
+    reason: DEFERRED_WITH_REASON
+    reason_detail: >
+      No foreign source exists and the paper does not pin a native
+      embedder, tokenizer, storage backend, or metadata schema.
+      Native-fidelity execution cannot be defined without inventing
+      components not present in the paper, which is prohibited.
+
+metadata_schema:
+  schema_id: metadata_rag_canonical_metadata
+  schema_version: "0.1.0"
+  schema_status: RESOLVED
+  value_types_declared:
+    - categorical
+    - temporal
+    - numeric
+    - entity
+    - structural
+    - provenance
+
+  provenance_tier:
+    source: canonical_document_envelope
+    fields:
+      dataset:
+        value_type: categorical
+        cardinality: single
+        required: true
+        normalization: lowercase_trim
+      doc_id:
+        value_type: categorical
+        cardinality: single
+        required: true
+        normalization: as_is
+      source_dataset_id:
+        value_type: provenance
+        cardinality: single
+        required: true
+        source_field: envelope.metadata.source_dataset_id
+        normalization: as_is
+      source_content_group_id:
+        value_type: provenance
+        cardinality: single
+        required: false
+        source_field: envelope.metadata.source_content_group_id
+        normalization: as_is
+        note: >
+          This field is used ONLY on the document side. It MUST NOT be
+          read from the query side, because the synthetic fixture aligns
+          it with ground truth. This is a leakage-prevention rule, not
+          a modeling choice.
+      title:
+        value_type: categorical
+        cardinality: single
+        required: false
+        source_field: envelope.title
+        normalization: lowercase_trim
+        missing_value_policy: null_token
+
+  derived_tier:
+    source: text_normalized
+    extractor_id: metadata_rag_deterministic_extractor
+    extractor_version: "0.1.0"
+    llm_required: false
+    hosted_model_required: false
+    deterministic: true
+    frozen_patterns:
+      capitalized_phrase: '(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)'
+      year_mention: '\b(?:19|20)\d{2}\b'
+      numeric_token: '\b\d+(?:\.\d+)?\b'
+    fields:
+      capitalized_phrases:
+        value_type: entity
+        cardinality: multi
+        required: true
+        extraction: regex_capitalized_phrase
+        normalization: lowercase_trim
+        ordering: lexical_ascending
+        deduplication: exact
+        note: >
+          Multi-word capitalized sequences. Single-token capitalized
+          words are excluded because they are dominated by
+          sentence-initial noise.
+      year_mentions:
+        value_type: temporal
+        cardinality: multi
+        required: true
+        extraction: regex_year_mention
+        normalization: integer
+        ordering: numeric_ascending
+        deduplication: exact
+      numeric_tokens:
+        value_type: numeric
+        cardinality: multi
+        required: true
+        extraction: regex_numeric_token
+        normalization: preserve_string_form
+        ordering: lexical_ascending
+        deduplication: exact
+      char_length:
+        value_type: numeric
+        cardinality: single
+        required: true
+        extraction: len_of_text_normalized
+        normalization: integer_non_negative
+      word_count:
+        value_type: numeric
+        cardinality: single
+        required: true
+        extraction: whitespace_token_count
+        normalization: integer_non_negative
+      length_bucket:
+        value_type: categorical
+        cardinality: single
+        required: true
+        extraction: bucket_of_word_count
+        normalization: as_is
+        thresholds:
+          short_max_words: 80
+          medium_max_words: 400
+        values:
+          - short
+          - medium
+          - long
+
+  normalization:
+    field_name_normalization: lowercase_trim
+    value_normalization: per_field_rule
+    missing_value_policy: null_token_not_empty_string
+    multi_value_policy: lexically_sorted_deduplicated
+    unknown_field_policy: >
+      Fields not declared in this schema are dropped from the metadata
+      record. They are recorded in the artifact's `unknown_fields`
+      list for audit, but they do not affect retrieval scoring.
+  schema_versioning:
+    incompatible_change_requires_version_bump: true
+    frozen_at: metadata_rag_clean_room_spec.yaml#metadata_schema
+
+metadata_extraction:
+  method: deterministic_regex
+  llm_required: false
+  hosted_model_required: false
+  symmetric_for_documents_and_queries: true
+  frozen_at: metadata_rag_clean_room_spec.yaml#metadata_extraction
+  notes: >
+    The extractor is identical for document texts and query texts.
+    This is the architecture-defining symmetry: the query side infers
+    the same typed fields that the index side stores, without ever
+    reading query metadata, ground truth, or answers.
+
+query_metadata_inference:
+  required: true
+  implementation_method: deterministic_rules_on_query_text_only
+  classification: DETERMINISTIC_PROJECT_OWNED
+  llm_required: false
+  hosted_model_required: false
+  query_projection:
+    allowed_fields:
+      - query_id
+      - query_text
+    prohibited_fields:
+      - doc_ids
+      - relevant_ids
+      - relevant_doc_ids
+      - answers
+      - choice
+      - target_content_group_id
+      - ground_truth
+      - spans
+      - metadata
+    rationale: >
+      Reading query.metadata (including target_content_group_id) would
+      trivialize the synthetic fixture because that field is aligned
+      with ground truth. Reading query.doc_ids or query.relevant_ids
+      would be direct leakage. The pipeline consumes query text only.
+  output_schema:
+    - constraint_id: str
+      field: str
+      value_type: str
+      value: object
+      provenance: QUERY_TEXT
+  evidence_or_confidence_exposed: true
+  evidence_semantics: >
+    Each emitted constraint carries its source (QUERY_TEXT) and the
+    matched substring span. No constraint carries a confidence score;
+    the extractor is deterministic and binary.
+
+candidate_filtering:
+  policy: pre_filter_by_constraint_match_ratio
+  match_definition: >
+    A document satisfies a constraint when the document's metadata for
+    the constraint's field contains the constraint's normalized value
+    under the field's declared comparison semantics.
+  comparison_semantics:
+    entity_exact_matching: case_insensitive_exact
+    temporal_exact_matching: integer_equality
+    numeric_exact_matching: string_equality_of_normalized_form
+    categorical_exact_matching: case_insensitive_exact
+  match_ratio: match_count / max(1, total_query_constraints)
+  min_match_ratio: 0.5
+  min_match_ratio_frozen: true
+  min_match_ratio_tuning_prohibited: true
+  fallback_when_no_metadata_match:
+    action: use_full_corpus_for_semantic_retrieval
+    flag_in_output: metadata_match_none
+    metadata_score_alpha: 0.0
+  fallback_when_metadata_missing:
+    action: treat_missing_field_as_zero_match
+    flag_in_output: metadata_missing_on_document
+  deterministic_tie_break:
+    - match_ratio_desc
+    - doc_id_asc
+
+semantic_retrieval:
+  signal: dense_only
+  sparse_enabled: false
+  colbert_enabled: false
+  reranking_enabled: false
+  hybrid_enabled: false
+  similarity: COSINE
+  score_direction: HIGHER_IS_BETTER
+  embedder:
+    role: ARCHITECTURE_SUPPORTING
+    treatment: CONTROLLED_REPLACEMENT
+    model_id: BAAI/bge-m3
+    model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+    dense_dimension: 1024
+    dense_normalized: true
+    device: cpu
+    use_fp16: false
+    local_snapshot_required: true
+    network_fallback_allowed: false
+    justification: >
+      The paper's contribution is metadata-driven fusion, not a
+      specialized encoder. Replacing the encoder with BGE-M3 dense-only
+      preserves the fusion semantics. Label: CONTROLLED_ADAPTATION.
+    native_equivalence_claimed: false
+  tokenizer:
+    role: ARCHITECTURE_SUPPORTING
+    constraint: must_match_embedder
+    model_id: BAAI/bge-m3
+    model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+
+metadata_semantic_fusion:
+  policy: weighted_score_fusion_after_pre_filter
+  paper_claims_fusion_formula: false
+  metadata_score_range:
+    minimum: 0.0
+    maximum: 1.0
+    semantics: match_ratio
+  semantic_score_range:
+    minimum: 0.0
+    maximum: 1.0
+    semantics: cosine_clipped_at_zero
+  normalization:
+    metadata_score: match_ratio_as_defined_in_candidate_filtering
+    semantic_score: max(0.0, cosine_similarity)
+  coefficients:
+    alpha_metadata: 0.3
+    alpha_semantic: 0.7
+    frozen: true
+    tuning_prohibited: true
+    justification: >
+      Semantic similarity is the primary signal. Metadata acts as a
+      supporting boost with a fixed, pre-registered coefficient.
+      0.3 preserves the paper's multistage structure while ensuring
+      the retrieval is still dominated by content.
+  formula: fused_score = alpha_metadata * metadata_score + alpha_semantic * semantic_score
+  deterministic_tie_break:
+    - fused_score_desc
+    - semantic_score_desc
+    - doc_id_asc
+
+result_ranking:
+  primary_key: fused_score
+  direction: HIGHER_IS_BETTER
+  tie_break:
+    - semantic_score_desc
+    - doc_id_asc
+  ranks_start_at_one: true
+  ranks_contiguous: true
+
+source_lineage:
+  status: RESOLVED
+  chain:
+    - metadata_record_id
+    - canonical_chunk_id
+    - canonical_parent_id
+    - canonical_document_id
+  duplicate_content_supported: true
+  multiple_documents_per_content_supported: true
+  duplicate_document_identities_remain_distinct: true
+  retrieval_score_components_exposed:
+    - metadata_score
+    - semantic_score
+    - fused_score
+  lineage_preserved_through_expansion: true
+
+document_expansion:
+  method: first_occurrence_by_rank
+  algorithm:
+    - Iterate retrieved items in ascending rank.
+    - Emit the corresponding doc_id.
+    - Skip doc_ids already emitted.
+    - Preserve the originating item rank and score.
+  output_fields:
+    - document_rank
+    - doc_id
+    - source_rank
+    - source_fused_score
+    - source_semantic_score
+    - source_metadata_score
+
+retrieval_boundary:
+  status: RESOLVED
+  per_query_output:
+    query_id: str
+    ranked_items:
+      - architecture_item_id: str
+        canonical_doc_id: str
+        canonical_chunk_or_evidence_ids: tuple_of_str
+        rank: int
+        score: float
+        score_semantics: HIGHER_IS_BETTER
+        metadata:
+          semantic_score: float
+          metadata_score: float
+          fused_score: float
+          metadata_match_evidence: list_of_constraint_matches
+          fallback_flags:
+            metadata_match_none: bool
+            metadata_missing_on_document: bool
+    metadata:
+      alpha_metadata: float
+      alpha_semantic: float
+      schema_version: str
+      extractor_version: str
+  final_generation_separable: true
+  final_generation_required: false
+
+leakage_policy:
+  judgments_as_metadata: prohibited
+  reference_answers_as_metadata: prohibited
+  evaluation_labels_as_metadata: prohibited
+  generated_answers_as_metadata: prohibited
+  post_retrieval_annotations_as_metadata: prohibited
+  query_target_content_group_id_used: false
+  query_doc_ids_used: false
+  ground_truth_used_during_indexing: false
+  ground_truth_used_during_querying: false
+  ground_truth_used_only_during_case_construction: true
+  answer_fields_prohibited_in_retrieval_pipeline: true
+
+dataset_compatibility:
+  provided_metadata_supported: true
+  derived_metadata_supported: true
+  heterogeneous_schema_supported: true
+  metadata_missingness_supported: true
+  applicable_datasets:
+    - ruler
+    - loong
+    - long_bench_v2
+    - lara
+    - greek_bar_bench
+    - cuad
+    - clerk
+  corpus_scope_source: baseline_audit/dataset_corpus_scope_contract.yaml
+  ground_truth_projection_source: baseline_audit/dataset_ground_truth_projection_contract.yaml
+  evaluation_protocol_source: baseline_audit/common_retrieval_evaluation_contract.yaml
+  evaluation_level: canonical_document
+  cutoffs: [1, 5, 10, 100]
+
+storage:
+  native_backend: null
+  experimental_backend: Qdrant
+  replacement_class: CONTROLLED_ADAPTATION
+  equivalence_test: REQUIRED
+  equivalence_protocol_source: baseline_audit/longrag_storage_equivalence_contract.yaml
+  top_k_overlap_target: 1.0
+  exactness_required_on_synthetic_fixture: true
+  approximate_search_allowed: false
+  quantization_allowed: false
+  vector_name: dense
+  distance: COSINE
+  dimension: 1024
+  payload_required_fields:
+    - doc_id
+    - dataset
+    - metadata_record_id
+    - metadata_schema_version
+    - extractor_version
+    - capitalized_phrases
+    - year_mentions
+    - numeric_tokens
+    - char_length
+    - word_count
+    - length_bucket
+    - source_content_group_id
+  payload_prohibited_fields:
+    - generated_answer
+    - reference_answer
+    - answer_text
+    - relevance
+    - relevance_label
+    - judgment
+    - relevant_ids
+    - target_content_group_id
+    - API_key
+    - access_token
+    - secret
+    - credentials
+    - raw_model_weights
+
+llm_policy:
+  index_time_llm_required: false
+  query_time_llm_required: false
+  final_generation_required: false
+  llm_as_judge_enabled: false
+  classification: DETERMINISTIC_PROJECT_OWNED
+  rationale: >
+    The paper's own pipeline is registry-marked as offline_llm_required,
+    but the retrieval-only reimplementation resolves metadata
+    deterministically. No hosted model is required at the retrieval
+    boundary.
+
+fidelity_boundary:
+  architecture_defining:
+    - metadata_schema
+    - metadata_extraction
+    - query_metadata_inference
+    - candidate_filtering
+    - semantic_retrieval
+    - metadata_semantic_fusion
+    - result_ranking
+    - source_lineage
+    - document_expansion
+  architecture_supporting:
+    - embedder
+    - tokenizer
+    - storage_backend
+  optional_downstream:
+    - final_generation
+    - answer_evaluation
+    - llm_judge
+
+claims:
+  faithful_reproduction: false
+  paper_effectiveness_reproduced: false
+  native_equivalence: false
+  controlled_adaptation: true
+  paper_derived_comparator: true
+  real_dataset_validated: false
+  publishable_result: false
+  synthetic_validation_is_paper_level_evidence: false
+
+next_action:
+  class: IMPLEMENTATION
+  value: >
+    Implement typed metadata artifacts, deterministic metadata index,
+    Qdrant storage with payload filters, BGE-M3 dense retrieval, fused
+    ranking, canonical expansion, and a synthetic acceptance run on
+    infrastructure-pilot-synthetic-v1. Then write the readiness
+    declaration. No real-dataset execution until the synthetic
+    acceptance passes.

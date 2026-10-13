@@ -1,0 +1,160 @@
+{
+  "additionalProperties": false,
+  "description": "Identity and integrity metadata for one Qdrant collection.",
+  "properties": {
+    "artifact_type": {
+      "default": "qdrant_collection_manifest",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "code_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Revision"
+    },
+    "collection_name": {
+      "title": "Collection Name",
+      "type": "string"
+    },
+    "complete": {
+      "default": false,
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "exclusiveMinimum": 0,
+      "title": "Dense Dimension",
+      "type": "integer"
+    },
+    "dense_distance": {
+      "title": "Dense Distance",
+      "type": "string"
+    },
+    "dense_vector_name": {
+      "title": "Dense Vector Name",
+      "type": "string"
+    },
+    "document_count": {
+      "exclusiveMinimum": 0,
+      "title": "Document Count",
+      "type": "integer"
+    },
+    "embedding_catalog_path": {
+      "title": "Embedding Catalog Path",
+      "type": "string"
+    },
+    "embedding_catalog_sha256": {
+      "title": "Embedding Catalog Sha256",
+      "type": "string"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "execution_profile": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Profile"
+    },
+    "expected_point_count": {
+      "exclusiveMinimum": 0,
+      "title": "Expected Point Count",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "point_count": {
+      "minimum": 0,
+      "title": "Point Count",
+      "type": "integer"
+    },
+    "shard_count": {
+      "exclusiveMinimum": 0,
+      "title": "Shard Count",
+      "type": "integer"
+    },
+    "source_chunk_count": {
+      "exclusiveMinimum": 0,
+      "title": "Source Chunk Count",
+      "type": "integer"
+    },
+    "sparse_distance": {
+      "title": "Sparse Distance",
+      "type": "string"
+    },
+    "sparse_vector_name": {
+      "title": "Sparse Vector Name",
+      "type": "string"
+    },
+    "storage_mode": {
+      "title": "Storage Mode",
+      "type": "string"
+    },
+    "storage_path": {
+      "title": "Storage Path",
+      "type": "string"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "collection_name",
+    "storage_mode",
+    "storage_path",
+    "dataset_id",
+    "embedding_catalog_path",
+    "embedding_catalog_sha256",
+    "embedding_config_hash",
+    "dense_vector_name",
+    "dense_dimension",
+    "dense_distance",
+    "sparse_vector_name",
+    "sparse_distance",
+    "point_count",
+    "expected_point_count",
+    "source_chunk_count",
+    "document_count",
+    "shard_count",
+    "model_id",
+    "model_revision",
+    "tokenizer_id"
+  ],
+  "title": "QdrantCollectionManifest",
+  "type": "object"
+}

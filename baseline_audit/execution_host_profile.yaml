@@ -1,0 +1,65 @@
+artifact_type: execution_host_profile
+artifact_version: "1.0"
+
+profile:
+  profile_id: execution-host-8e2c5a1f3b7d4c9a
+  collected_at_utc: "2026-10-06T00:00:04+00:00"
+
+  operating_system: Windows
+  operating_system_release: "10"
+  machine_architecture: AMD64
+  python_version: "3.12.10"
+
+  cpu_model: AMD Ryzen 5 5600G with Radeon Graphics
+  physical_cpu_count: 6
+  logical_cpu_count: 12
+
+  system_ram_bytes: 16508231680
+  available_ram_bytes: 6451142656
+
+  gpu_available: true
+  gpu_count: 1
+  cuda_capable_gpu_available: false
+  cuda_runtime_available: false
+  cuda_version: null
+  nvidia_driver_version: null
+  gpu_devices:
+    - device_index: 0
+      device_name: AMD Radeon(TM) Graphics
+      driver_version: 31.0.12027.9001
+      total_memory_bytes: null
+      compute_capability: null
+      source: win32_video_controller
+      cuda_capable: false
+
+storage:
+  working_directory_filesystem: "C:\\"
+  working_directory_free_bytes: 229171974144
+  working_directory_total_bytes: 511410073600
+
+tools:
+  docker_cli_available: true
+  docker_engine_reachable: false
+  git_available: true
+  git_version: "git version 2.54.0.windows.1"
+
+policy:
+  network_policy: ALLOWLISTED_DOWNLOADS
+  hosted_model_policy: APPROVAL_REQUIRED
+  maximum_approved_cost:
+    currency: EUR
+    amount: 0.0
+  secrets_available: false
+  approved_secret_names: []
+
+collection:
+  baseline_execution_performed: false
+  model_loaded: false
+  dataset_loaded: false
+  network_probe_performed: false
+  sensitive_identifiers_collected: false
+
+notes:
+  - The AMD Radeon integrated GPU is not CUDA-capable.
+  - Docker engine is not running; only the Docker CLI is installed.
+  - Available RAM fluctuates between runs and is not part of the profile ID.

@@ -1,0 +1,79 @@
+artifact_type: benchmark_execution_tracks
+artifact_version: "1.0"
+
+tracks:
+  track_a_controlled_architectural:
+    id: TRACK_A
+    role: PRIMARY
+    description: >
+      Controlled comparison of retrieval architectures with common
+      semantic representation.
+    common_components:
+      dataset_suite: canonical-rag-dataset-suite
+      embedder: BAAI/bge-m3
+      embedder_revision: 5617a9f61b028005a4858fdac845db406aefb181
+      tokenizer_revision: SAME_AS_MODEL_SNAPSHOT
+      evaluator: common_retrieval_evaluation_contract
+      generation: disabled
+    primary_reporting: true
+    leaderboard_eligible: true
+    eligible_architectures:
+      - rag_system
+      - longrag
+      - raptor
+      - hipporag2
+      - lightrag
+      - pathrag
+  track_b_native_fidelity:
+    id: TRACK_B
+    role: SECONDARY
+    description: >
+      Small stratified subset where each architecture runs with its
+      native components to quantify controlled adaptation drift.
+    common_dataset_subset: STRATIFIED_SMALL
+    full_suite_required: false
+    preserve:
+      - native_embedder_when_available
+      - native_storage_when_architecture_defining
+      - native_llm_stages_when_architecture_defining
+      - native_hyperparameters
+      - native_retrieval_logic
+    primary_reporting: false
+    leaderboard_eligible: false
+    separate_report_required: true
+    merge_with_controlled_scores: false
+    currently_eligible:
+      - rag_system
+    currently_eligible_count: 1
+    potential_candidates:
+      - longrag
+      - raptor
+      - hipporag2
+      - lightrag
+    potential_candidate_count: 4
+    potential_candidate_note: >
+      These architectures have native component paths that could be
+      preserved in a future native-fidelity subset after readiness
+      work. Listing as potential candidate does NOT imply current
+      eligibility.
+  track_c_deferred_appendix:
+    id: TRACK_C
+    role: APPENDIX
+    description: >
+      Architectures that cannot be executed under either track are
+      reported as feasibility and coverage appendix entries, not
+      numeric leaderboard rows.
+    numeric_leaderboard_eligible: false
+    eligible_architectures:
+      - disretrieval
+      - memorag
+      - kag
+      - metadata_rag
+      - hikey
+
+reporting_rules:
+  mixing_tracks_in_single_leaderboard: false
+  mandatory_track_label: true
+  mandatory_fidelity_class_label: true
+  mandatory_component_disposition_summary: true
+  numeric_ranking_only_within_single_track: true

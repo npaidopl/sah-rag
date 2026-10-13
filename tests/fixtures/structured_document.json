@@ -1,0 +1,12 @@
+﻿{
+  "doc_id": "synthetic-structured-001",
+  "dataset": "synthetic",
+  "text_raw": "CHAPTER 1\n\nThis is the opening paragraph.\n\nThis paragraph continues the first chapter.\n\nSECTION 1.1 Definitions\n\nA system is a collection of connected components.\n\nA pipeline is an ordered sequence of processing stages.\n\nCHAPTER 2\n\nThis is the second chapter.",
+  "text_normalized": "CHAPTER 1\n\nThis is the opening paragraph.\n\nThis paragraph continues the first chapter.\n\nSECTION 1.1 Definitions\n\nA system is a collection of connected components.\n\nA pipeline is an ordered sequence of processing stages.\n\nCHAPTER 2\n\nThis is the second chapter.",
+  "title": "Synthetic Structured Document",
+  "source_path": "tests/fixtures/structured_document.json",
+  "source_row": 0,
+  "metadata": {
+    "purpose": "deterministic parser smoke test"
+  }
+}

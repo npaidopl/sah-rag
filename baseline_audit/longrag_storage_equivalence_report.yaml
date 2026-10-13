@@ -1,0 +1,27 @@
+artifact_type: longrag_storage_equivalence_report
+artifact_version: '1.0'
+candidate_backend: QDRANT_LOCAL_PERSISTENCE
+comparison:
+  status: PASSED
+conclusion:
+  classification: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+  substitution_allowed: true
+limitations:
+- Validated on the frozen synthetic acceptance fixture only.
+- Does not prove equivalence for approximate large-corpus settings.
+- Real-dataset index parameters require a separate contract.
+query_count: 6
+reference_backend: EXACT_IN_MEMORY_DENSE
+results:
+  canonical_lineage_match: true
+  equal_score_ties_observed: 0
+  exact_identity_order_match_count: 6
+  maximum_absolute_score_difference: 1.7763568394002505e-15
+  mean_absolute_score_difference: 6.291263806209221e-16
+  point_count_qdrant: 4
+  point_count_reference: 4
+  score_direction_match: true
+  tie_normalization_applied: true
+  top_10_overlap_mean: 1.0
+  top_1_overlap_mean: 1.0
+  top_5_overlap_mean: 1.0

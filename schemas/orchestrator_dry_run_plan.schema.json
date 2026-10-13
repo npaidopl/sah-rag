@@ -1,0 +1,369 @@
+{
+  "$defs": {
+    "ExperimentCellIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "title": "Adapter Id",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "architecture_configuration_hash": {
+          "title": "Architecture Configuration Hash",
+          "type": "string"
+        },
+        "architecture_id": {
+          "title": "Architecture Id",
+          "type": "string"
+        },
+        "canonical_input_manifest_sha256": {
+          "title": "Canonical Input Manifest Sha256",
+          "type": "string"
+        },
+        "code_revision": {
+          "title": "Code Revision",
+          "type": "string"
+        },
+        "dataset_id": {
+          "title": "Dataset Id",
+          "type": "string"
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "experiment_cell_id": {
+          "title": "Experiment Cell Id",
+          "type": "string"
+        },
+        "random_seed": {
+          "minimum": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "split": {
+          "title": "Split",
+          "type": "string"
+        }
+      },
+      "required": [
+        "experiment_cell_id",
+        "dataset_id",
+        "dataset_revision",
+        "split",
+        "architecture_id",
+        "adapter_id",
+        "adapter_version",
+        "architecture_configuration_hash",
+        "canonical_input_manifest_sha256",
+        "random_seed",
+        "code_revision"
+      ],
+      "title": "ExperimentCellIdentity",
+      "type": "object"
+    },
+    "OrchestratorArtifactLayout": {
+      "additionalProperties": false,
+      "properties": {
+        "architecture_directory": {
+          "title": "Architecture Directory",
+          "type": "string"
+        },
+        "checkpoints_directory": {
+          "title": "Checkpoints Directory",
+          "type": "string"
+        },
+        "checksums_path": {
+          "title": "Checksums Path",
+          "type": "string"
+        },
+        "dry_run_plan_path": {
+          "title": "Dry Run Plan Path",
+          "type": "string"
+        },
+        "evaluation_directory": {
+          "title": "Evaluation Directory",
+          "type": "string"
+        },
+        "execution_manifest_path": {
+          "title": "Execution Manifest Path",
+          "type": "string"
+        },
+        "experiment_root": {
+          "title": "Experiment Root",
+          "type": "string"
+        },
+        "input_directory": {
+          "title": "Input Directory",
+          "type": "string"
+        },
+        "logs_directory": {
+          "title": "Logs Directory",
+          "type": "string"
+        },
+        "plan_manifest_path": {
+          "title": "Plan Manifest Path",
+          "type": "string"
+        },
+        "retrieval_directory": {
+          "title": "Retrieval Directory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "experiment_root",
+        "input_directory",
+        "architecture_directory",
+        "retrieval_directory",
+        "evaluation_directory",
+        "logs_directory",
+        "checkpoints_directory",
+        "dry_run_plan_path",
+        "execution_manifest_path",
+        "plan_manifest_path",
+        "checksums_path"
+      ],
+      "title": "OrchestratorArtifactLayout",
+      "type": "object"
+    },
+    "OrchestratorExecutionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "title": "Adapter Id",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "architecture_configuration_hash": {
+          "title": "Architecture Configuration Hash",
+          "type": "string"
+        },
+        "architecture_id": {
+          "title": "Architecture Id",
+          "type": "string"
+        },
+        "canonical_input_manifest_sha256": {
+          "title": "Canonical Input Manifest Sha256",
+          "type": "string"
+        },
+        "dataset_id": {
+          "title": "Dataset Id",
+          "type": "string"
+        },
+        "dataset_revision": {
+          "title": "Dataset Revision",
+          "type": "string"
+        },
+        "dataset_root": {
+          "title": "Dataset Root",
+          "type": "string"
+        },
+        "execution_environment_id": {
+          "title": "Execution Environment Id",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "output_root": {
+          "title": "Output Root",
+          "type": "string"
+        },
+        "project_code_revision": {
+          "title": "Project Code Revision",
+          "type": "string"
+        },
+        "random_seed": {
+          "minimum": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "split": {
+          "title": "Split",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset_id",
+        "dataset_revision",
+        "split",
+        "architecture_id",
+        "adapter_id",
+        "adapter_version",
+        "architecture_configuration_hash",
+        "canonical_input_manifest_sha256",
+        "random_seed",
+        "project_code_revision",
+        "execution_environment_id",
+        "dataset_root",
+        "output_root"
+      ],
+      "title": "OrchestratorExecutionRequest",
+      "type": "object"
+    },
+    "OrchestratorStagePlan": {
+      "additionalProperties": false,
+      "properties": {
+        "architecture_id": {
+          "title": "Architecture Id",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "execution_enabled": {
+          "default": false,
+          "title": "Execution Enabled",
+          "type": "boolean"
+        },
+        "input_paths": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Paths",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "planned_output_paths": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Planned Output Paths",
+          "type": "array"
+        },
+        "stage_id": {
+          "title": "Stage Id",
+          "type": "string"
+        },
+        "stage_order": {
+          "exclusiveMinimum": 0,
+          "title": "Stage Order",
+          "type": "integer"
+        },
+        "stage_status": {
+          "title": "Stage Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "stage_order",
+        "stage_status",
+        "architecture_id"
+      ],
+      "title": "OrchestratorStagePlan",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "architecture_classification": {
+      "title": "Architecture Classification",
+      "type": "string"
+    },
+    "architecture_display_name": {
+      "title": "Architecture Display Name",
+      "type": "string"
+    },
+    "architecture_execution_enabled": {
+      "default": false,
+      "title": "Architecture Execution Enabled",
+      "type": "boolean"
+    },
+    "artifact_layout": {
+      "$ref": "#/$defs/OrchestratorArtifactLayout"
+    },
+    "evaluation_contract_version": {
+      "title": "Evaluation Contract Version",
+      "type": "string"
+    },
+    "evaluation_execution_enabled": {
+      "default": false,
+      "title": "Evaluation Execution Enabled",
+      "type": "boolean"
+    },
+    "execution_contract_version": {
+      "title": "Execution Contract Version",
+      "type": "string"
+    },
+    "experiment_cell": {
+      "$ref": "#/$defs/ExperimentCellIdentity"
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "implementation_class": {
+      "title": "Implementation Class",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "orchestrator_contract_version": {
+      "title": "Orchestrator Contract Version",
+      "type": "string"
+    },
+    "plan_id": {
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "readiness_declaration": {
+      "title": "Readiness Declaration",
+      "type": "string"
+    },
+    "readiness_status": {
+      "title": "Readiness Status",
+      "type": "string"
+    },
+    "request": {
+      "$ref": "#/$defs/OrchestratorExecutionRequest"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/OrchestratorStagePlan"
+      },
+      "title": "Stages",
+      "type": "array"
+    }
+  },
+  "required": [
+    "plan_id",
+    "experiment_cell",
+    "architecture_display_name",
+    "architecture_classification",
+    "implementation_class",
+    "request",
+    "artifact_layout",
+    "stages",
+    "readiness_status",
+    "readiness_declaration",
+    "execution_contract_version",
+    "evaluation_contract_version",
+    "orchestrator_contract_version"
+  ],
+  "title": "OrchestratorDryRunPlan",
+  "type": "object"
+}

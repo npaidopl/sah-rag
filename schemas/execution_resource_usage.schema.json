@@ -1,0 +1,149 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "cache_hit_count": {
+      "default": 0,
+      "title": "Cache Hit Count",
+      "type": "integer"
+    },
+    "cache_miss_count": {
+      "default": 0,
+      "title": "Cache Miss Count",
+      "type": "integer"
+    },
+    "chunk_count": {
+      "default": 0,
+      "title": "Chunk Count",
+      "type": "integer"
+    },
+    "document_count": {
+      "default": 0,
+      "title": "Document Count",
+      "type": "integer"
+    },
+    "embedding_input_tokens": {
+      "default": 0,
+      "title": "Embedding Input Tokens",
+      "type": "integer"
+    },
+    "embedding_request_count": {
+      "default": 0,
+      "title": "Embedding Request Count",
+      "type": "integer"
+    },
+    "evaluation_seconds": {
+      "default": 0.0,
+      "title": "Evaluation Seconds",
+      "type": "number"
+    },
+    "expanded_document_count": {
+      "default": 0,
+      "title": "Expanded Document Count",
+      "type": "integer"
+    },
+    "index_bytes": {
+      "default": 0,
+      "title": "Index Bytes",
+      "type": "integer"
+    },
+    "indexing_seconds": {
+      "default": 0.0,
+      "title": "Indexing Seconds",
+      "type": "number"
+    },
+    "input_bytes": {
+      "default": 0,
+      "title": "Input Bytes",
+      "type": "integer"
+    },
+    "input_validation_seconds": {
+      "default": 0.0,
+      "title": "Input Validation Seconds",
+      "type": "number"
+    },
+    "judgment_count": {
+      "default": 0,
+      "title": "Judgment Count",
+      "type": "integer"
+    },
+    "llm_failure_count": {
+      "default": 0,
+      "title": "Llm Failure Count",
+      "type": "integer"
+    },
+    "llm_input_tokens": {
+      "default": 0,
+      "title": "Llm Input Tokens",
+      "type": "integer"
+    },
+    "llm_output_tokens": {
+      "default": 0,
+      "title": "Llm Output Tokens",
+      "type": "integer"
+    },
+    "llm_request_count": {
+      "default": 0,
+      "title": "Llm Request Count",
+      "type": "integer"
+    },
+    "peak_gpu_memory_bytes": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Peak Gpu Memory Bytes"
+    },
+    "peak_process_ram_bytes": {
+      "default": 0,
+      "title": "Peak Process Ram Bytes",
+      "type": "integer"
+    },
+    "persistence_seconds": {
+      "default": 0.0,
+      "title": "Persistence Seconds",
+      "type": "number"
+    },
+    "preprocessing_seconds": {
+      "default": 0.0,
+      "title": "Preprocessing Seconds",
+      "type": "number"
+    },
+    "query_count": {
+      "default": 0,
+      "title": "Query Count",
+      "type": "integer"
+    },
+    "retrieval_artifact_bytes": {
+      "default": 0,
+      "title": "Retrieval Artifact Bytes",
+      "type": "integer"
+    },
+    "retrieval_seconds": {
+      "default": 0.0,
+      "title": "Retrieval Seconds",
+      "type": "number"
+    },
+    "retrieved_item_count": {
+      "default": 0,
+      "title": "Retrieved Item Count",
+      "type": "integer"
+    },
+    "total_execution_seconds": {
+      "default": 0.0,
+      "title": "Total Execution Seconds",
+      "type": "number"
+    },
+    "total_output_bytes": {
+      "default": 0,
+      "title": "Total Output Bytes",
+      "type": "integer"
+    }
+  },
+  "title": "ExecutionResourceUsage",
+  "type": "object"
+}

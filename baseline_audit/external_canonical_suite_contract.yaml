@@ -1,0 +1,119 @@
+artifact_type: external_canonical_suite_contract
+artifact_version: "1.0"
+
+contract:
+  id: canonical_rag_dataset_suite_registration
+  version: "0.1.0"
+  status: APPROVED_FOR_READ_ONLY_REGISTRATION
+
+dependencies:
+  infrastructure_pilot_closure:
+    path: baseline_audit/infrastructure_pilot_closure_manifest.yaml
+    required_status: CLOSED
+  previous_inventory:
+    path: baseline_audit/real_dataset_inventory_manifest.yaml
+    required_status: SUCCEEDED_WITH_BLOCKERS
+
+suite:
+  repository_url: https://github.com/npaidopl/canonical-rag-dataset-suite
+  repository_commit: 8c3cdc6a2030235de2955b4f832c7a3937d6483a
+  repository_commit_source: git_rev_parse_HEAD_at_registration_time
+  local_project_root: "${SAH_RAG_PROJECT_ROOT}"
+  local_canonical_root: "${SAH_RAG_CANONICAL_ROOT}"
+  local_raw_source_root: "${SAH_RAG_PROJECT_ROOT}/datasets"
+  local_adapter_pipeline_root: "${SAH_RAG_PROJECT_ROOT}/pipeline"
+  canonical_manifest_path: "${SAH_RAG_PROJECT_ROOT}/reports/reproducibility/canonical_manifest.json"
+  sha256sums_path: "${SAH_RAG_PROJECT_ROOT}/reports/reproducibility/SHA256SUMS.txt"
+  expected_collection_fingerprint: 5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4
+  expected_document_count: 8879
+  expected_example_count: 29718
+
+datasets:
+  expected:
+    - ruler
+    - loong
+    - long_bench_v2
+    - lara
+    - greek_bar_bench
+    - cuad
+    - clerk
+  expected_count: 7
+  exact_set_required: true
+
+required_canonical_files:
+  - documents.jsonl
+  - examples.jsonl
+  - validation.json
+  - manifest.json
+
+registration:
+  read_only: true
+  allowed_operations:
+    - resolve_external_root
+    - read_git_identity
+    - read_canonical_manifest
+    - read_sha256sums
+    - read_manifest
+    - read_validation
+    - stream_documents_jsonl
+    - stream_examples_jsonl
+    - compute_sha256
+    - verify_record_counts
+    - verify_document_ids
+    - verify_query_ids
+    - verify_query_document_references
+    - verify_relevant_id_references
+    - inspect_ground_truth_fields
+    - inspect_ground_truth_cardinality
+    - classify_corpus_scope
+    - classify_evaluation_unit
+  prohibited_operations:
+    - modify_external_project
+    - execute_external_adapter
+    - rewrite_manifest
+    - rewrite_validation_report
+    - rewrite_jsonl
+    - normalize_text
+    - generate_chunks
+    - load_tokenizer
+    - load_model
+    - create_embeddings
+    - execute_qdrant
+    - execute_retrieval
+    - execute_evaluation
+    - execute_generation
+
+identity:
+  exact_repository_commit_required: true
+  canonical_file_sha256_required: true
+  manifest_identity_required: true
+  collection_fingerprint_required: true
+  unknown_commit_blocks_benchmark_execution: true
+  unknown_file_checksum_blocks_benchmark_execution: true
+
+integrity:
+  source_files_must_remain_unchanged: true
+  document_ids_unique: true
+  query_ids_unique: true
+  query_document_references_resolve: true
+  relevant_document_references_resolve: true
+  canonical_records_must_validate: true
+  validation_reports_must_pass: true
+
+execution:
+  adapter_executed: false
+  parser_executed: false
+  chunker_executed: false
+  tokenizer_loaded: false
+  model_loaded: false
+  embedding_executed: false
+  qdrant_executed: false
+  retrieval_executed: false
+  evaluation_executed: false
+  generation_executed: false
+
+publishability:
+  suite_registration_is_benchmark_result: false
+  dataset_quality_claimed: false
+  retrieval_quality_claimed: false
+  execution_readiness_claimed: false

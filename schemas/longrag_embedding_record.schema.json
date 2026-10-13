@@ -1,0 +1,194 @@
+{
+  "additionalProperties": false,
+  "description": "One dense embedding for one LongRAG-derived long unit.",
+  "properties": {
+    "actual_model_token_count": {
+      "exclusiveMinimum": 0,
+      "title": "Actual Model Token Count",
+      "type": "integer"
+    },
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "longrag_long_unit_embedding",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "condition_id": {
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "construction_policy": {
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "exclusiveMinimum": 0,
+      "title": "Dense Dimension",
+      "type": "integer"
+    },
+    "dense_normalized": {
+      "default": true,
+      "title": "Dense Normalized",
+      "type": "boolean"
+    },
+    "dense_precision": {
+      "default": "float32",
+      "title": "Dense Precision",
+      "type": "string"
+    },
+    "dense_vector": {
+      "items": {
+        "type": "number"
+      },
+      "title": "Dense Vector",
+      "type": "array"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "interface_validation": {
+      "default": true,
+      "title": "Interface Validation",
+      "type": "boolean"
+    },
+    "long_unit_id": {
+      "title": "Long Unit Id",
+      "type": "string"
+    },
+    "maximum_model_input_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Model Input Tokens",
+      "type": "integer"
+    },
+    "member_chunk_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Chunk Ids",
+      "type": "array"
+    },
+    "member_doc_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Doc Ids",
+      "type": "array"
+    },
+    "member_parent_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Member Parent Ids",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "paper_faithful_result": {
+      "default": false,
+      "title": "Paper Faithful Result",
+      "type": "boolean"
+    },
+    "rendered_token_count": {
+      "exclusiveMinimum": 0,
+      "title": "Rendered Token Count",
+      "type": "integer"
+    },
+    "source_architecture": {
+      "default": "LongRAG",
+      "title": "Source Architecture",
+      "type": "string"
+    },
+    "source_architecture_commit": {
+      "title": "Source Architecture Commit",
+      "type": "string"
+    },
+    "source_unit_sha256": {
+      "title": "Source Unit Sha256",
+      "type": "string"
+    },
+    "source_units_file_sha256": {
+      "title": "Source Units File Sha256",
+      "type": "string"
+    },
+    "special_token_count": {
+      "minimum": 0,
+      "title": "Special Token Count",
+      "type": "integer"
+    },
+    "target_token_size": {
+      "exclusiveMinimum": 0,
+      "title": "Target Token Size",
+      "type": "integer"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    },
+    "unit_order": {
+      "minimum": 0,
+      "title": "Unit Order",
+      "type": "integer"
+    },
+    "was_truncated": {
+      "default": false,
+      "title": "Was Truncated",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "long_unit_id",
+    "condition_id",
+    "dataset_id",
+    "construction_policy",
+    "target_token_size",
+    "maximum_model_input_tokens",
+    "unit_order",
+    "rendered_token_count",
+    "special_token_count",
+    "actual_model_token_count",
+    "member_doc_ids",
+    "member_parent_ids",
+    "member_chunk_ids",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "embedding_config_hash",
+    "dense_vector",
+    "dense_dimension",
+    "source_unit_sha256",
+    "source_units_file_sha256",
+    "adapter_id",
+    "adapter_version",
+    "source_architecture_commit"
+  ],
+  "title": "LongUnitEmbeddingRecord",
+  "type": "object"
+}

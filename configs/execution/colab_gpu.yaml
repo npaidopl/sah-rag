@@ -1,0 +1,65 @@
+﻿profile:
+  id: colab_gpu
+  description: Google Colab CUDA execution profile for embedding-dependent stages
+
+runtime:
+  environment: colab
+  operating_system: linux
+  python: "3.12"
+  device: cuda
+  precision: float16
+  deterministic: true
+  random_seed: 42
+
+resources:
+  cpu_workers: 2
+  parser_workers: 2
+  chunker_workers: 2
+  embedding_workers: 1
+  batch_size_autotune: true
+
+embedding:
+  enabled: true
+  backend: flagembedding
+  model_name: BAAI/bge-m3
+  device: cuda
+  use_fp16: true
+  batch_size: auto
+  max_length: 8192
+  cache_directory: /content/hf_cache
+
+storage:
+  qdrant:
+    mode: artifact_only
+    description: Generate embedding shards without requiring local Qdrant access.
+
+  parent_store:
+    backend: artifact_only
+
+artifacts:
+  drive_mount: /content/drive
+  drive_root: /content/drive/MyDrive/RAG_Research_Artifacts
+  local_work_root: /content/rag_work
+  local_dataset_root: /content/rag_work/datasets
+  parsed_root: /content/rag_work/parsed
+  chunks_root: /content/rag_work/chunks
+  embeddings_root: /content/rag_work/embedding_shards
+  temporary_root: /content/rag_work/temp
+
+transfer:
+  copy_inputs_from_drive: true
+  write_active_batches_to_drive: false
+  copy_completed_shards_to_drive: true
+  verify_checksums: true
+  resume_completed_shards: true
+
+logging:
+  level: INFO
+  write_local_log: true
+  copy_completed_log_to_drive: true
+
+profiling:
+  enabled: true
+  record_stage_times: true
+  record_peak_memory: true
+  record_peak_vram: true

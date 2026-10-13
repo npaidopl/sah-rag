@@ -1,0 +1,182 @@
+architecture_id: longrag
+artifact_type: longrag_full_track_cross_dataset_registry
+artifact_version: '1.0'
+dataset_count: 4
+datasets:
+- dataset_id: clerk
+  embeddings:
+    dense_dimension: 1024
+    dense_precision: float16
+    gpu_name: Tesla T4
+    manifest_sha256: 12275693d637e205a3b28d45ac788442a817526ddee913d509967d1fa542020a
+    record_count: 256
+  evaluation:
+    macro_metrics:
+      hit@1: 0.031
+      hit@10: 0.094
+      hit@20: 0.133
+      hit@5: 0.055
+      hit@50: 0.211
+      mrr@1: 0.031
+      mrr@10: 0.044376984126984126
+      mrr@20: 0.047084417332753245
+      mrr@5: 0.03921666666666667
+      mrr@50: 0.04943424158280415
+      ndcg@10: 0.05432438569439839
+      ndcg@50: 0.08699339407971428
+      precision@10: 0.027
+      recall@1: 0.009942857142857144
+      recall@10: 0.07860952380952381
+      recall@20: 0.11394166666666666
+      recall@5: 0.040424999999999996
+      recall@50: 0.1873452380952381
+    manifest_sha256: abf53f5fa1aec265ddd4789cbe2e978011da1b610423f311b30dd922366c0297
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 1000
+  retrieval:
+    document_limit: 100
+    manifest_sha256: e3a21303816eac509ff5da3630a8df94762c7f266f095cf267e0a7a799e822e8
+    query_count: 1000
+    query_device: gpu
+    query_precision: float16
+    top_k_units: 100
+    wall_clock_seconds: 6.558
+  units:
+    documents: 2756
+    long_unit_count: 256
+    manifest_sha256: 3fd5add378720a169df4f82249a57bce2ee301ba359c25834518cef82456ee2d
+    max_unit_tokens: 4096
+    split_unit_count: 0
+- dataset_id: cuad
+  embeddings:
+    dense_dimension: 1024
+    dense_precision: float16
+    gpu_name: Tesla T4
+    manifest_sha256: c2a9e92ad27c0658e480195cc635717ed07a6b08cb7131a3c1eff7adaf72feaa
+    record_count: 1725
+  evaluation:
+    macro_metrics:
+      hit@1: 0.003879438973440764
+      hit@10: 0.03237839450910176
+      hit@20: 0.06356311548791406
+      hit@5: 0.01611459265890779
+      hit@50: 0.14577737988660103
+      mrr@1: 0.003879438973440764
+      mrr@10: 0.010239303122024698
+      mrr@20: 0.012319853847029553
+      mrr@5: 0.008164229583208992
+      mrr@50: 0.01483533441375447
+      ndcg@10: 0.0152939429062385
+      ndcg@50: 0.03920558801629526
+      precision@10: 0.0032378394509101766
+      recall@1: 0.003879438973440764
+      recall@10: 0.03237839450910176
+      recall@20: 0.06356311548791406
+      recall@5: 0.01611459265890779
+      recall@50: 0.14577737988660103
+    manifest_sha256: 62fc434937bbc177f9bd7b9e8556e1285b5e620eb024fa5ca5f4e7aa8c6db6e0
+    queries_excluded_zero_relevance: 14208
+    query_count_evaluated: 6702
+  retrieval:
+    document_limit: 100
+    manifest_sha256: 071fec5111b4f844c2422540f1f14e8bd0eaccd262ed706581437941443b3b57
+    query_count: 20910
+    query_device: gpu
+    query_precision: float16
+    top_k_units: 100
+    wall_clock_seconds: 294.286
+  units:
+    documents: 510
+    long_unit_count: 1725
+    manifest_sha256: a56e9c06045a47a499e67ab98a2e2df97d793cf8fea595ee75d02ec122652d89
+    max_unit_tokens: 4096
+    split_unit_count: 1591
+- dataset_id: greek_bar_bench
+  embeddings:
+    dense_dimension: 1024
+    dense_precision: float16
+    gpu_name: Tesla T4
+    manifest_sha256: 115ac56369a38f1e6b7ab7e12be88e132b9ab60c605640f94c883c3e42bf0416
+    record_count: 1437
+  evaluation:
+    macro_metrics:
+      hit@1: 0.035211267605633804
+      hit@10: 0.2605633802816901
+      hit@20: 0.41901408450704225
+      hit@5: 0.13028169014084506
+      hit@50: 0.6338028169014085
+      mrr@1: 0.035211267605633804
+      mrr@10: 0.08279817795662867
+      mrr@20: 0.09396106471690782
+      mrr@5: 0.06596244131455399
+      mrr@50: 0.10065791165187357
+      ndcg@10: 0.1233029282444965
+      ndcg@50: 0.20596109701497062
+      precision@10: 0.026056338028169014
+      recall@1: 0.035211267605633804
+      recall@10: 0.2605633802816901
+      recall@20: 0.41901408450704225
+      recall@5: 0.13028169014084506
+      recall@50: 0.6338028169014085
+    manifest_sha256: 54afd4a62dceaaf2b9dfe6a0ea622495c04e83f6fb02925a5ed3dafdd4581250
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 284
+  retrieval:
+    document_limit: 100
+    manifest_sha256: df25fd20af363beb892d3635b341257ed41a1329a960a1c96f41f8df88b5c747
+    query_count: 284
+    query_device: gpu
+    query_precision: float16
+    top_k_units: 100
+    wall_clock_seconds: 3.556
+  units:
+    documents: 284
+    long_unit_count: 1437
+    manifest_sha256: 01ec678ad7a293b0b959f171ff081e99ae6e8d3161bd78c8a421c314b32fb9e9
+    max_unit_tokens: 4096
+    split_unit_count: 1427
+- dataset_id: lara
+  embeddings:
+    dense_dimension: 1024
+    dense_precision: float16
+    gpu_name: Tesla T4
+    manifest_sha256: 4e07b1ed0e4514e71941820d4b12680dd04d19057055b02889789d3489bfef1d
+    record_count: 2251
+  evaluation:
+    macro_metrics:
+      hit@1: 0.7128116938950989
+      hit@10: 0.8860705073086844
+      hit@20: 0.9368013757523646
+      hit@5: 0.8409286328460877
+      hit@50: 0.9810834049871023
+      mrr@1: 0.7128116938950989
+      mrr@10: 0.7696626472314348
+      mrr@20: 0.7731707605571239
+      mrr@5: 0.763664373746059
+      mrr@50: 0.7748394298166748
+      ndcg@10: 0.7976725431827327
+      ndcg@50: 0.8197253247243474
+      precision@10: 0.08860705073086846
+      recall@1: 0.7128116938950989
+      recall@10: 0.8860705073086844
+      recall@20: 0.9368013757523646
+      recall@5: 0.8409286328460877
+      recall@50: 0.9810834049871023
+    manifest_sha256: 20fa573d0fe94041f93ebd585955fafd28b96f9df377ab335aae070325cf6c6d
+    queries_excluded_zero_relevance: 0
+    query_count_evaluated: 2326
+  retrieval:
+    document_limit: 100
+    manifest_sha256: 19f09477569015bafa63f04602282f19e0eede31fcf8ff4beb59e023a10b03cd
+    query_count: 2326
+    query_device: gpu
+    query_precision: float16
+    top_k_units: 100
+    wall_clock_seconds: 37.564
+  units:
+    documents: 131
+    long_unit_count: 2251
+    manifest_sha256: 1570af54b3451dd1648e5387152a418f0b0350d73fc23f937a3a3a7f0365764a
+    max_unit_tokens: 4096
+    split_unit_count: 2251
+fidelity_class: CONTROLLED_ADAPTATION

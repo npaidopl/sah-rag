@@ -1,0 +1,167 @@
+artifact_type: longrag_retrieval_artifact_contract
+artifact_version: "1.0"
+
+contract:
+  id: longrag_controlled_dense_retrieval_artifacts
+  version: "0.1.0"
+  status: FROZEN_FOR_EXECUTION
+
+# Field names verified against src/rag_system/baselines/ during Step 97
+# Cell 3-4 API inspection. Do not edit without re-inspecting the source.
+field_verification:
+  inspected_at_step: 97
+  source_of_truth: source_implementation
+  precedence:
+    - execution_evidence
+    - source_implementation
+    - tests
+    - frozen_project_contract
+    - paper_description
+
+long_units:
+  source_type: rag_system.baselines.longrag.LongUnit
+  source_module: src/rag_system/baselines/longrag.py
+  required_fields:
+    - long_unit_id
+    - dataset_id
+    - construction_policy
+    - unit_order
+    - text
+    - token_count
+    - member_doc_ids
+    - member_parent_ids
+    - member_chunk_ids
+    - metadata
+  construction_policy_enum:
+    - adjacent_segments
+    - adjacent_document_segments
+    - single_document_if_within_budget
+    - structure_preserving_parent_groups
+
+embeddings:
+  source_type: rag_system.baselines.longrag_embeddings.LongUnitEmbeddingRecord
+  source_module: src/rag_system/baselines/longrag_embeddings.py
+  required_fields:
+    - artifact_type
+    - artifact_version
+    - long_unit_id
+    - condition_id
+    - dataset_id
+    - construction_policy
+    - target_token_size
+    - maximum_model_input_tokens
+    - unit_order
+    - rendered_token_count
+    - special_token_count
+    - actual_model_token_count
+    - was_truncated
+    - member_doc_ids
+    - member_parent_ids
+    - member_chunk_ids
+    - model_id
+    - model_revision
+    - tokenizer_id
+    - embedding_config_hash
+    - dense_vector
+    - dense_dimension
+    - dense_precision
+    - dense_normalized
+    - source_unit_sha256
+    - source_units_file_sha256
+    - adapter_id
+    - adapter_version
+    - source_architecture
+    - source_architecture_commit
+    - interface_validation
+    - paper_faithful_result
+    - metadata
+  invariants:
+    - dense_normalized_required: true
+    - was_truncated_must_be_false: true
+    - paper_faithful_result_must_be_false: true
+    - interface_validation_must_be_true: true
+    - dense_dimension_must_equal_len_dense_vector: true
+    - actual_model_token_count_must_equal_rendered_plus_special: true
+    - maximum_model_input_tokens_must_not_truncate: true
+
+reference_rankings:
+  source_type: tuple_of_tuple_long_unit_id_score_rank
+  source_module: src/rag_system/baselines/longrag_reference_dense_index.py
+  required_fields:
+    - query_id
+    - long_unit_id
+    - rank
+    - score
+    - canonical_doc_ids
+    - metadata
+
+qdrant_rankings:
+  source_type: rag_system.baselines.longrag_retrieval.RetrievedLongUnit
+  source_module: src/rag_system/baselines/longrag_retrieval.py
+  required_fields:
+    - long_unit_id
+    - condition_id
+    - dataset_id
+    - rank
+    - score
+    - construction_policy
+    - target_token_size
+    - rendered_token_count
+    - member_doc_ids
+    - member_parent_ids
+    - member_chunk_ids
+    - payload
+
+ranked_documents:
+  source_type: rag_system.baselines.longrag.ExpandedLongRAGDocument
+  source_module: src/rag_system/baselines/longrag.py
+  required_fields:
+    - query_id
+    - document_rank
+    - doc_id
+    - source_long_unit_id
+    - source_long_unit_rank
+    - source_long_unit_score
+    - membership_position
+
+evaluation_cases:
+  source_type: rag_system.baselines.longrag_pipeline.LongRAGEvaluationCase
+  source_module: src/rag_system/baselines/longrag_pipeline.py
+  required_fields:
+    - query_id
+    - ranked_doc_ids
+    - relevant_doc_ids
+    - metadata
+  constraints:
+    query_count: 6
+    relevant_documents_per_query: 2
+    ground_truth_used_only_during_case_construction: true
+
+query_projection:
+  source_type: rag_system.baselines.longrag_pipeline.ProjectedQuery
+  source_module: src/rag_system/baselines/longrag_pipeline.py
+  allowed_fields:
+    - query_id
+    - query_text
+  prohibited_fields:
+    - doc_ids
+    - relevant_doc_ids
+    - answers
+    - target_content_group_id
+    - ground_truth
+
+constraints:
+  ranks_start_at_one: true
+  ranks_contiguous: true
+  long_unit_ids_unique_per_query: true
+  document_ids_unique_per_query: true
+  scores_finite: true
+  score_direction: HIGHER_IS_BETTER
+  duplicate_content_documents_remain_distinct: true
+  ground_truth_available_only_during_case_construction: true
+
+prohibited_fields:
+  - generated_answer
+  - answer_correctness
+  - evaluation_metric
+  - LLM_judge_result

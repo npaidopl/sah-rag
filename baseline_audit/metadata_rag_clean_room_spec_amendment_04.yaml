@@ -1,0 +1,120 @@
+artifact_type: metadata_rag_clean_room_spec_amendment
+artifact_version: "1.0"
+
+amendment:
+  id: metadata_rag_clean_room_spec_amendment_04
+  version: "0.1.0"
+  status: FROZEN
+  applies_to:
+    artifact_type: metadata_rag_clean_room_spec
+    path: baseline_audit/metadata_rag_clean_room_spec.yaml
+    sha256: A02DBA61EE1DD922F3B2DE0CED932E7E20E748C381E8AACC655A070BEC50DB02
+    artifact_version: "1.0"
+  reason: >
+    Real-dataset reconnaissance against the four frozen datasets
+    (clerk, cuad, greek_bar_bench, lara) measured token counts with
+    the pinned BGE-M3 tokenizer. Every dataset except clerk contains
+    canonical documents larger than the BGE-M3 maximum model input
+    of 8192 tokens: cuad 46.5% oversize (max 77,619 tokens),
+    greek_bar_bench 82.0% oversize (max 45,411 tokens), and lara
+    100.0% oversize (max 148,481 tokens). Encoder truncation would
+    silently discard the majority of the source content of three of
+    the four datasets and would make the retrieval comparison
+    against the executed LongRAG and My_RAG tracks meaningless.
+    A deterministic oversize policy must therefore be added and
+    frozen. The paper does not pin an oversize policy; the audit
+    classifies this as REQUIRES_INDEPENDENT_DESIGN. The policy
+    adopted here is a fixed-size windowing of oversize documents
+    using the same pinned BGE-M3 tokenizer that the frozen spec
+    already fixes as the embedding tokenizer. Every window carries
+    the canonical doc_id as its lineage_doc_id and expands back to
+    exactly one canonical document, so document-level evaluation is
+    unchanged. The amendment is a no-op on any document whose
+    token count is at or below the window budget, which includes
+    every document of the synthetic acceptance fixture and every
+    document of clerk.
+  reason_scope:
+    kind: oversize_document_windowing
+    post_retrieval_threshold_tuning: false
+    coefficient_changes: none
+    min_match_ratio_changes: none
+    fidelity_class_change: none
+    affects_architecture_defining_components: false
+    affects_evaluation_unit: false
+  patch:
+    metadata_schema:
+      windowing:
+        policy: fixed_size_window_with_pinned_bge_m3_tokenizer
+        window_content_tokens: 8190
+        special_token_count: 2
+        maximum_model_input_tokens: 8192
+        tokenizer_id: BAAI/bge-m3
+        tokenizer_revision: 5617a9f61b028005a4858fdac845db406aefb181
+        tokenizer_kind: xlm_roberta_fast
+        window_id_format: "<lineage_doc_id>:w<window_index>"
+        chunk_id_format: "<lineage_doc_id>:c<window_index>"
+        lineage_field: lineage_doc_id
+        metadata_scope: per_window_text
+        single_window_shortcut:
+          condition: token_count_at_or_below_window_budget
+          behaviour: >
+            Emit one window with window_index=0 and
+            doc_id = lineage_doc_id = original canonical doc_id.
+            The metadata record is derived from the full document
+            text, so single-window behaviour is byte-identical to
+            the un-windowed behaviour of the frozen spec.
+        multi_window_behaviour: >
+          Emit N windows with window_index in [0, N). Each window
+          stores the exact character span of the parent document
+          that the pinned tokenizer assigned to that window. The
+          metadata record is derived from the window text.
+        determinism: >
+          Window boundaries are a pure function of the parent
+          document's text_normalized and the pinned tokenizer.
+          Two runs against the same input produce identical window
+          boundaries, identical window IDs, and identical window
+          texts. No randomness, no nondeterministic tokenization.
+        coverage: >
+          The concatenation of the window character spans equals
+          the parent document's text_normalized exactly. No
+          characters are dropped, no characters are duplicated
+          across windows.
+    retrieval_boundary:
+      architecture_item_id_semantics: window_id
+      canonical_doc_id_semantics: lineage_doc_id
+      chunk_or_evidence_ids_semantics: tuple_of_one_window_chunk_id
+    document_expansion:
+      method: first_occurrence_by_rank
+      deduplication_key: canonical_doc_id
+      note: >
+        When multiple windows of the same canonical document appear
+        in the retrieval ranking, the first occurrence by ascending
+        rank is retained and all subsequent occurrences are
+        dropped. This matches the LongRAG document-expansion
+        precedent exactly and preserves the document-level
+        evaluation unit.
+
+effective_spec:
+  composed_from:
+    - baseline_audit/metadata_rag_clean_room_spec.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_01.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_02.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_03.yaml
+    - baseline_audit/metadata_rag_clean_room_spec_amendment_04.yaml
+  merge_rule: >
+    Amendments are applied in ascending numeric order. The patch of
+    each amendment is deep-merged into the accumulated effective
+    spec. Scalars and lists in the patch replace the corresponding
+    values in the spec. Unmentioned keys are unchanged.
+  merge_is_applied_at:
+    - scripts/validate_metadata_rag_clean_room_spec.py
+    - src/rag_system/baselines/metadata_rag_metadata.py
+    - src/rag_system/baselines/metadata_rag_adapter.py
+    - src/rag_system/baselines/metadata_rag_retrieval.py
+
+claims:
+  silent_substitution: false
+  changes_outward_retrieval_contract: false
+  changes_fidelity_class: false
+  changes_architecture_defining_components: false
+  changes_evaluation_unit: false

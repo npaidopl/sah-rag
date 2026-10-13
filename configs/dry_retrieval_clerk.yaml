@@ -1,0 +1,110 @@
+architecture:
+  id: dry_retrieval
+  name: Dry Retrieval Architecture
+  version: 1.0.0
+  frozen: true
+  generation_enabled: false
+
+dataset:
+  id: clerk
+  canonical_documents: 2756
+  parsed_documents: 2756
+  parent_records: 2756
+  child_chunks: 5317
+  benchmark_queries: 1000
+  query_splits:
+    train: 800
+    dev: 100
+    test: 100
+  qrel_rows: 2770
+  unique_positive_document_ids: 2756
+  positive_coverage_exact: true
+
+chunking:
+  tokenizer_model: BAAI/bge-m3
+  tokenizer_revision: 5617a9f61b028005a4858fdac845db406aefb181
+  maximum_model_tokens: 256
+  special_tokens: 2
+  content_token_capacity: 254
+  overlap_tokens: 32
+  chunker_version: 0.3.0
+
+embedding:
+  model_id: BAAI/bge-m3
+  model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+  configuration_hash: ece63a1cb8994de174df1664f700b700c18d3b57df8c04252c2a6258b2c5dab4
+  kind: hybrid
+  dense:
+    enabled: true
+    dimension: 1024
+    precision: float32
+    normalized: true
+  sparse:
+    enabled: true
+    representation: learned_lexical_weights
+  colbert:
+    enabled: false
+
+vector_backend:
+  type: qdrant_server
+  deployment: docker
+  image: qdrant/qdrant:v1.19.1
+  rest_url: http://127.0.0.1:6333
+  grpc_host: 127.0.0.1
+  grpc_port: 6334
+  collection_name: rag_clerk_d984acfa6aae
+  point_count: 5317
+  persistence: docker_named_volume
+
+retrieval:
+  default_profile: clerk_hybrid_rrf_default
+  dense_enabled: true
+  sparse_enabled: true
+  fusion: reciprocal_rank_fusion
+  child_candidate_limit: 200
+  document_limit: 100
+  document_ranking:
+    method: first_ranked_child_per_document
+    additional_chunk_weight: 0.0
+
+experimental_profiles:
+  - id: clerk_hybrid_rrf_multichunk_experimental
+    additional_chunk_weight: 0.5
+    selection_split: dev
+    selection_metric: ndcg_at_10
+    default: false
+
+reranking:
+  enabled: false
+  evaluated_model: BAAI/bge-reranker-v2-m3
+  status: disabled_after_pilot
+
+evaluation:
+  level: document
+  cutoffs:
+    - 1
+    - 5
+    - 10
+    - 100
+  metrics:
+    - recall_at_k
+    - precision_at_k
+    - reciprocal_rank
+    - ndcg_at_k
+    - hit_at_k
+  default_selection_split: dev
+  final_reporting_split: test
+
+runtime:
+  llm_generation_enabled: false
+  random_query_demo: scripts/demo_dry_retrieval.py
+  qdrant_ingestion: scripts/ingest_clerk_qdrant_server.py
+  qdrant_parity_validation: scripts/validate_clerk_qdrant_server_parity.py
+
+reproducibility:
+  deterministic_point_ids: true
+  checksummed_artifacts: true
+  typed_artifacts: true
+  json_schemas: true
+  code_revision_required: true
+  secrets_in_artifacts: false

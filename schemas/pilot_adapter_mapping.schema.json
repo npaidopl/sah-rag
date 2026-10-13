@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "source_query_id": {
+      "title": "Source Query Id",
+      "type": "string"
+    },
+    "target_example_id": {
+      "title": "Target Example Id",
+      "type": "string"
+    },
+    "target_relevant_doc_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Target Relevant Doc Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "source_query_id",
+    "target_example_id",
+    "target_relevant_doc_ids"
+  ],
+  "title": "PilotAdapterExampleMapping",
+  "type": "object"
+}

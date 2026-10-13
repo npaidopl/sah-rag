@@ -1,0 +1,97 @@
+artifact_type: my_rag_m0_contract
+artifact_version: "1.0"
+
+contract:
+  id: my_rag_m0_default_pipeline
+  version: "0.1.0"
+  status: FROZEN_FOR_EXECUTION
+
+architecture:
+  id: my_rag
+  display_name: rag_system
+  ownership: PROJECT_OWNED
+  fidelity_class: PROJECT_OWNED_REFERENCE
+  description: Structure-Aware Hierarchical Hybrid RAG
+  source_inspection: baseline_audit/my_rag_end_to_end_inspection.yaml
+
+scope:
+  datasets: [clerk, cuad, greek_bar_bench, lara]
+  datasets_in_full_suite: [ruler, loong, long_bench_v2, lara, greek_bar_bench, cuad, clerk]
+  scope_parallels_longrag_execution: true
+  reason: Fair comparison with LongRAG baseline (identical 4-dataset envelope)
+
+frozen_defaults:
+  chunker:
+    chunker_id: hierarchical_token_chunker
+    chunker_version: "0.3.0"
+    chunk_size: 256
+    chunk_overlap: 32
+    preserve_parent_boundaries: true
+    include_empty_parents: false
+  embedder:
+    provider: FlagEmbedding
+    model_id: BAAI/bge-m3
+    model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+    embedding_kind: hybrid
+    dense_dimension: 1024
+    dense_normalized: true
+    dense_precision: float16
+    device: cuda
+    use_fp16: true
+    maximum_model_input_tokens: 8192
+    document_batch_size: 16
+    query_batch_size: 32
+    query_max_length: 4098
+  storage:
+    backend: Qdrant
+    mode: local_persistence
+    dense_vector_name: dense
+    dense_distance: COSINE
+    sparse_vector_name: sparse
+    sparse_distance: IP
+    point_id_algorithm: 'uuid5(NAMESPACE_URL, "rag-chunk:{chunk_id}")'
+  retrieval:
+    methods_available: [dense, sparse, hybrid_rrf]
+    primary_method: hybrid_rrf
+    child_candidate_limit: 200
+    document_limit: 100
+    additional_child_weight: 0.05
+  evaluation:
+    evaluator: longrag_l6_reused
+    evaluation_level: document
+    cutoffs: [1, 5, 10, 20, 50]
+    primary_metric: macro_document_recall_at_10
+
+reuse_from_longrag:
+  query_dense_embeddings: false
+  reasoning: |
+    My_RAG is a hybrid retriever: it needs both dense and sparse
+    query representations. Rather than reuse only the dense half
+    from LongRAG and generate the sparse half separately, we
+    regenerate both in a single My_RAG Colab run for pipeline
+    self-containment. The dense vectors are computed with the same
+    model, revision, precision, and max_length, so they are
+    interchangeable with the LongRAG cache.
+
+output_namespaces:
+  root: outputs/external_my_rag
+  per_dataset_stages:
+    - parsed-v1
+    - chunks-v1
+    - embeddings-v1
+    - qdrant-v1
+    - retrieval-v1
+    - evaluation-v1
+  cross_dataset_artifacts:
+    - _m0_cross_dataset_evaluation.json
+    - _m0_closure_manifest.yaml
+
+protocol_commitments:
+  - Same 4 datasets as LongRAG
+  - Same query set (query_id + query_text projection)
+  - Same evaluator, same cutoffs, same primary metric
+  - Same ground truth (canonical relevant_ids)
+  - Zero generation, zero LLM judge
+  - Ground truth isolated to evaluation only
+
+next_gate: my_rag_m0_l2_materialize

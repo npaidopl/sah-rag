@@ -1,0 +1,97 @@
+architecture_id: longrag
+artifact_type: longrag_full_track_component_disposition
+artifact_version: '1.0'
+components:
+  canonical_document_input:
+    fidelity_risk: LOW
+    justification: LongRAG's original input is Wikipedia hyperlink grouping. Canonical
+      documents replace that per baseline_audit/longrag_adapter_spec.yaml.
+    role: ARCHITECTURE_SUPPORTING
+    treatment: CONTROLLED_ADAPTATION
+    validation: deterministic build_source_segments from CanonicalDocument; 1 document
+      = 1 source segment.
+  dense_only_retrieval:
+    fidelity_risk: NONE
+    justification: LongRAG retrieves long units via dense similarity over a reduced-unit
+      corpus. Introducing sparse, hybrid, or reranked retrieval would change the architecture.
+    role: ARCHITECTURE_DEFINING
+    treatment: PRESERVED
+    validation: single dense vector per unit; COSINE distance; no sparse signal; no
+      reranking; no hybrid fusion.
+  embedder:
+    fidelity_risk: MEDIUM
+    justification: BGE-M3 dense-only as controlled encoder per longrag_controlled_embedding_contract.yaml.
+      Native LongRAG embedder identity is unpinned and equivalence is not claimed.
+    role: ARCHITECTURE_SUPPORTING
+    treatment: CONTROLLED_REPLACEMENT
+    validation: pinned revision 5617a9f61b028005a4858fdac845db406aefb181; dense normalized;
+      dimension 1024.
+  llm_final_generation:
+    fidelity_risk: NONE
+    justification: Retrieval-only benchmark; generation is out of scope per common_retrieval_evaluation_contract.yaml.
+    role: OPTIONAL_DOWNSTREAM
+    treatment: DISABLED
+    validation: disabled in all L1-L7 stages.
+  llm_index_time:
+    fidelity_risk: NONE
+    justification: LongRAG does not require an LLM at index time.
+    role: NOT_PRESENT
+    treatment: N/A
+    validation: not applicable.
+  llm_query_time:
+    fidelity_risk: NONE
+    justification: LongRAG retrieval is dense-only; no query-time LLM stage is part
+      of the architecture.
+    role: NOT_PRESENT
+    treatment: N/A
+    validation: not applicable.
+  long_document_grouping:
+    fidelity_risk: NONE
+    justification: LongRAG's defining characteristic is grouping adjacent segments
+      into long retrieval units. Replacing with flat chunks would collapse the architecture
+      into a different design.
+    role: ARCHITECTURE_DEFINING
+    treatment: PRESERVED
+    validation: deterministic; non-empty member_doc_ids; one unit per document minimum;
+      adjacent consecutive segments packed to target budget.
+  long_reader:
+    fidelity_risk: NONE
+    justification: LongRAG's long reader is an answer-synthesis stage and is explicitly
+      excluded in longrag_environment_plan.yaml.
+    role: OPTIONAL_DOWNSTREAM
+    treatment: DISABLED
+    validation: disabled in all L1-L7 stages.
+  oversize_handling:
+    fidelity_risk: LOW
+    justification: Long-context canonical documents can exceed any finite target unit
+      size. The source-corrected pilot pattern splits oversized segments into target-size
+      windows using the pinned BGE-M3 tokenizer. This does not alter LongRAG's long-unit
+      retrieval semantics; it preserves complete source coverage under a fixed budget.
+    role: ARCHITECTURE_SUPPORTING
+    treatment: CONTROLLED_ADAPTATION
+    validation: deterministic window boundaries; every window decoded with pinned
+      tokenizer; member_doc_ids preserved; complete_source_coverage enforced by summarize_long_units.
+  storage_backend:
+    fidelity_risk: LOW
+    justification: Qdrant dense-only with exact equivalence demonstrated on the frozen
+      synthetic fixture (longrag_storage_equivalence_report.yaml).
+    role: ARCHITECTURE_SUPPORTING
+    treatment: CONTROLLED_REPLACEMENT
+    validation: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK; top-1, top-5, top-10 overlap
+      = 1.0 on fixture.
+  tokenizer:
+    fidelity_risk: NONE
+    justification: Tokenizer identity must match embedder identity per component_substitution_policy.yaml.
+    role: ARCHITECTURE_SUPPORTING
+    treatment: MATCHES_EMBEDDER
+    validation: BAAI/bge-m3 revision 5617a9f61b028005a4858fdac845db406aefb181.
+  tokenizer_bound_segment_tokens:
+    fidelity_risk: NONE
+    justification: Segment token counts must be measured with the same tokenizer that
+      will produce embeddings, otherwise the 4096-token budget does not correspond
+      to the model input budget. The source-corrected pilot already adopted this.
+    role: ARCHITECTURE_SUPPORTING
+    treatment: MATCHES_EMBEDDER
+    validation: pinned BGE-M3 revision 5617a9f61b028005a4858fdac845db406aefb181; add_special_tokens=False
+      for measurement, special_token_count=2 accounted at embedding.
+fidelity_class: CONTROLLED_ADAPTATION

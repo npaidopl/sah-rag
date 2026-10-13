@@ -1,0 +1,130 @@
+{
+  "additionalProperties": false,
+  "description": "Header for one long-unit embedding shard.",
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "longrag_embedding_shard_header",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "condition_id": {
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "exclusiveMinimum": 0,
+      "title": "Dense Dimension",
+      "type": "integer"
+    },
+    "dense_normalized": {
+      "title": "Dense Normalized",
+      "type": "boolean"
+    },
+    "dense_precision": {
+      "title": "Dense Precision",
+      "type": "string"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "interface_validation": {
+      "default": true,
+      "title": "Interface Validation",
+      "type": "boolean"
+    },
+    "maximum_model_input_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Model Input Tokens",
+      "type": "integer"
+    },
+    "maximum_records": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Records",
+      "type": "integer"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "paper_faithful_result": {
+      "default": false,
+      "title": "Paper Faithful Result",
+      "type": "boolean"
+    },
+    "shard_id": {
+      "title": "Shard Id",
+      "type": "string"
+    },
+    "shard_index": {
+      "minimum": 0,
+      "title": "Shard Index",
+      "type": "integer"
+    },
+    "source_architecture_commit": {
+      "title": "Source Architecture Commit",
+      "type": "string"
+    },
+    "source_units_path": {
+      "title": "Source Units Path",
+      "type": "string"
+    },
+    "source_units_sha256": {
+      "title": "Source Units Sha256",
+      "type": "string"
+    },
+    "special_token_count": {
+      "minimum": 0,
+      "title": "Special Token Count",
+      "type": "integer"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "shard_id",
+    "shard_index",
+    "dataset_id",
+    "condition_id",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "embedding_config_hash",
+    "dense_dimension",
+    "dense_precision",
+    "dense_normalized",
+    "maximum_model_input_tokens",
+    "special_token_count",
+    "maximum_records",
+    "adapter_id",
+    "adapter_version",
+    "source_architecture_commit",
+    "source_units_path",
+    "source_units_sha256"
+  ],
+  "title": "LongUnitEmbeddingShardHeader",
+  "type": "object"
+}

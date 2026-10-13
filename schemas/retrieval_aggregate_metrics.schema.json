@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "description": "Macro-averaged metrics over multiple queries.",
+  "properties": {
+    "retrieval_method": {
+      "title": "Retrieval Method",
+      "type": "string"
+    },
+    "evaluation_level": {
+      "title": "Evaluation Level",
+      "type": "string"
+    },
+    "cutoff": {
+      "exclusiveMinimum": 0,
+      "title": "Cutoff",
+      "type": "integer"
+    },
+    "query_count": {
+      "exclusiveMinimum": 0,
+      "title": "Query Count",
+      "type": "integer"
+    },
+    "mean_recall_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Mean Recall At K",
+      "type": "number"
+    },
+    "mean_precision_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Mean Precision At K",
+      "type": "number"
+    },
+    "mean_reciprocal_rank": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Mean Reciprocal Rank",
+      "type": "number"
+    },
+    "mean_ndcg_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Mean Ndcg At K",
+      "type": "number"
+    },
+    "mean_hit_at_k": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Mean Hit At K",
+      "type": "number"
+    }
+  },
+  "required": [
+    "retrieval_method",
+    "evaluation_level",
+    "cutoff",
+    "query_count",
+    "mean_recall_at_k",
+    "mean_precision_at_k",
+    "mean_reciprocal_rank",
+    "mean_ndcg_at_k",
+    "mean_hit_at_k"
+  ],
+  "title": "RetrievalAggregateMetrics",
+  "type": "object"
+}

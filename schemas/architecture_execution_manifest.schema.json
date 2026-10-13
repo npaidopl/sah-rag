@@ -1,0 +1,401 @@
+{
+  "$defs": {
+    "ExecutionArtifactRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_type": {
+          "title": "Artifact Type",
+          "type": "string"
+        },
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "relative_path",
+        "sha256",
+        "bytes"
+      ],
+      "title": "ExecutionArtifactRecord",
+      "type": "object"
+    },
+    "ExecutionFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "failure_stage": {
+          "title": "Failure Stage",
+          "type": "string"
+        },
+        "failure_type": {
+          "title": "Failure Type",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "occurred_at_utc": {
+          "format": "date-time",
+          "title": "Occurred At Utc",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "traceback_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traceback Sha256"
+        }
+      },
+      "required": [
+        "failure_type",
+        "failure_stage",
+        "message",
+        "retryable",
+        "occurred_at_utc"
+      ],
+      "title": "ExecutionFailure",
+      "type": "object"
+    },
+    "ExecutionResourceUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_hit_count": {
+          "default": 0,
+          "title": "Cache Hit Count",
+          "type": "integer"
+        },
+        "cache_miss_count": {
+          "default": 0,
+          "title": "Cache Miss Count",
+          "type": "integer"
+        },
+        "chunk_count": {
+          "default": 0,
+          "title": "Chunk Count",
+          "type": "integer"
+        },
+        "document_count": {
+          "default": 0,
+          "title": "Document Count",
+          "type": "integer"
+        },
+        "embedding_input_tokens": {
+          "default": 0,
+          "title": "Embedding Input Tokens",
+          "type": "integer"
+        },
+        "embedding_request_count": {
+          "default": 0,
+          "title": "Embedding Request Count",
+          "type": "integer"
+        },
+        "evaluation_seconds": {
+          "default": 0.0,
+          "title": "Evaluation Seconds",
+          "type": "number"
+        },
+        "expanded_document_count": {
+          "default": 0,
+          "title": "Expanded Document Count",
+          "type": "integer"
+        },
+        "index_bytes": {
+          "default": 0,
+          "title": "Index Bytes",
+          "type": "integer"
+        },
+        "indexing_seconds": {
+          "default": 0.0,
+          "title": "Indexing Seconds",
+          "type": "number"
+        },
+        "input_bytes": {
+          "default": 0,
+          "title": "Input Bytes",
+          "type": "integer"
+        },
+        "input_validation_seconds": {
+          "default": 0.0,
+          "title": "Input Validation Seconds",
+          "type": "number"
+        },
+        "judgment_count": {
+          "default": 0,
+          "title": "Judgment Count",
+          "type": "integer"
+        },
+        "llm_failure_count": {
+          "default": 0,
+          "title": "Llm Failure Count",
+          "type": "integer"
+        },
+        "llm_input_tokens": {
+          "default": 0,
+          "title": "Llm Input Tokens",
+          "type": "integer"
+        },
+        "llm_output_tokens": {
+          "default": 0,
+          "title": "Llm Output Tokens",
+          "type": "integer"
+        },
+        "llm_request_count": {
+          "default": 0,
+          "title": "Llm Request Count",
+          "type": "integer"
+        },
+        "peak_gpu_memory_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peak Gpu Memory Bytes"
+        },
+        "peak_process_ram_bytes": {
+          "default": 0,
+          "title": "Peak Process Ram Bytes",
+          "type": "integer"
+        },
+        "persistence_seconds": {
+          "default": 0.0,
+          "title": "Persistence Seconds",
+          "type": "number"
+        },
+        "preprocessing_seconds": {
+          "default": 0.0,
+          "title": "Preprocessing Seconds",
+          "type": "number"
+        },
+        "query_count": {
+          "default": 0,
+          "title": "Query Count",
+          "type": "integer"
+        },
+        "retrieval_artifact_bytes": {
+          "default": 0,
+          "title": "Retrieval Artifact Bytes",
+          "type": "integer"
+        },
+        "retrieval_seconds": {
+          "default": 0.0,
+          "title": "Retrieval Seconds",
+          "type": "number"
+        },
+        "retrieved_item_count": {
+          "default": 0,
+          "title": "Retrieved Item Count",
+          "type": "integer"
+        },
+        "total_execution_seconds": {
+          "default": 0.0,
+          "title": "Total Execution Seconds",
+          "type": "number"
+        },
+        "total_output_bytes": {
+          "default": 0,
+          "title": "Total Output Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "ExecutionResourceUsage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "answer_evaluation_enabled": {
+      "default": false,
+      "title": "Answer Evaluation Enabled",
+      "type": "boolean"
+    },
+    "architecture_classification": {
+      "title": "Architecture Classification",
+      "type": "string"
+    },
+    "architecture_display_name": {
+      "title": "Architecture Display Name",
+      "type": "string"
+    },
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "architecture_source_revision": {
+      "title": "Architecture Source Revision",
+      "type": "string"
+    },
+    "artifact_inventory": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ExecutionArtifactRecord"
+      },
+      "title": "Artifact Inventory",
+      "type": "array"
+    },
+    "canonical_input_manifest_sha256": {
+      "title": "Canonical Input Manifest Sha256",
+      "type": "string"
+    },
+    "completed_at_utc": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completed At Utc"
+    },
+    "configuration_hash": {
+      "title": "Configuration Hash",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dataset_revision": {
+      "title": "Dataset Revision",
+      "type": "string"
+    },
+    "execution_environment_id": {
+      "title": "Execution Environment Id",
+      "type": "string"
+    },
+    "execution_status": {
+      "title": "Execution Status",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExecutionFailure"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "final_generation_enabled": {
+      "default": false,
+      "title": "Final Generation Enabled",
+      "type": "boolean"
+    },
+    "implementation_class": {
+      "title": "Implementation Class",
+      "type": "string"
+    },
+    "llm_as_judge_enabled": {
+      "default": false,
+      "title": "Llm As Judge Enabled",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "project_code_revision": {
+      "title": "Project Code Revision",
+      "type": "string"
+    },
+    "qa_model_enabled": {
+      "default": false,
+      "title": "Qa Model Enabled",
+      "type": "boolean"
+    },
+    "random_seed": {
+      "minimum": 0,
+      "title": "Random Seed",
+      "type": "integer"
+    },
+    "resource_usage": {
+      "$ref": "#/$defs/ExecutionResourceUsage"
+    },
+    "safety": {
+      "additionalProperties": true,
+      "title": "Safety",
+      "type": "object"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    },
+    "started_at_utc": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Started At Utc"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "architecture_id",
+    "architecture_display_name",
+    "architecture_classification",
+    "implementation_class",
+    "adapter_id",
+    "adapter_version",
+    "architecture_source_revision",
+    "project_code_revision",
+    "dataset_id",
+    "dataset_revision",
+    "split",
+    "random_seed",
+    "configuration_hash",
+    "canonical_input_manifest_sha256",
+    "execution_environment_id",
+    "execution_status"
+  ],
+  "title": "ArchitectureExecutionManifest",
+  "type": "object"
+}

@@ -1,0 +1,291 @@
+artifact_type: architecture_environment_matrix
+artifact_version: "1.0"
+
+host_profile: baseline_audit/execution_host_profile.yaml
+environment_contract: baseline_audit/execution_environment_contract.yaml
+portfolio_registry: baseline_audit/architecture_portfolio_dispositions.yaml
+
+summary:
+  architecture_count: 10
+  executable_on_current_host: 1
+  executable_on_current_host_with_limits: 3
+  requires_remote_gpu: 2
+  requires_hosted_service: 0
+  requires_service_environment: 1
+  requires_multimodal_contract: 1
+  not_executable: 2
+  infrastructure_pilot_eligible: 4
+  publishable_execution_allowed: false
+
+architectures:
+
+  longrag:
+    portfolio_status: READY_FOR_DATA
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    blockers: []
+    executable_components:
+      - canonical dataset loading
+      - long-unit construction
+      - CPU dense embedding (small)
+      - deterministic long-unit ranking
+      - generation-free retrieval evaluation
+    prohibited_components:
+      - long reader / final answer generation
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 8589934592
+      gpu: not_required
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: not_required_for_retrieval
+      model_license_review: false
+    pilot_eligible: true
+    reason: >
+      Retrieval path is CPU-feasible. Reader disabled. Fits comfortably
+      within available RAM and disk.
+    next_action: Include in the first infrastructure-only pilot.
+
+  raptor:
+    portfolio_status: READY_FOR_DATA
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    blockers: []
+    executable_components:
+      - leaf construction
+      - CPU embedding
+      - recursive clustering
+      - tree serialization
+      - ranked node retrieval
+      - generation-free retrieval evaluation
+    prohibited_components:
+      - answer generation
+      - live summarization at full scale
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 8589934592
+      gpu: not_required_for_small_pilot
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: approval_required
+      model_license_review: false
+    pilot_eligible: true
+    reason: >
+      Small fixture feasible on CPU. Summary generation is bounded for
+      a synthetic smoke; larger corpora would require a hosted LLM.
+    next_action: Include in the first infrastructure-only pilot.
+
+  hipporag2:
+    portfolio_status: READY_FOR_DATA
+    environment_status: REQUIRES_REMOTE_GPU
+    blockers:
+      - MISSING_GPU
+    executable_components: []
+    prohibited_components:
+      - full OpenIE
+      - phrase graph construction at scale
+      - PPR over large graphs
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 17179869184
+      gpu: required
+      gpu_memory_bytes: 17179869184
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: approval_required
+      model_license_review: true
+    pilot_eligible: false
+    reason: >
+      OpenIE and embedding for phrase/passage graph construction are
+      GPU-bound on realistic corpora. Current host has no CUDA-capable
+      GPU.
+    next_action: Defer until a remote GPU environment is approved.
+
+  lightrag:
+    portfolio_status: READY_FOR_DATA
+    environment_status: EXECUTABLE_ON_CURRENT_HOST_WITH_LIMITS
+    blockers: []
+    executable_components:
+      - canonical source loading
+      - chunk mapping
+      - CPU embedding
+      - deterministic hybrid retrieval
+      - generation-free retrieval evaluation
+    prohibited_components:
+      - final answer generation
+      - full entity-relation extraction at scale
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 8589934592
+      gpu: not_required_for_small_pilot
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: approval_required
+      model_license_review: false
+    pilot_eligible: true
+    reason: >
+      Small hybrid retrieval pilot is CPU-feasible with deterministic
+      embedder. Full entity-relation extraction at scale would require
+      a hosted LLM.
+    next_action: Include in the first infrastructure-only pilot.
+
+  pathrag:
+    portfolio_status: READY_FOR_DATA
+    environment_status: EXECUTABLE_ON_CURRENT_HOST
+    blockers: []
+    executable_components:
+      - project-owned comparator pipeline (all stages)
+      - graph construction
+      - propagation
+      - scoring
+      - retrieval evaluation
+    prohibited_components:
+      - foreign PathRAG repository (BLOCKED)
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 4294967296
+      gpu: not_required
+      services: []
+      network: not_required
+      hosted_models: not_required
+      model_license_review: false
+    pilot_eligible: true
+    reason: >
+      Project-owned comparator has no foreign dependencies, no model
+      downloads, and no GPU requirements. Runs entirely on CPU.
+    next_action: Include in the first infrastructure-only pilot as the
+      reference baseline.
+
+  disretrieval:
+    portfolio_status: CONDITIONAL_GO
+    environment_status: NOT_EXECUTABLE
+    blockers:
+      - FOREIGN_EXECUTION_BLOCKED
+      - IMPLEMENTATION_NOT_READY
+      - MISSING_GPU
+    executable_components: []
+    prohibited_components:
+      - foreign DISRetrieval repository execution
+      - RST parser training
+      - vLLM summarization
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 17179869184
+      gpu: required
+      gpu_memory_bytes: 17179869184
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: approval_required
+      model_license_review: true
+    pilot_eligible: false
+    reason: >
+      No software license in the foreign repository. Clean-room
+      reimplementation has not started. Pipeline requires isolated
+      CUDA environments for RST parsing and vLLM summarization.
+    next_action: Freeze clean-room specification before any execution
+      planning.
+
+  memorag:
+    portfolio_status: CONDITIONAL_GO
+    environment_status: REQUIRES_REMOTE_GPU
+    blockers:
+      - MISSING_MODEL_LICENSE
+      - MISSING_GPU
+      - IMPLEMENTATION_NOT_READY
+    executable_components: []
+    prohibited_components:
+      - memory model execution
+      - KV compression
+      - clue generation at scale
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 34359738368
+      gpu: required
+      gpu_memory_bytes: 25769803776
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: approval_required
+      model_license_review: true
+    pilot_eligible: false
+    reason: >
+      Memory model weights are distributed under a license separate
+      from the Apache-2.0 repository. No approved GPU environment.
+    next_action: Complete model-license review and provision a
+      GPU-backed environment before adapter planning.
+
+  kag:
+    portfolio_status: DEFERRED_WITH_REASON
+    environment_status: REQUIRES_SERVICE_ENVIRONMENT
+    blockers:
+      - MISSING_SERVICE
+      - HOSTED_COST_NOT_APPROVED
+    executable_components: []
+    prohibited_components:
+      - OpenSPG engine execution
+      - graph backend execution
+      - hosted LLM calls
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 17179869184
+      gpu: optional
+      services:
+        - OpenSPG engine
+        - graph backend (Neo4j or equivalent)
+      network: controlled_network
+      hosted_models: approval_required
+      model_license_review: true
+    pilot_eligible: false
+    reason: >
+      Requires an approved OpenSPG service environment, a running
+      graph backend, and a hosted LLM budget. None are available.
+    next_action: Re-evaluate only after the service stack is approved.
+
+  metadata_rag:
+    portfolio_status: CONDITIONAL_GO
+    environment_status: NOT_EXECUTABLE
+    blockers:
+      - IMPLEMENTATION_NOT_READY
+    executable_components: []
+    prohibited_components: []
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 4294967296
+      gpu: not_required
+      services: []
+      network: allowlisted_downloads_only
+      hosted_models: not_required
+      model_license_review: false
+    pilot_eligible: false
+    reason: >
+      Project-owned implementation has not started. Clean-room
+      specification must be frozen first.
+    next_action: Write clean-room specification and typed artifacts.
+
+  hikey:
+    portfolio_status: DEFERRED_WITH_REASON
+    environment_status: REQUIRES_MULTIMODAL_CONTRACT
+    blockers:
+      - MULTIMODAL_CONTRACT_MISSING
+      - DATASET_SOURCE_FORMAT_UNVERIFIED
+      - MISSING_MODEL_LICENSE
+      - MISSING_GPU
+    executable_components: []
+    prohibited_components:
+      - multimodal pipeline
+      - document hierarchical parsing
+      - LVLM reader
+    required_environment:
+      cpu: yes
+      system_ram_bytes: 17179869184
+      gpu: required
+      gpu_memory_bytes: 25769803776
+      services: []
+      network: controlled_network
+      hosted_models: approval_required
+      model_license_review: true
+    pilot_eligible: false
+    reason: >
+      The cross-baseline envelope is text-only (v0.1.0). HiKEY requires
+      a multimodal envelope (v0.2.0). No public source implementation.
+      No approved multimodal GPU environment.
+    next_action: Preserve as deferred until contract v0.2.0 is
+      approved and all parser, dataset, model-license, and multimodal
+      host gates are satisfied.

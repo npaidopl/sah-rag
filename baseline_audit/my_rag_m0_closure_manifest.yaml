@@ -1,0 +1,78 @@
+architecture_id: my_rag
+architecture_identity:
+  chunker: HierarchicalChildChunker v0.3.0 (256/32)
+  document_aggregation: best_parent_score + 0.05 * sum_of_others
+  embedder: BGE-M3 hybrid (dense 1024 + learned sparse)
+  retrieval: hybrid RRF k=60 + parent aggregation + doc resolution
+  storage: Qdrant hybrid (dense COSINE + sparse IP)
+artifact_type: my_rag_m0_closure_manifest
+artifact_version: '1.0'
+code_revision: 64dfce9390ec4a52faec4cbf245cff8cc639cf3d
+comparison_baseline: longrag_full_track
+comparison_ready: true
+controlled_adaptations:
+- equivalence_basis: Identical dense cosine, sparse dot-product, RRF (k=60), parent
+    aggregation (w=0.05), and document resolution. Only the execution substrate changed.
+  equivalence_claimed: true
+  id: qdrant_to_numpy_retrieval
+  rationale: Qdrant local mode is brute-force and scales poorly with point count (>20k
+    points -> >1s/query). Replaced with mathematically equivalent in-memory numpy+scipy
+    computation.
+- equivalence_claimed: false
+  id: query_dense_reexposure
+  rationale: Dense query embeddings were regenerated for My_RAG rather than reused
+    from the LongRAG cache. Config hash differs due to prefix string (hybrid vs dense).
+    Not verified as byte-identical.
+documented_limitations:
+- Reduced dataset scope (4 of 7 datasets).
+- numpy-based retrieval is a controlled adaptation of the Qdrant-native RRF path;
+  controlled equivalence argument rests on mathematical identity, not empirical verification.
+- Same embedding and inference precision as LongRAG (FP16, GPU).
+- 'cuad: zero-relevance queries excluded per common evaluator contract.'
+execution_id: my-rag-m0-l7-closure-v1
+fidelity_class: PROJECT_OWNED_REFERENCE
+macro_average_across_datasets:
+  hit@1: 0.25534928235353654
+  hit@10: 0.4520335249099263
+  hit@20: 0.541641318428735
+  hit@5: 0.3846347189238949
+  hit@50: 0.6658161504140321
+  mrr@1: 0.25534928235353654
+  mrr@10: 0.3122732511813
+  mrr@20: 0.3186070099994768
+  mrr@5: 0.3032325356550932
+  mrr@50: 0.322529747269475
+  ndcg@10: 0.3213677842954218
+  ndcg@50: 0.37331099001722623
+  precision@10: 0.05572835249099264
+  recall@1: 0.21799342917893338
+  recall@10: 0.4049358066559581
+  recall@20: 0.49383615969857625
+  recall@5: 0.3394142824159584
+  recall@50: 0.6209588091441908
+primary_metric: macro_document_Recall_at_10
+primary_metric_value: 0.4049358066559581
+scope:
+  datasets_executed:
+  - clerk
+  - cuad
+  - greek_bar_bench
+  - lara
+  datasets_in_full_suite:
+  - ruler
+  - loong
+  - long_bench_v2
+  - lara
+  - greek_bar_bench
+  - cuad
+  - clerk
+  reduced_scope_reason: 'Parallel scope with LongRAG baseline for fair comparison:
+    4 datasets spanning small/medium/large document sizes.'
+stage_summary:
+  l1_contract_freeze: true
+  l2_parse_chunk: true
+  l3_colab_embeddings: true
+  l4_qdrant_storage: true
+  l5_retrieval_numpy: true
+  l6_evaluation: true
+status: MY_RAG_M0_BASELINE_CLOSED

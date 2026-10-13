@@ -1,0 +1,170 @@
+artifact_type: my_rag_hypothesis_verdicts
+artifact_version: '1.0'
+verdicts:
+  H1:
+    evidence:
+      curve:
+      - dataset_count: 4
+        hit@10: 0.45102542372881355
+        mrr@10: 0.30806101358622545
+        ndcg@10: 0.31244709862540804
+        precision@10: 0.055352542372881355
+        recall@10: 0.40146292372881354
+        value: 256
+      - dataset_count: 4
+        hit@10: 0.4302881355932203
+        mrr@10: 0.2934089487489911
+        ndcg@10: 0.2989820076119496
+        precision@10: 0.055528813559322036
+        recall@10: 0.3811661117836965
+        value: 512
+      - dataset_count: 4
+        hit@10: 0.4243135593220339
+        mrr@10: 0.29817568603712674
+        ndcg@10: 0.30142700620563695
+        precision@10: 0.054931355932203385
+        recall@10: 0.37519153551251005
+        value: 1024
+      monotonicity:
+        direction: decreasing
+        dominant_fraction: 1.0
+        total_change: -0.026271
+        verdict: MONOTONE
+      saturation:
+        marginal_gains:
+        - -0.005975
+        saturation_value: 512
+        verdict: SATURATED
+    note: chunk_size is monotone decreasing in the evaluated grid ({256, 512, 1024});
+      the hypothesis predicted increase then plateau/worsen, but the data shows monotone
+      decrease with best at 256.
+    statement: chunk_size improves up to a plateau, then worsens.
+    verdict: NOT_SUPPORTED
+  H2:
+    evidence:
+      curve:
+      - dataset_count: 4
+        hit@10: 0.44614406779661014
+        mrr@10: 0.3061146926284638
+        ndcg@10: 0.3097793925781622
+        precision@10: 0.055864406779661015
+        recall@10: 0.3929982344632768
+        value: 0
+      - dataset_count: 4
+        hit@10: 0.45102542372881355
+        mrr@10: 0.30806101358622545
+        ndcg@10: 0.31244709862540804
+        precision@10: 0.055352542372881355
+        recall@10: 0.40146292372881354
+        value: 32
+      - dataset_count: 4
+        hit@10: 0.45352542372881355
+        mrr@10: 0.3070401802528921
+        ndcg@10: 0.31255816956221966
+        precision@10: 0.05685254237288136
+        recall@10: 0.4020879237288135
+        value: 128
+      monotonicity:
+        direction: increasing
+        dominant_fraction: 1.0
+        total_change: 0.00909
+        verdict: MONOTONE
+      saturation:
+        marginal_gains:
+        - 0.008465
+        - 0.000625
+        saturation_value: 0
+        verdict: SATURATED
+    note: overlap is monotone increasing in {0, 32, 128}; the hypothesis predicted
+      moderate overlap helps and large hurts, but the data shows continued improvement
+      at 128. Saturation observed at 32 (marginal gain < 0.01 after).
+    statement: Moderate overlap improves; large overlap hurts.
+    verdict: PARTIALLY_SUPPORTED
+  H3:
+    evidence:
+      curve:
+      - dataset_count: 4
+        hit@10: 0.4299067796610169
+        mrr@10: 0.30696292372881356
+        ndcg@10: 0.3072955255710339
+        precision@10: 0.05374067796610169
+        recall@10: 0.38117761299435027
+        value: 50
+      - dataset_count: 4
+        hit@10: 0.44802542372881354
+        mrr@10: 0.31496438660209847
+        ndcg@10: 0.31679948523214246
+        precision@10: 0.054802542372881353
+        recall@10: 0.39796292372881353
+        value: 100
+      - dataset_count: 4
+        hit@10: 0.45102542372881355
+        mrr@10: 0.30806101358622545
+        ndcg@10: 0.31244709862540804
+        precision@10: 0.055352542372881355
+        recall@10: 0.40146292372881354
+        value: 200
+      monotonicity:
+        direction: increasing
+        dominant_fraction: 1.0
+        total_change: 0.020285
+        verdict: MONOTONE
+      saturation:
+        marginal_gains:
+        - 0.0035
+        saturation_value: 100
+        verdict: SATURATED
+    note: candidate_limit improves monotonically and saturates at 100 (marginal gain
+      < 0.01).
+    statement: Increasing candidate_k improves until saturation.
+    verdict: SUPPORTED
+  H4:
+    evidence:
+      note: R@1 < R@5 < R@10 < R@20 < R@50 (monotone increasing) in M7 locked test.
+        Precision@10 fixed cutoff does not increase monotonically with k by construction
+        (denominator grows). Consistent with hypothesis.
+    statement: Recall monotone in top_k, precision not monotone.
+    verdict: TESTED_AS_EVALUATION_VIEW
+  H5:
+    evidence:
+      curve:
+      - dataset_count: 4
+        hit@10: 0.4049322033898305
+        mrr@10: 0.24372869249394674
+        ndcg@10: 0.25910772476935967
+        precision@10: 0.047993220338983046
+        recall@10: 0.3623280367231638
+        value: dense
+      - dataset_count: 4
+        hit@10: 0.45102542372881355
+        mrr@10: 0.30806101358622545
+        ndcg@10: 0.31244709862540804
+        precision@10: 0.055352542372881355
+        recall@10: 0.40146292372881354
+        value: hybrid_rrf
+      - dataset_count: 4
+        hit@10: 0.42616949152542377
+        mrr@10: 0.2835481604788808
+        ndcg@10: 0.2918803496435323
+        precision@10: 0.054366949152542365
+        recall@10: 0.3731992534301857
+        value: sparse
+      hybrid_vs_dense: 0.03913488700564971
+      hybrid_vs_sparse: 0.028263670298627863
+    note: Hybrid RRF achieves the highest macro R@10 in the one-factor screening across
+      all modes.
+    statement: Hybrid RRF outperforms on datasets where dense and sparse have complementary
+      errors.
+    verdict: SUPPORTED
+  H6:
+    evidence:
+      reason: No configurable context-construction stage exists in the current pipeline.
+        Adding one would change the architecture, not its operating point.
+    statement: Context per row improves until saturation.
+    verdict: NOT_TESTABLE
+  H7:
+    evidence:
+      reason: No reranker component is present in the current pipeline. RRF fusion
+        and parent aggregation are core ranking operations, not a separate reranker.
+    statement: Reranking depth has diminishing returns.
+    verdict: NOT_TESTABLE

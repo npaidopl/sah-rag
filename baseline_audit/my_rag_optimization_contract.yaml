@@ -1,0 +1,230 @@
+artifact_type: my_rag_optimization_contract
+artifact_version: '1.0'
+contract:
+  fidelity_class: PROJECT_OWNED_REFERENCE
+  id: my_rag_m0_optimization
+  status: FROZEN_FOR_EXECUTION
+  version: 0.1.0
+controlled_adaptations:
+- decision: regenerate_dense_and_sparse_query_embeddings
+  id: query_embedding_reuse
+  reason: single_pass_simpler_than_partial_reuse
+- decision: keep_numpy_based_retrieval
+  id: numpy_retrieval_substrate
+  reason: mathematically_equivalent_to_qdrant_native_rrf
+decision_rules:
+  best_config_selection:
+    rule: one_standard_error
+    tie_break:
+    - lower_p95_latency
+    - lower_storage_bytes
+    - smaller_chunk_size
+    - lower_candidate_k
+    - config_id_ascending
+  dominance:
+    rule: A_dominates_B_if_quality_ge_and_latency_le_and_storage_le_and_at_least_one_strict
+  monotonicity:
+    direction_consistency: at_least_80_percent_adjacent_steps
+    total_change: nonzero_with_bootstrap_support
+  saturation:
+    marginal_quality_gain_threshold: 0.01
+dev_test_split:
+  development_fraction: 0.5
+  fingerprint_sha256: cc04a27d518a7fc3a9232c61fec6a18e1e6f178ff8b932d44c58f293474065ea
+  grouping_key: query.doc_ids
+  leakage_across_splits: prohibited
+  policy: grouped_by_document
+  seed: 0
+  split_artifact: baseline_audit/my_rag_optimization_split.yaml
+  split_jsonl: outputs/external_my_rag/_optimization_split.jsonl
+  test_fraction: 0.5
+grid:
+  candidate_limits:
+  - 50
+  - 100
+  - 200
+  chunking_variants:
+  - chunk_overlap: 0
+    chunk_size: 256
+  - chunk_overlap: 32
+    chunk_size: 256
+  - chunk_overlap: 128
+    chunk_size: 256
+  - chunk_overlap: 0
+    chunk_size: 512
+  - chunk_overlap: 32
+    chunk_size: 512
+  - chunk_overlap: 128
+    chunk_size: 512
+  - chunk_overlap: 0
+    chunk_size: 1024
+  - chunk_overlap: 32
+    chunk_size: 1024
+  - chunk_overlap: 128
+    chunk_size: 1024
+  evaluation_cutoffs:
+  - 1
+  - 5
+  - 10
+  - 20
+  - 50
+  primary_metric: macro_document_Recall_at_10
+  retrieval_modes:
+  - dense
+  - sparse
+  - hybrid_rrf
+hypotheses:
+  H1:
+    axis: chunk_size
+    status: TESTABLE
+  H2:
+    axis: chunk_overlap
+    status: TESTABLE
+  H3:
+    axis: candidate_limit
+    status: TESTABLE
+  H4:
+    axis: cutoffs
+    status: TESTABLE_AS_EVALUATION_VIEW
+  H5:
+    axis: retrieval_mode
+    status: TESTABLE
+  H6:
+    reason: no context builder
+    status: NOT_TESTABLE
+  H7:
+    reason: no reranker
+    status: NOT_TESTABLE
+next_gate: my_rag_m2_chunking_grid
+parameter_space:
+  frozen:
+  - name: parent_rest_weight
+    reason: architecture-defining aggregation formula
+    value: 0.05
+  - name: rrf_k
+    reason: hardcoded constant in numpy path; not exposed via Qdrant
+    value: 60
+  - name: preserve_parent_boundaries
+    reason: pydantic validator enforces True
+    value: true
+  - name: structural_parser_policy
+    reason: architecture-defining
+    value: project_default
+  - name: document_resolution_policy
+    reason: architecture-defining
+    value: best_parent_by_score
+  - name: embedding_model_id
+    reason: cross-architecture contract
+    value: BAAI/bge-m3
+  - name: embedding_revision
+    reason: cross-architecture contract
+    value: 5617a9f61b028005a4858fdac845db406aefb181
+  - name: dense_dimension
+    reason: model-fixed
+    value: 1024
+  - name: parent_limit
+    reason: evaluation design constraint; sufficient for top-50 cutoffs
+    value: 100
+  - name: document_limit
+    reason: evaluation design constraint; sufficient for top-50 cutoffs
+    value: 100
+  not_present:
+  - name: rerank_depth
+    reason: no reranker in pipeline; H7 not testable
+  - name: maximum_context_tokens_per_query
+    reason: no context builder; H6 not testable
+  - name: row_context_token_cap
+    reason: no context builder; H6 not testable
+  testable:
+  - config_field: ChildChunkerConfig.chunk_size
+    domain:
+    - 256
+    - 512
+    - 1024
+    hypothesis: H1
+    name: chunk_size
+    role: ARCHITECTURE_SUPPORTING
+    source_verified: true
+  - config_field: ChildChunkerConfig.chunk_overlap
+    domain:
+    - 0
+    - 32
+    - 128
+    hypothesis: H2
+    name: chunk_overlap
+    role: ARCHITECTURE_SUPPORTING
+    source_verified: true
+  - config_field: 'function choice: retrieve_dense | retrieve_sparse | retrieve_hybrid_rrf'
+    domain:
+    - dense
+    - sparse
+    - hybrid_rrf
+    hypothesis: H5
+    name: retrieval_mode
+    role: ARCHITECTURE_SUPPORTING
+    source_verified: true
+  - config_field: retrieve_hybrid_rrf(candidate_limit, result_limit) / retrieve_dense(limit)
+      / retrieve_sparse(limit)
+    domain:
+    - 50
+    - 100
+    - 200
+    hypothesis: H3
+    name: candidate_limit
+    role: ARCHITECTURE_SUPPORTING
+    source_verified: true
+  - config_field: evaluation view; no new retrieval
+    domain:
+    - 5
+    - 10
+    - 20
+    - 50
+    hypothesis: H4
+    name: final_top_k
+    role: EVALUATION_VIEW
+    source_verified: true
+scope:
+  datasets:
+  - clerk
+  - cuad
+  - greek_bar_bench
+  - lara
+  evaluation_cutoffs:
+  - 1
+  - 5
+  - 10
+  - 20
+  - 50
+  generation_disabled: true
+  llm_judge_disabled: true
+  primary_metric: macro_document_Recall_at_10
+source_discovery:
+  chunker_config_ok: true
+  chunker_defaults:
+    chunk_overlap: 32
+    chunk_size: 256
+    chunker_id: hierarchical_token_chunker
+    chunker_version: 0.3.0
+  chunker_override_ok:
+    '1024_128': true
+    '256_0': true
+    '512_32': true
+  retrieve_dense_params:
+  - client
+  - collection_name
+  - dense_vector
+  - limit
+  retrieve_hybrid_rrf_params:
+  - client
+  - collection_name
+  - dense_vector
+  - sparse_indices
+  - sparse_values
+  - candidate_limit
+  - result_limit
+  retrieve_sparse_params:
+  - client
+  - collection_name
+  - sparse_indices
+  - sparse_values
+  - limit

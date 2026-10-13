@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "depends_on": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Depends On",
+      "type": "array"
+    },
+    "execution_enabled": {
+      "default": false,
+      "title": "Execution Enabled",
+      "type": "boolean"
+    },
+    "input_paths": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Input Paths",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "planned_output_paths": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Planned Output Paths",
+      "type": "array"
+    },
+    "stage_id": {
+      "title": "Stage Id",
+      "type": "string"
+    },
+    "stage_order": {
+      "exclusiveMinimum": 0,
+      "title": "Stage Order",
+      "type": "integer"
+    },
+    "stage_status": {
+      "title": "Stage Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "stage_id",
+    "stage_order",
+    "stage_status",
+    "architecture_id"
+  ],
+  "title": "OrchestratorStagePlan",
+  "type": "object"
+}

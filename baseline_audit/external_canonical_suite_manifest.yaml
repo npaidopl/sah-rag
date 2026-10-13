@@ -1,0 +1,57 @@
+artifact_type: external_canonical_suite_manifest
+artifact_version: '1.0'
+execution:
+  execution_id: external-canonical-suite-registration-v1
+  contract_version: 0.1.0
+  status: SUCCEEDED
+approval:
+  external_root_registration_approved: true
+  manifest_inspection_approved: true
+  canonical_hashing_approved: true
+  streaming_validation_approved: true
+  corpus_scope_audit_approved: true
+  ground_truth_projection_audit_approved: true
+  adapter_execution_approved: false
+  parser_execution_approved: false
+  chunker_execution_approved: false
+  tokenizer_loading_approved: false
+  model_loading_approved: false
+  embedding_execution_approved: false
+  retrieval_execution_approved: false
+  evaluation_execution_approved: false
+  generation_execution_approved: false
+plan:
+  expected_dataset_count: 7
+  expected_document_count: 8879
+  expected_example_count: 29718
+  expected_collection_fingerprint: 5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4
+results:
+  external_root_resolved: true
+  repository_commit_resolved: true
+  dataset_count: 7
+  document_count: 8879
+  example_count: 29718
+  canonical_files_hashed: 28
+  manifests_valid: true
+  validations_passed: true
+  document_ids_unique: true
+  query_ids_unique: true
+  query_document_links_valid: true
+  relevant_document_links_valid: true
+  collection_fingerprint_valid: true
+  corpus_scope_contract_created: true
+  ground_truth_projection_contract_created: true
+  registration_registry_created: true
+  source_files_unchanged: true
+  adapter_executed: false
+  parser_executed: false
+  chunker_executed: false
+  tokenizer_loaded: false
+  model_loaded: false
+  embedding_executed: false
+  retrieval_executed: false
+  evaluation_executed: false
+  generation_executed: false
+next_gate:
+  required_step: fair_benchmark_protocol_and_fidelity_matrix
+  approved: false

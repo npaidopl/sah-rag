@@ -1,0 +1,152 @@
+artifact_type: common_orchestrator_contract
+artifact_version: "1.0"
+
+contract:
+  id: wave1_common_orchestrator
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+dependencies:
+  execution_contract:
+    id: wave1_cross_baseline_execution
+    version: "0.1.0"
+    path: baseline_audit/cross_baseline_execution_contract.yaml
+  evaluation_contract:
+    id: wave1_common_retrieval_evaluation
+    version: "0.1.0"
+    path: baseline_audit/common_retrieval_evaluation_contract.yaml
+  readiness_registry:
+    wave_id: wave1
+    contract_version: "0.1.0"
+    path: baseline_audit/wave1_readiness_registry.yaml
+
+scope:
+  architectures: [longrag, raptor, hipporag2, lightrag, pathrag]
+  mode: dry_run_planning
+  architecture_execution_enabled: false
+  dataset_mutation_enabled: false
+  final_generation_enabled: false
+  evaluation_execution_enabled: false
+
+request_contract:
+  required_fields:
+    - dataset_id
+    - dataset_revision
+    - split
+    - architecture_id
+    - adapter_id
+    - adapter_version
+    - architecture_configuration_hash
+    - canonical_input_manifest_sha256
+    - random_seed
+    - project_code_revision
+    - execution_environment_id
+    - dataset_root
+    - output_root
+    - metadata
+
+dataset_preflight:
+  required_paths:
+    - documents.jsonl
+    - chunks.jsonl
+    - queries.jsonl
+    - judgments.jsonl
+    - dataset.manifest.json
+  dry_run_policy:
+    file_contents_may_be_validated: true
+    file_contents_must_not_be_modified: true
+    dataset_files_must_not_be_copied: true
+
+planning:
+  experiment_cell_identity:
+    use_frozen_execution_contract: true
+  stages:
+    - preflight
+    - input_snapshot
+    - architecture_preprocessing
+    - architecture_indexing
+    - architecture_retrieval
+    - canonical_document_expansion
+    - common_evaluation
+    - artifact_finalization
+  stage_status_values: [PLANNED, BLOCKED, SKIPPED]
+  no_execution: true
+
+artifact_layout:
+  directories: [input, architecture, retrieval, evaluation, logs, checkpoints]
+  files:
+    dry_run_plan: dry-run.plan.json
+    planned_execution_manifest: execution.manifest.json
+    plan_manifest: dry-run.manifest.json
+    checksums: checksums.json
+  constraints:
+    output_must_not_exist_as_succeeded_run: true
+    existing_empty_directory_allowed: true
+    existing_planned_dry_run_overwrite_requires_flag: true
+    existing_running_run_rejected: true
+    existing_succeeded_run_rejected: true
+    foreign_files_prohibited: true
+    secrets_prohibited: true
+
+readiness_gate:
+  required_status: READY_FOR_DATA
+
+architecture_planning:
+  longrag:   { execution_label: LongRAG,   implementation_boundary: controlled_adaptation }
+  raptor:    { execution_label: RAPTOR,    implementation_boundary: controlled_adaptation }
+  hipporag2: { execution_label: HippoRAG 2, implementation_boundary: faithful }
+  lightrag:  { execution_label: LightRAG,  implementation_boundary: controlled_adaptation }
+  pathrag:
+    execution_label: PathRAG paper-derived architectural comparator
+    implementation_boundary: paper_derived_reimplementation
+    foreign_execution_allowed: false
+
+manifest_policy:
+  initial_status: PLANNED
+  started_at_utc: null
+  completed_at_utc: null
+  failure: null
+  resource_usage:
+    all_counts_zero: true
+    all_durations_zero: true
+  artifact_inventory:
+    dry_run_artifacts_only: true
+    runtime_artifacts_prohibited: true
+
+dry_run_outputs:
+  required:
+    - dry-run.plan.json
+    - execution.manifest.json
+    - dry-run.manifest.json
+    - checksums.json
+  prohibited:
+    - retrieval_cases.jsonl
+    - ranked_items.jsonl
+    - expanded_documents.jsonl
+    - metrics.json
+    - architecture_indexes
+    - embeddings
+    - generated_answers
+    - foreign_runtime_artifacts
+
+persistence:
+  encoding: UTF-8
+  line_endings: LF
+  json_sort_keys: true
+  json_indented: true
+  checksum_algorithm: SHA-256
+  atomic_writes_required: true
+  deterministic_outputs_required: true
+
+immutability:
+  succeeded_run_overwrite_prohibited: true
+  dry_run_plan_semantic_change_requires_new_cell_id: true
+
+safety:
+  architecture_execution_enabled: false
+  foreign_code_execution_enabled: false
+  model_download_enabled: false
+  network_access_required: false
+  final_generation_enabled: false
+  evaluation_execution_enabled: false
+  secrets_in_artifacts: false

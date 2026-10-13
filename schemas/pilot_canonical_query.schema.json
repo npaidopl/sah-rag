@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "query_text": {
+      "title": "Query Text",
+      "type": "string"
+    },
+    "split": {
+      "title": "Split",
+      "type": "string"
+    },
+    "target_content_group_id": {
+      "title": "Target Content Group Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "query_id",
+    "query_text",
+    "target_content_group_id",
+    "split"
+  ],
+  "title": "PilotCanonicalQuery",
+  "type": "object"
+}

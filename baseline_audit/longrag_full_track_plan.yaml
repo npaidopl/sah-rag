@@ -1,0 +1,92 @@
+architecture_id: longrag
+artifact_type: longrag_full_track_plan
+artifact_version: '1.0'
+order:
+- L1
+- L2
+- L3
+- L4
+- L5
+- L6
+- L7
+phases:
+  L1:
+    abort_conditions:
+    - canonical_sha256_mismatch
+    - missing_frozen_contract
+    - canonical_model_loading_failure
+    - dataset_count_mismatch
+    acceptance:
+      canonical_datasets_valid: 7
+      embedding_model_pinned: true
+      embedding_revision_pinned: true
+      evaluation_mapping_defined: true
+      retrieval_policy_frozen: true
+    inputs:
+    - baseline_audit/external_canonical_suite_registry.yaml
+    - baseline_audit/longrag_*.yaml
+    - src/rag_system/canonical/
+    - ${SAH_RAG_CANONICAL_ROOT}/
+    name: architecture_and_dataset_envelope_freeze
+    outputs:
+    - baseline_audit/longrag_full_track_embedding_profile.yaml
+    - baseline_audit/longrag_full_track_architecture_freeze_contract.yaml
+    - baseline_audit/longrag_full_track_component_disposition.yaml
+    - baseline_audit/longrag_full_track_dataset_envelope.yaml
+    - baseline_audit/longrag_full_track_plan.yaml
+    - outputs/external_longrag/_freeze-v1/verification_report.json
+    - outputs/external_longrag/_freeze-v1/manifest.json
+    - outputs/external_longrag/_freeze-v1/checksums.json
+    script: scripts/run_longrag_architecture_freeze_batch.py
+  L2:
+    acceptance:
+      complete_source_coverage: true
+      deterministic_unit_ids: true
+      lineage_closure: true
+      source_immutability: true
+    depends_on:
+    - L1
+    name: unit_materialization
+    per_dataset_output: outputs/external_longrag/<dataset>/units-v1/
+    script: scripts/run_longrag_unit_materialization_batch.py
+  L3:
+    bounded_reference_precision: float32
+    depends_on:
+    - L2
+    environment: Google Colab GPU
+    import_script: scripts/import_longrag_colab_embedding_batch.py
+    name: colab_gpu_embeddings
+    prepare_script: scripts/prepare_longrag_colab_embedding_batch.py
+    primary_precision: float16
+    transfer:
+    - longrag-embedding-input-v1.tar.gz
+    - longrag-embedding-output-v1.tar.gz
+  L4:
+    backend: Qdrant
+    collection_pattern: longrag-<dataset>-v1
+    depends_on:
+    - L3
+    name: storage_build_and_equivalence
+    reopen_required: true
+    script: scripts/run_longrag_storage_and_parity_batch.py
+  L5:
+    depends_on:
+    - L4
+    ground_truth_visible: false
+    name: full_retrieval
+    query_projection:
+    - query_id
+    - query_text
+    script: scripts/run_longrag_full_retrieval_batch.py
+  L6:
+    depends_on:
+    - L5
+    evaluator_isolation: true
+    metrics: see architecture_freeze.evaluation_profile
+    name: ground_truth_evaluation
+    script: scripts/run_longrag_full_evaluation_batch.py
+  L7:
+    depends_on:
+    - L6
+    name: closure
+    script: scripts/close_longrag_full_track.py

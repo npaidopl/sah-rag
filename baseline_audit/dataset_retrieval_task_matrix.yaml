@@ -1,0 +1,200 @@
+artifact_type: dataset_retrieval_task_matrix
+artifact_version: "1.0"
+
+matrix:
+  id: seven_dataset_retrieval_task_matrix
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+rules:
+  query_doc_ids_roles:
+    - permitted_corpus_selector
+    - relevant_document_judgment
+  roles_must_be_disjoint: true
+  supplied_context_may_not_auto_embed: true
+  ground_truth_only_fields_never_reach_retriever: true
+  generation_only_fields_never_reach_retriever: true
+
+per_dataset_required_fields:
+  - corpus_scope
+  - index_unit
+  - query_text_projection
+  - permitted_corpus_selector
+  - primary_retrieval_unit
+  - primary_evaluation_unit
+  - secondary_evaluation_units
+  - zero_relevance_policy
+  - ground_truth_projection
+  - leakage_prohibitions
+  - triviality_risk
+
+datasets:
+  ruler:
+    corpus_scope: QUERY_SPECIFIC_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: query.doc_ids
+    primary_retrieval_unit: NEEDLE_OR_EVIDENCE_ITEM
+    primary_evaluation_unit: NEEDLE_OR_EVIDENCE_ITEM
+    secondary_evaluation_units:
+      - CANONICAL_DOCUMENT
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - target_evidence_ids_unavailable_to_retriever
+      - answer_strings_unavailable_to_retriever
+    triviality_risk: HIGH
+  loong:
+    corpus_scope: QUERY_DOCUMENT_BUNDLE
+    index_unit: canonical_document_bundle
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: query.doc_ids
+    primary_retrieval_unit: CANONICAL_DOCUMENT
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units: [PASSAGE]
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - answer_strings_unavailable_to_retriever
+    triviality_risk: LOW
+  long_bench_v2:
+    corpus_scope: QUERY_SPECIFIC_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: query.doc_ids
+    primary_retrieval_unit: CANONICAL_DOCUMENT
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units: [PASSAGE]
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      answers_from: [ground_truth.answers, ground_truth.choice]
+    leakage_prohibitions:
+      - correct_choice_unavailable_to_retriever
+    triviality_risk: MEDIUM
+  lara:
+    corpus_scope: SHARED_DOMAIN_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: frozen_dataset_partition
+    primary_retrieval_unit: CANONICAL_DOCUMENT
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units: []
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - answer_strings_unavailable_to_retriever
+    triviality_risk: LOW
+  greek_bar_bench:
+    corpus_scope: QUERY_SPECIFIC_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: query.doc_ids
+    primary_retrieval_unit: SOURCE_SPAN
+    primary_evaluation_unit: SOURCE_SPAN
+    secondary_evaluation_units: [CANONICAL_DOCUMENT, NEEDLE_OR_EVIDENCE_ITEM]
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      spans_from: [ground_truth.spans]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - gold_spans_unavailable_to_retriever
+      - statutory_references_unavailable_to_retriever
+    triviality_risk: LOW
+  cuad:
+    corpus_scope: SHARED_DOMAIN_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: frozen_dataset_partition
+    primary_retrieval_unit: SOURCE_SPAN
+    primary_evaluation_unit: SOURCE_SPAN
+    secondary_evaluation_units: [CANONICAL_DOCUMENT]
+    zero_relevance_policy: EXPLICIT_NEGATIVE_CASE
+    zero_relevance_count_expected: 14208
+    positive_evidence_count_expected: 6702
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      spans_from: [ground_truth.spans]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - gold_spans_unavailable_to_retriever
+      - clause_labels_unavailable_to_retriever
+    triviality_risk: LOW
+  clerk:
+    corpus_scope: GLOBAL_DATASET_CORPUS
+    index_unit: canonical_document_text
+    query_text_projection:
+      source: EXTRACTED_QUERY_ONLY
+      source_field: TO_BE_FROZEN
+      supplied_context_in_query_embedding: false
+    permitted_corpus_selector: frozen_dataset_partition
+    primary_retrieval_unit: PASSAGE
+    primary_evaluation_unit: PASSAGE
+    secondary_evaluation_units: [CANONICAL_DOCUMENT]
+    zero_relevance_policy: NOT_APPLICABLE
+    ground_truth_projection:
+      document_ids_from: [query.doc_ids]
+      evidence_ids_from: [ground_truth.relevant_ids]
+      answers_from: [ground_truth.answers]
+    leakage_prohibitions:
+      - qrel_pairs_unavailable_to_retriever
+    triviality_risk: LOW
+
+cuad_evaluation_policy:
+  positive_evidence_subset:
+    query_count: 6702
+    metrics: [hit_at_k, recall_at_k, reciprocal_rank, ndcg_at_k]
+  zero_evidence_subset:
+    query_count: 14208
+    metrics: [false_positive_retrieval_rate, zero_result_rate, minimum_score_distribution]
+  combined_reporting:
+    macro_mix_allowed: false
+    separate_subsets_required: true
+
+rag_system_tuning:
+  development_data_required: true
+  test_data_for_tuning_prohibited: true
+  selected_configuration_frozen_before_test: true
+  variables:
+    - chunk_size
+    - overlap
+    - child_candidate_limit
+    - parent_limit
+    - dense_sparse_fusion
+    - additional_child_weight
+
+baseline_tuning:
+  primary_policy: [paper_default, author_default, repository_default]
+  if_default_unavailable: equal_small_budget_tuning_allowed
+  unequal_extensive_tuning_prohibited: true

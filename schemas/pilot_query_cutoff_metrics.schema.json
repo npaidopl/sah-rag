@@ -1,0 +1,83 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "architecture_id": {
+      "title": "Architecture Id",
+      "type": "string"
+    },
+    "cutoff": {
+      "exclusiveMinimum": 0,
+      "title": "Cutoff",
+      "type": "integer"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "experiment_cell_id": {
+      "title": "Experiment Cell Id",
+      "type": "string"
+    },
+    "hit_at_k": {
+      "title": "Hit At K",
+      "type": "number"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "ndcg_at_k": {
+      "title": "Ndcg At K",
+      "type": "number"
+    },
+    "precision_at_k": {
+      "title": "Precision At K",
+      "type": "number"
+    },
+    "query_id": {
+      "title": "Query Id",
+      "type": "string"
+    },
+    "recall_at_k": {
+      "title": "Recall At K",
+      "type": "number"
+    },
+    "reciprocal_rank": {
+      "title": "Reciprocal Rank",
+      "type": "number"
+    },
+    "relevant_item_count": {
+      "minimum": 0,
+      "title": "Relevant Item Count",
+      "type": "integer"
+    },
+    "retrieved_item_count": {
+      "minimum": 0,
+      "title": "Retrieved Item Count",
+      "type": "integer"
+    },
+    "retrieved_within_cutoff_count": {
+      "minimum": 0,
+      "title": "Retrieved Within Cutoff Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "experiment_cell_id",
+    "dataset_id",
+    "architecture_id",
+    "query_id",
+    "cutoff",
+    "hit_at_k",
+    "precision_at_k",
+    "recall_at_k",
+    "reciprocal_rank",
+    "ndcg_at_k",
+    "relevant_item_count",
+    "retrieved_item_count",
+    "retrieved_within_cutoff_count"
+  ],
+  "title": "QueryCutoffMetrics",
+  "type": "object"
+}

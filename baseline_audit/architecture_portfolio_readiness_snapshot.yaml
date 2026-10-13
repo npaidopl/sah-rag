@@ -1,0 +1,53 @@
+artifact_type: architecture_portfolio_readiness_snapshot
+artifact_version: '1.0'
+snapshot:
+  status: FROZEN
+  frozen_at_commit: ec4544b5fff3068ee9d604713a0927d4289c054c
+  frozen_at: '2026-10-08T16:28:10+00:00'
+counter_source:
+  type: ARCHITECTURE_READINESS_RECORDS
+  manual_counter_edits_allowed: false
+architectures:
+- architecture_id: longrag
+  readiness_path: baseline_audit/longrag_readiness.yaml
+  implementation_status: DATASET_READY
+  readiness_gate: PASSED
+  dataset_readiness_status: READY
+  controlled_track_status: ELIGIBLE
+  dataset_ready: true
+  deferred: false
+- architecture_id: pathrag
+  readiness_path: baseline_audit/pathrag_dataset_ready_registry.yaml
+  implementation_status: DATASET_READY
+  readiness_gate: PASSED
+  dataset_readiness_status: READY
+  controlled_track_status: ELIGIBLE
+  dataset_ready: true
+  deferred: false
+- architecture_id: rag_system
+  readiness_path: baseline_audit/infrastructure_pilot_evidence_registry.yaml
+  implementation_status: DATASET_READY
+  readiness_gate: PASSED
+  dataset_readiness_status: READY
+  controlled_track_status: ELIGIBLE
+  dataset_ready: true
+  deferred: false
+- architecture_id: raptor
+  readiness_path: baseline_audit/raptor_deferral_manifest.yaml
+  implementation_status: DEFERRED_SUMMARIZER_BLOCKED
+  readiness_gate: DEFERRED_ON_ARCHITECTURE_DEFINING_SUMMARIZER
+  dataset_readiness_status: DEFERRED
+  controlled_track_status: DEFERRED
+  dataset_ready: false
+  deferred: true
+counters:
+  dataset_ready_count: 3
+  deferred_count: 1
+  synthetic_validated_count: 3
+  total_count: 4
+dataset_ready_members:
+- longrag
+- pathrag
+- rag_system
+deferred_members:
+- raptor

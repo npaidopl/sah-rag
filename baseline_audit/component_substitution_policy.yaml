@@ -1,0 +1,104 @@
+artifact_type: component_substitution_policy
+artifact_version: "1.0"
+
+policy:
+  id: wave1_component_substitution
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+component_roles:
+  ARCHITECTURE_DEFINING:
+    replacement_default: PROHIBITED
+  ARCHITECTURE_SUPPORTING:
+    replacement_default: ALLOWED_WITH_EQUIVALENCE_VALIDATION
+  OPTIONAL_DOWNSTREAM:
+    replacement_default: DISABLE_FOR_RETRIEVAL_ONLY
+
+components:
+  embedder:
+    default_role: ARCHITECTURE_SUPPORTING
+    exception: >
+      Architecture-defining when the paper's contribution directly
+      depends on a specialized representation or jointly trained
+      encoder.
+  tokenizer:
+    default_role: ARCHITECTURE_SUPPORTING
+    constraint: must_match_embedder
+  storage_backend:
+    default_role: ARCHITECTURE_SUPPORTING
+    exception: >
+      Architecture-defining when graph traversal, database-native
+      fusion, memory behavior, or service-side reasoning is part
+      of the algorithm.
+  llm_index_time:
+    default_role: ARCHITECTURE_DEFINING
+  llm_query_time:
+    default_role: ARCHITECTURE_DEFINING
+  llm_final_generation:
+    default_role: OPTIONAL_DOWNSTREAM
+  chunker:
+    default_role: ARCHITECTURE_DEFINING
+  hierarchy_builder:
+    default_role: ARCHITECTURE_DEFINING
+  graph_builder:
+    default_role: ARCHITECTURE_DEFINING
+  reranker:
+    default_role: ARCHITECTURE_DEFINING_IF_REQUIRED
+  persistence_format:
+    default_role: ARCHITECTURE_SUPPORTING
+  evaluator:
+    default_role: COMMON_CONTROLLED_COMPONENT
+
+storage_substitution_policy:
+  common_qdrant_allowed_when:
+    - storage_provides_only_dense_or_sparse_nn_search
+    - distance_metric_preserved
+    - vector_normalization_preserved
+    - filters_preserved
+    - candidate_limit_preserved
+    - score_direction_preserved
+    - top_k_equivalence_validates
+  native_storage_required_when:
+    - graph_traversal_inside_storage
+    - database_native_reasoning_architecture_defining
+    - backend_changes_candidate_generation
+    - backend_changes_graph_semantics
+    - backend_implements_architecture_specific_fusion
+
+required_substitution_test:
+  fixture_queries_minimum: 10
+  compare:
+    - top_10_overlap
+    - top_100_overlap
+    - exact_point_identity
+    - score_order
+    - filter_behavior
+  pass_policy:
+    exact_identity_when_exact_backend: true
+    otherwise_thresholds_pre_registered: true
+
+llm_policy:
+  final_generation:
+    enabled: false
+    reason: retrieval_only_benchmark
+  index_time:
+    preserve_when_architecture_defining: true
+    deterministic_configuration_required: true
+    cached_artifacts_required: true
+  query_time:
+    preserve_when_architecture_defining: true
+    generation_count_must_be_reported: true
+  common_requirements:
+    model_id_required: true
+    revision_required: true
+    temperature: 0
+    seed_required_when_supported: true
+    prompt_sha256_required: true
+    output_schema_required: true
+    retry_policy_required: true
+    cost_report_required: true
+  execution_tracks:
+    - LOCAL_LLM
+    - HOSTED_LLM
+    - CACHED_AUTHOR_ARTIFACT
+    - DEFERRED

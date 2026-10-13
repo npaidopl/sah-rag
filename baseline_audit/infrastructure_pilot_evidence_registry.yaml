@@ -1,0 +1,143 @@
+artifact_type: infrastructure_pilot_evidence_registry
+artifact_version: "1.0"
+
+pilot:
+  pilot_id: infrastructure-pilot-wave1-cpu-v1
+  dataset_id: infrastructure-pilot-synthetic-v1
+  architecture_id: rag_system
+
+stages:
+  dataset_materialization:
+    status: SUCCEEDED
+    commit: 7e03619158de5b9f7e1303d88047c1fd8e84a9a6
+    contract: null
+    manifest: null
+    runtime_root: data/pilot/infrastructure-pilot-synthetic-v1
+    checksums: data/pilot/infrastructure-pilot-synthetic-v1/checksums.json
+    critical_counts:
+      documents: 12
+      chunks: 24
+      queries: 6
+      judgments: 12
+
+  canonical_adapter:
+    status: SUCCEEDED
+    commit: c4b1d291b99366d186734631be1642303baef960
+    contract: baseline_audit/pilot_canonical_adapter_contract.yaml
+    manifest: null
+    runtime_root: processed/canonical/infrastructure-pilot-synthetic-v1
+    checksums: processed/canonical/infrastructure-pilot-synthetic-v1/checksums.json
+    critical_counts:
+      canonical_documents: 12
+      canonical_examples: 6
+
+  parser_chunker:
+    status: SUCCEEDED
+    commit: 02d325d91170ff20a3f6d26f5f8967288f1ed106
+    contract: baseline_audit/pilot_parser_chunker_contract.yaml
+    execution_manifest: baseline_audit/pilot_parser_chunker_manifest.yaml
+    runtime_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system
+    checksums:
+      - outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/parsing/checksums.json
+      - outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/chunking/checksums.json
+    critical_counts:
+      parsed_documents: 12
+      semantic_parents: 12
+      child_chunks: 12
+
+  embedding:
+    status: SUCCEEDED
+    commit: 61ae98cbefc86a1a21465b3fea0f9dba2277b8fd
+    contract: baseline_audit/pilot_embedding_execution_contract.yaml
+    execution_manifest: baseline_audit/pilot_embedding_execution_manifest.yaml
+    benchmark_report: baseline_audit/pilot_embedding_benchmark_report.yaml
+    runtime_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/embedding
+    checksums: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/embedding/checksums.json
+    critical_counts:
+      embedding_records: 12
+      dense_vectors: 12
+      sparse_vectors: 12
+      dense_dimension: 1024
+    model:
+      model_id: BAAI/bge-m3
+      model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+      device: cpu
+
+  qdrant:
+    status: SUCCEEDED
+    commit: 1680fd0db07f92743c2badd95b9dd70b8bb0de1a
+    contract: baseline_audit/pilot_qdrant_execution_contract.yaml
+    execution_manifest: baseline_audit/pilot_qdrant_execution_manifest.yaml
+    runtime_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/qdrant
+    audit_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/qdrant_ingestion
+    collection_manifest: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/qdrant_ingestion/collection.manifest.json
+    checksums: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/qdrant_ingestion/checksums.json
+    critical_counts:
+      points: 12
+      unique_point_ids: 12
+    collection:
+      name: rag_infrastructure_pilot_synthetic_v1_13d22ed4f1f0
+      mode: local_persistence
+      storage_bytes: 160470
+
+  retrieval:
+    status: SUCCEEDED
+    commit: 1f1799402085afd8dfba6dce0760f96916e13033
+    contract: baseline_audit/pilot_retrieval_execution_contract.yaml
+    execution_manifest: baseline_audit/pilot_retrieval_execution_manifest.yaml
+    runtime_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/retrieval
+    checksums: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/retrieval/checksums.json
+    critical_counts:
+      queries: 6
+      query_embeddings: 6
+      dense_children: 72
+      sparse_children: 50
+      hybrid_children: 72
+      ranked_parents: 72
+      ranked_documents: 72
+    method:
+      primary: hybrid_rrf
+      implementation: QDRANT_NATIVE_RRF
+      rank_constant: UNPINNED
+
+  evaluation:
+    status: SUCCEEDED
+    commit: 8e004f26f1afa21c8bc173488a925a0be07dad6c
+    contract: baseline_audit/pilot_evaluation_execution_contract.yaml
+    execution_manifest: baseline_audit/pilot_evaluation_execution_manifest.yaml
+    runtime_root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/evaluation
+    checksums: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/evaluation/checksums.json
+    critical_counts:
+      retrieval_cases: 6
+      query_metric_rows: 24
+      aggregate_metric_rows: 4
+    cutoffs:
+      - 1
+      - 5
+      - 10
+      - 100
+    metrics:
+      - hit_at_k
+      - precision_at_k
+      - recall_at_k
+      - reciprocal_rank
+      - ndcg_at_k
+
+runtime_root_inventory:
+  committed_source_dataset:
+    root: data/pilot/infrastructure-pilot-synthetic-v1
+    required: true
+    committed: true
+    gitignored: false
+  derived_canonical_envelope:
+    root: processed/canonical/infrastructure-pilot-synthetic-v1
+    required_for_local_closure: true
+    committed: false
+    gitignored: false
+    reproducible: true
+  runtime_outputs:
+    root: outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1
+    required_for_local_closure: true
+    committed: false
+    gitignored: true
+    reproducible: true

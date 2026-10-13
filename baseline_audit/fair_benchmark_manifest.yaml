@@ -1,0 +1,35 @@
+artifact_type: fair_benchmark_manifest
+artifact_version: '1.0'
+execution:
+  execution_id: fair-benchmark-protocol-v1
+  contract_version: 0.1.0
+  status: SUCCEEDED
+approval:
+  methodology_planning_approved: true
+  architecture_classification_approved: true
+  component_substitution_planning_approved: true
+  dataset_task_mapping_approved: true
+  statistical_plan_approved: true
+  architecture_implementation_approved: false
+  tokenizer_execution_approved: false
+  model_execution_approved: false
+  embedding_execution_approved: false
+  retrieval_execution_approved: false
+  evaluation_execution_approved: false
+results:
+  architecture_records_created: true
+  controlled_track_count: 6
+  native_track_count: 1
+  native_track_potential_candidate_count: 4
+  both_track_count: 1
+  deferred_count: 5
+  architecture_defining_components_classified: true
+  substitutions_classified: true
+  llm_stages_classified: true
+  storage_backends_classified: true
+  dataset_task_records_created: true
+  precision_protocol_frozen: true
+  statistical_plan_frozen: true
+next_gate:
+  required_step: per_architecture_readiness_gap_registry
+  approved: false

@@ -1,0 +1,1286 @@
+% =====================================================================
+% Metadata-RAG Full-Track Report
+% A Paper-Derived Reimplementation and Its Empirical Behaviour
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={Metadata-RAG Full-Track Report},
+  pdfauthor={RAG Architecture Readiness Program},
+}
+
+\sisetup{
+  round-mode=places,
+  round-precision=4,
+  detect-weight=true,
+  detect-family=true,
+}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codekw}{RGB}{0,90,160}
+\definecolor{codestr}{RGB}{160,50,20}
+\definecolor{codecom}{RGB}{110,110,110}
+
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecom}\itshape,
+  stringstyle=\color{codestr},
+  morecomment=[l]{\#},
+}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Metadata-RAG Full-Track Report}
+\lhead{\small Paper-Derived Reimplementation}
+\cfoot{\thepage}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries Metadata-RAG:}\\[0.15cm]
+  {\large A Paper-Derived Reimplementation of Metadata-Driven\\
+   Multistage Retrieval, and Its Empirical Behaviour on Four\\
+   Heterogeneous Long-Context Corpora}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize RAG Architecture Readiness Program\\
+  \small Technical Report --- Metadata-RAG Track Closure
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+We describe, freeze, implement, and empirically characterise
+\emph{Metadata-RAG}, a paper-derived reimplementation of the
+metadata-driven multistage retrieval architecture described in
+arXiv:2510.24402. Unlike the program's other baselines, Metadata-RAG
+has no foreign source: the paper is a preprint under major revision
+that defines an algorithmic family but pins neither its metadata
+schema, its query-metadata inference rules, nor its fusion
+coefficients. We therefore designed, froze, and executed a full
+project-owned specification as a strict comparator in the program's
+controlled architectural track. This report documents every frozen
+design decision, every controlled adaptation, the complete
+implementation (eleven production modules, six operational scripts,
+nineteen test modules, \num{342} passing tests), and an end-to-end
+execution on four heterogeneous canonical corpora (CLERC, CUAD,
+GreekBarBench, LaRA). Under a shared retrieval-only protocol
+identical to the program's other tracks, Metadata-RAG achieves a
+macro-averaged document \texttt{Recall@10} of \num{0.3651}, against
+LongRAG's \num{0.3144} and My\_RAG's \num{0.4049}. The most
+scientifically interesting finding is not the aggregate number but
+its decomposition: under the frozen \texttt{min\_match\_ratio} of
+\num{0.5}, the metadata-filtering stage failed to activate on three
+of the four corpora (\num{99.9}\% fallback on CLERC, \num{97.6}\% on
+CUAD, \num{92.3}\% on GreekBarBench, and \num{33.7}\% on LaRA). We
+document the mechanism, the reasons, and the consequences with full
+honesty, and we make no post-hoc adjustment of the frozen
+specification. The report concludes with the architectural
+observations that are directly usable in the program's comparative
+publication.
+\end{abstract}
+
+\vfill
+\noindent\textbf{Keywords.} metadata-driven retrieval; paper-derived
+reimplementation; clean-room specification; frozen thresholds;
+deterministic windowing; dense-only retrieval; hybrid retrieval;
+retrieval-only evaluation; reproducibility; architectural
+comparators.
+
+\newpage
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}\label{sec:intro}
+
+\subsection{Position of this work in the program}
+The RAG Architecture Readiness Program is a systematic,
+retrieval-only comparative study of multiple retrieval architectures
+under a shared controlled evaluation protocol. Its central research
+question is:
+
+\begin{quote}
+\emph{Under identical embedder, query set, ground truth, and
+evaluator, which retrieval architecture returns the most relevant
+canonical documents from long-context corpora?}
+\end{quote}
+
+Metadata-RAG participates in the program as a
+\emph{paper-derived comparator}. It is neither a native-fidelity
+reproduction of an author-provided artefact (no such artefact exists
+for this paper) nor a controlled adaptation of an executed baseline
+whose architecture can be examined in source. Instead, its design
+has been reimplemented from the paper's algorithmic description
+under a frozen project-owned specification. Its fidelity class is
+therefore \textsc{PAPER\_DERIVED\_COMPARATOR}, and its
+controlled-track eligibility is what this report establishes.
+
+\subsection{The question specific to this track}
+The specific question answered by this report is threefold:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item Can a metadata-driven multistage retrieval architecture be
+    defined, frozen, and executed end-to-end under the same
+    controlled protocol as the program's other tracks, without
+    permitting hidden tuning?
+  \item What is that architecture's measured document-level
+    retrieval quality on the program's canonical four-dataset scope?
+  \item What does the decomposition of that measurement reveal about
+    the architecture's behaviour and, in particular, about the
+    interaction between its frozen design choices and the properties
+    of the corpora it is asked to retrieve from?
+\end{enumerate}
+
+\subsection{Contributions}
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item A fully specified, frozen, and validated clean-room
+    specification for a paper-derived reimplementation, including
+    four explicit amendments that resolve every point at which the
+    paper's design was under-determined.
+  \item An implemented and unit-tested architecture: eleven
+    production modules, six operational scripts, nineteen test
+    modules, \num{342} passing tests, all under strict type checking
+    and lint discipline.
+  \item A deterministic oversize-document windowing policy, needed
+    because three of the four datasets contain documents that exceed
+    the BGE-M3 input budget by one to two orders of magnitude.
+  \item A complete end-to-end execution of the architecture on
+    CLERC, CUAD, GreekBarBench, and LaRA, with per-query and
+    macro-aggregated metrics.
+  \item A \emph{measured, honest account} of the architecture's
+    metadata-stage activation rate on each corpus, and the
+    architectural interpretation of that rate.
+  \item A three-track comparison against the program's LongRAG and
+    My\_RAG tracks over the identical four datasets.
+\end{enumerate}
+
+\subsection{What this report is not}
+It is not a claim of native-fidelity reproduction. The paper is a
+preprint under major revision; no foreign source exists; no
+paper-level effectiveness claim is made against this baseline. It is
+also not a claim of superiority. We report the measured behaviour of
+a frozen design under a shared protocol; the decomposition of that
+behaviour is the substantive contribution.
+
+% =====================================================================
+\section{Paper Identity and Reimplementation Class}\label{sec:identity}
+
+\subsection{The paper}
+Metadata-RAG is derived from
+\emph{Metadata-Driven Retrieval-Augmented Generation for Financial
+Question Answering}, arXiv:2510.24402 (2025). The paper is
+catalogued in the program's registry as
+\textsc{PAPER\_VERIFIED} with a \emph{preprint under major revision}
+caveat. Its algorithmic claims are recorded as the design reference;
+no paper-level effectiveness claim is made against this baseline
+until the paper is published.
+
+\subsection{Why clean room}
+The program's paper-to-spec audit for this baseline records:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item \texttt{repository\_registered}: false
+  \item \texttt{repository\_url}: null
+  \item \texttt{license\_status}: \textsc{NOT\_APPLICABLE}
+  \item \texttt{foreign\_source\_execution\_applicable}: false
+\end{itemize}
+
+No foreign source exists for Metadata-RAG. There is no repository to
+clone, no code to inspect, no licence to review. The implementation
+path is therefore a project-owned paper-derived reimplementation,
+structurally similar to the PathRAG comparator but without any
+foreign checkout.
+
+\subsection{Fidelity classification}
+Under the program's status vocabulary the baseline is classified as:
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Field} & \textbf{Value} \\
+\midrule
+architecture class & \textsc{ARCHITECTURAL\_COMPARATOR} \\
+implementation class & \textsc{PAPER\_DERIVED\_REIMPLEMENTATION} \\
+fidelity class & \textsc{PAPER\_DERIVED\_COMPARATOR} \\
+foreign execution decision & \textsc{NOT\_APPLICABLE} \\
+project-owned implementation decision & \textsc{CONDITIONAL\_GO} \\
+controlled track eligible & \texttt{true} \\
+native track eligible & \texttt{false} \\
+native track reason & \textsc{DEFERRED\_WITH\_REASON} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The native track is deferred with reason because no foreign source
+and no pinned native stack (embedder, tokenizer, storage, metadata
+schema) exist. Native-fidelity execution cannot be defined without
+inventing components not present in the paper, which the program's
+guidance prohibits.
+
+% =====================================================================
+\section{Frozen Specification and Its Amendments}\label{sec:frozen}
+
+\subsection{The clean-room specification}
+The paper defines a metadata-driven multistage retrieval family but
+does not pin its metadata schema, its query-metadata inference rules,
+its filtering threshold, its fusion coefficients, or its
+evaluation-unit semantics. Every one of those decisions had to be
+made explicitly by this project. We made them once, wrote them into
+a single frozen specification
+(\texttt{metadata\_rag\_clean\_room\_spec.yaml}, SHA-256
+\texttt{A02DBA61\ldots}), and treated that file as immutable. Any
+subsequent change to a frozen decision is recorded as an explicit
+amendment with its own SHA-256 and its own justification.
+
+\subsection{Amendment 01 --- Capitalized-phrase regex symmetry}
+\textbf{Motivation.} During pre-code reconnaissance on the synthetic
+acceptance fixture, the original capitalized-phrase pattern
+\texttt{(?:[A-Z][a-z]+(?:\textbackslash s+[A-Z][a-z]+)+)}
+produced the phrase \texttt{"the amber observatory"} from document
+text starting with \texttt{"The Amber Observatory records\ldots"},
+because the sentence-initial article was absorbed into the matched
+span. The corresponding query text produced \texttt{"amber
+observatory"} without the article. The document and query metadata
+would therefore have failed to align, silently breaking the
+architecture-defining symmetry between extraction on the two sides.
+
+\textbf{Patch.} The pattern was replaced by
+\texttt{(?<!\textbackslash S)(?!(?:The|A|An)\textbackslash
+b)(?:[A-Z][a-z]+(?:\textbackslash s+[A-Z][a-z]+)+)}. A
+negative-lookahead guard now excludes sentence-initial articles.
+
+\textbf{Scope.} The amendment changes a regex only. No threshold, no
+coefficient, and no outward validation surface changes. The
+frozen-spec validator was extended to accept the amended pattern;
+the extension is itself a project-owned decision, not a paper claim.
+
+\subsection{Amendment 02 --- In-memory exact dense storage}
+\textbf{Motivation.} The clean-room specification originally
+declared Qdrant as the experimental storage backend. On review, a
+controlled Qdrant deployment would have added an HNSW approximation
+risk that would have needed re-freezing for every target corpus
+size, an operational server dependency, and an equivalence test
+whose outcome on tie-heavy rankings is not guaranteed a priori.
+None of this contributes fidelity signal, because the paper pins no
+storage backend and the architecture-defining surface is the
+metadata layer (schema, extraction, query inference, filtering,
+fusion, ranking), not the nearest-neighbour search.
+
+\textbf{Decision.} The experimental backend is
+\textsc{IN\_MEMORY\_EXACT\_DENSE}, with
+\texttt{replacement\_class} set to
+\textsc{SEMANTICALLY\_NEUTRAL\_FOR\_CONTROLLED\_TRACK} and
+\texttt{equivalence\_test} set to \textsc{NOT\_REQUIRED}. The
+substrate is an exhaustive, unpruned, exact cosine top-$k$ index
+implemented as a single NumPy matrix-matrix multiplication. No
+approximate search, no quantization, no HNSW, no candidate pruning
+is used anywhere in the pipeline.
+
+\textbf{Why the substitution is semantically neutral.} The choice of
+exact dense search over an in-memory reference is not a fidelity
+compromise; it is the \emph{strongest} semantic guarantee available
+in the program. The retrieval signal that reaches the downstream
+fusion stage is the exact cosine similarity between the query and
+every candidate window. Any approximate backend would only perturb
+that signal. By removing the perturbation entirely, the reference
+index makes the controlled comparison cleaner, not weaker.
+
+\subsection{Amendment 03 --- Evaluation cutoffs alignment}
+\textbf{Motivation.} The program's executed comparison runs
+(LongRAG vs.\ My\_RAG) report document-level retrieval metrics at
+cutoffs $\{1, 5, 10, 20, 50\}$. The shared
+\texttt{common\_retrieval\_evaluation\_contract} additionally
+requires cutoff \num{100}. The clean-room spec inherited only
+$\{1, 5, 10, 100\}$ from the common contract, which would have made
+the Metadata-RAG metrics only partially comparable to the executed
+runs.
+
+\textbf{Decision.} The effective cutoff set is the union
+$\{1, 5, 10, 20, 50, 100\}$. The primary metric is declared
+explicitly as \texttt{macro\_document\_recall\_at\_10}. The
+zero-relevance policy is declared explicitly as
+\texttt{exclude\_with\_explicit\_count}. No metric is removed, no
+threshold is tuned.
+
+\subsection{Amendment 04 --- Oversize document windowing}
+\textbf{Motivation.} Real-dataset reconnaissance measured token
+counts with the pinned BGE-M3 tokenizer. Every dataset except CLERC
+contains canonical documents larger than the BGE-M3 model input of
+\num{8192} tokens. Table~\ref{tab:oversize} summarises the observed
+distribution.
+
+\begin{table}[h]
+\centering
+\caption{Token-count distribution per dataset (pinned BGE-M3
+tokenizer).}
+\label{tab:oversize}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Docs} & \textbf{p50} & \textbf{p90}
+  & \textbf{max} & \textbf{oversize} \\
+\midrule
+CLERC              & \num{2756} & \num{383}   & \num{438}
+                   & \num{607}   & \num{0.0}\% \\
+CUAD               & \num{510}  & \num{7508}  & \num{27913}
+                   & \num{77619} & \num{46.5}\% \\
+GreekBarBench      & \num{284}  & \num{18307} & \num{30667}
+                   & \num{45411} & \num{82.0}\% \\
+LaRA               & \num{131}  & \num{62392} & \num{121332}
+                   & \num{148481} & \num{100.0}\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Without an explicit oversize policy the encoder would silently
+truncate the majority of the source content of three of the four
+datasets. Truncation is not an admissible design choice under the
+program's controlled protocol because it would make the retrieval
+comparison against the executed LongRAG and My\_RAG tracks
+meaningless.
+
+\textbf{Decision.} A canonical document whose token count is at or
+below \num{8190} content tokens produces exactly one window with
+\texttt{window\_index}~$=0$ and \texttt{doc\_id}~$=$
+\texttt{lineage\_doc\_id}~$=$ the canonical document identifier. A
+canonical document above the budget is split into $N$ contiguous,
+exhaustive windows. Each window carries the canonical document's
+identity as \texttt{lineage\_doc\_id}, and its own
+\texttt{doc\_id} of the form
+\texttt{<lineage\_doc\_id>:w<i>}. The metadata record is always
+derived from the text of the window itself.
+
+\textbf{Why this is not a fidelity violation.} The paper does not
+pin an oversize policy. LongRAG's controlled adaptation uses an
+analogous windowing strategy at \num{4096} tokens. The amendment
+changes no coefficient, no threshold, no comparison semantics, and
+no evaluation unit. It is a no-op on the synthetic acceptance
+fixture and on CLERC, which have no oversize documents.
+
+\textbf{Backward compatibility.} The single-window shortcut means
+the amendment is byte-identical to the pre-amendment behaviour on
+any document that fits within the budget. This was verified at the
+test level: the synthetic acceptance run produces identical
+\texttt{documents.jsonl} bytes before and after the amendment.
+
+% =====================================================================
+\section{Architecture}\label{sec:arch}
+
+\subsection{Overview}
+Metadata-RAG is a metadata-driven multistage retrieval architecture.
+Its defining surface is a metadata layer that intervenes between the
+query and the semantic similarity search. The full offline and online
+paths are summarised in Figure~\ref{fig:pipeline}.
+
+\begin{figure}[h]
+\centering
+\small
+\begin{tabular}{c}
+\hline
+\textbf{Offline}\\
+\hline
+canonical documents $\to$ deterministic metadata extraction\\
+$\to$ windowing (amendment 04) $\to$ indexed windows (state)\\
+$\to$ BGE-M3 dense embeddings (Colab, FP16)\\
+$\to$ exact in-memory dense index\\
+\hline
+\textbf{Online}\\
+\hline
+query text $\to$ metadata extraction (same extractor)\\
+$\to$ typed constraints\\
+$\to$ candidate windows (match\_ratio $\geq 0.5$)\\
+$\to$ exact dense top-$k$ over candidates\\
+$\to$ metadata--semantic fusion ($\alpha_m=0.3$, $\alpha_s=0.7$)\\
+$\to$ ranked items\\
+$\to$ document expansion (first-occurrence dedup by lineage id)\\
+\hline
+\end{tabular}
+\caption{Metadata-RAG pipeline.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Metadata schema}
+The frozen schema has two tiers. The \emph{provenance} tier is
+populated from the canonical envelope and is present on every
+document window:
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Source} \\
+\midrule
+\texttt{dataset} & categorical & envelope \\
+\texttt{doc\_id} & categorical & canonical id \\
+\texttt{source\_dataset\_id} & provenance & envelope metadata \\
+\texttt{source\_content\_group\_id} & provenance & envelope metadata \\
+\texttt{title} & categorical & envelope \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \emph{derived} tier is extracted deterministically from the
+window text by a small set of frozen regular expressions:
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Extraction} \\
+\midrule
+\texttt{capitalized\_phrases} & entity, multi & regex (amended 01) \\
+\texttt{year\_mentions} & temporal, multi & \texttt{\textbackslash b(19|20)\textbackslash d\{2\}\textbackslash b} \\
+\texttt{numeric\_tokens} & numeric, multi & \texttt{\textbackslash b\textbackslash d+(\textbackslash .\textbackslash d+)?\textbackslash b} \\
+\texttt{char\_length} & numeric, single & \texttt{len(text)} \\
+\texttt{word\_count} & numeric, single & whitespace split \\
+\texttt{length\_bucket} & categorical, single & word-count thresholds \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Multi-value fields are deduplicated and sorted. Missing values are
+represented as the \texttt{null} token, never as the empty string.
+
+\subsection{The architecture-defining symmetry}
+The same extractor is applied to document window text and to query
+text. This symmetry is what makes the metadata layer meaningful: the
+query side infers the same typed fields that the index side stores.
+The query projection reads only \texttt{query\_id} and
+\texttt{query\_text}; it never reads \texttt{query.doc\_ids},
+\texttt{query.relevant\_ids}, \texttt{query.metadata},
+\texttt{query.ground\_truth}, or any other field that could leak
+ground truth into retrieval.
+
+\subsection{Candidate filtering}
+A typed constraint is emitted for every multi-value derived field
+present in the query record. A window's \emph{match ratio} is the
+number of constraints it satisfies divided by the total number of
+constraints the query emitted. A window is a candidate if its match
+ratio is at least the frozen \texttt{min\_match\_ratio} of \num{0.5}.
+
+When the candidate set is empty the pipeline falls back to
+\textsc{use\_full\_corpus\_for\_semantic\_retrieval}, sets
+\texttt{alpha\_metadata} to \num{0.0}, and flags every emitted item
+with \texttt{metadata\_match\_none: true}. The fallback is
+deterministic and is reported per query.
+
+\subsection{Semantic retrieval}
+Semantic retrieval is dense-only over the pinned BGE-M3 encoder
+(\texttt{BAAI/bge-m3}, revision
+\texttt{5617a9f6\ldots}), $1024$-dimensional, L2-normalized. Sparse
+and ColBERT outputs are disabled. The encoder runs offline against a
+local snapshot; network fallback is not permitted. The embedder is
+classified \textsc{ARCHITECTURE\_SUPPORTING} with treatment
+\textsc{CONTROLLED\_REPLACEMENT}; no native-equivalence claim is
+made.
+
+\subsection{Metadata--semantic fusion}
+The fused score of a candidate window is
+\[
+\mathrm{score}(w) \;=\; \alpha_m \cdot \mathrm{match\_ratio}(w)
+\;+\; \alpha_s \cdot \max(0,\ \mathrm{cosine}(q, w)),
+\]
+with $\alpha_m = \num{0.3}$ and $\alpha_s = \num{0.7}$. Both
+coefficients are frozen and marked
+\texttt{tuning\_prohibited: true}. The paper pins no fusion
+formula; this is an explicit project decision and is documented in
+the clean-room specification.
+
+Tie-breaking is deterministic: descending fused score, then
+descending semantic score, then ascending window \texttt{doc\_id}.
+
+\subsection{Document expansion}
+Because one canonical document can be split into multiple windows,
+the ranked-item list may contain several windows of the same
+document. The expansion stage deduplicates by \texttt{lineage\_doc\_id}
+using a first-occurrence rule: the highest-ranked window of each
+canonical document determines that document's emitted rank and score.
+This matches the LongRAG document-expansion precedent exactly.
+
+% =====================================================================
+\section{Component Disposition}\label{sec:disposition}
+
+Every component is classified by its role. The role determines the
+admissible treatment.
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Role} & \textbf{Treatment} \\
+\midrule
+metadata schema & defining & preserved \\
+metadata extraction & defining & preserved \\
+query metadata inference & defining & preserved \\
+candidate filtering & defining & preserved \\
+semantic retrieval & defining & preserved \\
+metadata--semantic fusion & defining & preserved \\
+result ranking & defining & preserved \\
+source lineage & defining & preserved \\
+document expansion & defining & preserved \\
+windowing (amend.~04) & defining & preserved \\
+embedder & supporting & controlled replacement \\
+tokenizer & supporting & matches embedder \\
+storage backend & supporting & controlled replacement \\
+generation & optional & disabled \\
+answer evaluation & optional & disabled \\
+llm-as-judge & optional & disabled \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The design decision to treat storage as supporting rather than
+defining is what makes the IN\_MEMORY\_EXACT\_DENSE substitution
+admissible under the program's substitution policy. The embedder is
+supporting because the paper's contribution is the metadata
+multistage retrieval mechanism, not a specialised encoder.
+
+% =====================================================================
+\section{Execution Pipeline}\label{sec:pipeline}
+
+Execution is organised into six stages, each implemented as a
+resumable, atomic, checksum-closed script.
+
+\begin{center}
+\small
+\begin{tabular}{c p{4.4cm} p{7.0cm}}
+\toprule
+\textbf{Stage} & \textbf{Purpose} & \textbf{Outputs} \\
+\midrule
+L2 & state materialization & \texttt{state-v1/}, \texttt{colab\_bundle/},
+     \texttt{colab\_bundle.tar.gz} \\
+L3 & Colab BGE-M3 encoding & \texttt{window\_embeddings.jsonl},
+     \texttt{query\_embeddings.jsonl}, packaged tar.gz \\
+L4 & local import and enrichment & \texttt{embeddings-v1/} with full
+     \texttt{MetadataRAGDocumentEmbedding} and
+     \texttt{MetadataRAGQueryEmbedding} records \\
+L5 & full retrieval & \texttt{retrieval-v1/results.jsonl}, manifest,
+     checksums \\
+L6 & evaluation & \texttt{evaluation-v1/query\_metrics.jsonl},
+     \texttt{aggregate\_metrics.json} \\
+L7 & cross-track comparison & \texttt{baseline\_audit/reports/} JSON
+     and Markdown \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every stage writes a manifest with the SHA-256 of every artifact it
+produces, and every later stage verifies the hashes of the artifacts
+it consumes. A silent change to any upstream artifact produces a
+hard failure at the next stage.
+
+\subsection{Determinism and reproducibility}
+All stages are byte-deterministic given their inputs. Two
+consecutive runs of the synthetic acceptance produce identical
+artifacts at every stage. Two consecutive runs of the full retrieval
+on the same embeddings produce identical ranked lists. The only
+source of nondeterminism in the full pipeline is FP16 rounding in
+the Colab encoder, which is bounded and is not claimed to be
+bit-reproducible across GPUs.
+
+\subsection{Leakage prevention}
+The pipeline's query projection, the retrieval stage, and the
+retrieval output all read only the fields they are permitted to
+read. The evaluator is an independent process that reads retrieval
+results and canonical ground truth, and it is the only stage that
+ever sees ground truth. The Colab encoder never receives metadata
+records, never receives ground truth, and never sees query text
+beyond the query window text it is asked to embed.
+
+% =====================================================================
+\section{Real-Dataset Execution}\label{sec:real}
+
+\subsection{Datasets and scope}
+The executed scope is the same four datasets as the LongRAG and
+My\_RAG tracks: CLERC, CUAD, GreekBarBench, and LaRA.
+Table~\ref{tab:datasets} reports the canonical scope and the
+materialized window count for Metadata-RAG.
+
+\begin{table}[h]
+\centering
+\caption{Executed scope and materialized windows.}
+\label{tab:datasets}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Documents} & \textbf{Queries}
+  & \textbf{Windows} & \textbf{Expansion factor} \\
+\midrule
+CLERC              & \num{2756} & \num{1000}  & \num{2756}
+                   & \num{1.00} \\
+CUAD               & \num{510}  & \num{20910} & \num{1017}
+                   & \num{1.99} \\
+GreekBarBench      & \num{284}  & \num{284}   & \num{792}
+                   & \num{2.79} \\
+LaRA               & \num{131}  & \num{2326}  & \num{1160}
+                   & \num{8.85} \\
+\midrule
+\textbf{Total}     & \num{3681} & \num{24520} & \num{5725}
+                   & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The window counts match the pre-execution token-budget projection
+exactly, which is itself evidence that the amendment-04 windowing
+policy was implemented correctly.
+
+\subsection{Embedding}
+Every window and every query was embedded with the pinned BGE-M3
+encoder in FP16 on a Google Colab Tesla T4. The Colab-side script
+records only the \texttt{(doc\_id, dense\_vector)} and
+\texttt{(query\_id, dense\_vector)} pairs. The local import stage
+reattaches metadata from the frozen state and enforces a strict
+bijection: every state window must have exactly one embedding, every
+embedding must refer to a state window, and every query embedding
+must correspond to a query text in the bundle.
+
+\subsection{Retrieval configuration}
+Retrieval used the frozen configuration: \texttt{alpha\_metadata}
+$=0.3$, \texttt{alpha\_semantic} $=0.7$,
+\texttt{min\_match\_ratio} $=0.5$, \texttt{document\_limit} $=100$.
+The configuration object refuses construction if any of these values
+is changed.
+
+\subsection{Observed timings}
+\begin{center}
+\small
+\begin{tabular}{l r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries} & \textbf{Retrieval wall time} \\
+\midrule
+CLERC              & \num{1000}  & \SI{169.5}{\second} \\
+CUAD               & \num{20910} & \SI{255.9}{\second} \\
+GreekBarBench      & \num{284}   & \SI{3.2}{\second} \\
+LaRA               & \num{2326}  & \SI{29.9}{\second} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The corpus-size dependence is dominated by the candidate-set size:
+CUAD has \num{20910} queries each scoped to its own candidate set,
+and CLERC has the largest full-corpus fallback, so both dominate the
+wall time even though their window counts are moderate.
+
+% =====================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Primary metric}
+The primary metric of the program is macro-averaged document-level
+\texttt{Recall@10}. Table~\ref{tab:primary} reports it per dataset
+and as a macro across the four datasets.
+
+\begin{table}[h]
+\centering
+\caption{Metadata-RAG document \texttt{Recall@10}.}
+\label{tab:primary}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries evaluated}
+  & \textbf{Queries excluded (0 relevant)}
+  & \textbf{Recall@10} \\
+\midrule
+CLERC              & \num{1000} & \num{0}     & \num{0.2726} \\
+CUAD               & \num{6702} & \num{14208} & \num{0.0294} \\
+GreekBarBench      & \num{284}  & \num{0}     & \num{0.2711} \\
+LaRA               & \num{2326} & \num{0}     & \num{0.8874} \\
+\midrule
+\textbf{Macro}     & ---        & ---         & \num{0.3651} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Full metric set}
+Table~\ref{tab:full} reports the complete macro-averaged metric set
+at every cutoff.
+
+\begin{table}[h]
+\centering
+\caption{Metadata-RAG macro-averaged metrics across four datasets.}
+\label{tab:full}
+\small
+\begin{tabular}{l r | l r}
+\toprule
+\textbf{Metric} & \textbf{Value}
+  & \textbf{Metric} & \textbf{Value} \\
+\midrule
+Hit@1     & \num{0.2313} & Recall@1   & \num{0.2026} \\
+Hit@5     & \num{0.3389} & Recall@5   & \num{0.2999} \\
+Hit@10    & \num{0.4085} & Recall@10  & \num{0.3651} \\
+Hit@20    & \num{0.4789} & Recall@20  & \num{0.4316} \\
+Hit@50    & \num{0.5920} & Recall@50  & \num{0.5478} \\
+Hit@100   & \num{0.6570} & Recall@100 & \num{0.6121} \\
+Precision@10 & \num{0.0482} & MRR@10  & \num{0.2797} \\
+nDCG@10   & \num{0.2883} & MRR@50     & \num{0.2882} \\
+nDCG@50   & \num{0.3319} & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-dataset metric table}
+Table~\ref{tab:perds} reports the per-dataset Hit@1, Hit@10, Recall@1,
+Recall@10, Recall@100, MRR@10, and nDCG@10.
+
+\begin{table}[h]
+\centering
+\caption{Metadata-RAG per-dataset primary metrics.}
+\label{tab:perds}
+\small
+\begin{tabular}{l r r r r r r r}
+\toprule
+\textbf{Dataset} & \textbf{H@1} & \textbf{H@10} & \textbf{R@1}
+  & \textbf{R@10} & \textbf{R@100} & \textbf{MRR@10} & \textbf{nDCG@10} \\
+\midrule
+CLERC              & \num{0.1870} & \num{0.4460}
+                   & \num{0.0723} & \num{0.2726}
+                   & \num{0.5322} & \num{0.2626} & \num{0.2199} \\
+CUAD               & \num{0.0034} & \num{0.0279}
+                   & \num{0.0034} & \num{0.0294}
+                   & \num{0.2125} & \num{0.0090} & \num{0.0137} \\
+GreekBarBench      & \num{0.0176} & \num{0.2711}
+                   & \num{0.0176} & \num{0.2711}
+                   & \num{0.7183} & \num{0.0756} & \num{0.1204} \\
+LaRA               & \num{0.7171} & \num{0.8874}
+                   & \num{0.7171} & \num{0.8874}
+                   & \num{0.9854} & \num{0.7715} & \num{0.7993} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Architectural Observation: The Metadata Stage Did Not
+Activate on Three of Four Corpora}\label{sec:observation}
+
+\subsection{The measurement}
+The single most important observation of this track is not the
+aggregate macro metric. It is the per-query fallback rate of the
+metadata-filtering stage. Table~\ref{tab:fallback} reports it.
+
+\begin{table}[h]
+\centering
+\caption{Metadata-stage fallback rate per dataset.}
+\label{tab:fallback}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries} & \textbf{Fell back}
+  & \textbf{Fallback rate} \\
+\midrule
+CLERC              & \num{1000}  & \num{999}   & \num{99.9}\% \\
+CUAD               & \num{20910} & \num{20400} & \num{97.6}\% \\
+GreekBarBench      & \num{284}   & \num{262}   & \num{92.3}\% \\
+LaRA               & \num{2326}  & \num{784}   & \num{33.7}\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On three of the four datasets the metadata filter is inactive for
+essentially the entire query set. Under the frozen retrieval
+semantics this means that the architecture executed as a pure
+dense-only BGE-M3 retriever on those three datasets, and as a
+metadata-filtered dense retriever only on LaRA. The measured
+retrieval quality is therefore the quality of a dense-only retriever
+on three of the four datasets.
+
+\subsection{The mechanism}
+The mechanism is the interaction of two frozen decisions with the
+properties of the corpora:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=0.15em]
+  \item The frozen \texttt{min\_match\_ratio} of \num{0.5} requires
+    a candidate window to satisfy at least half of the query's
+    emitted constraints.
+  \item The frozen extractor emits one typed constraint per detected
+    multi-value field value in the query text.
+\end{enumerate}
+
+When a query produces many constraints, the second requirement
+becomes unattainable. We observed exactly this on CLERC.
+
+\subsection{Why CLERC fails}
+CLERC query texts are long judicial opinions, averaging hundreds of
+tokens and containing dozens of multi-word capitalized phrases. The
+extractor emitted between \num{65} and \num{137} constraints per
+query, with a median well above the $60$ threshold observed in the
+diagnostic histogram. Under a $\num{0.5}$ ratio, a window would have
+to satisfy \num{33}--\num{69} distinct constraints simultaneously,
+which no canonical document achieves. The candidate set is empty on
+\num{99.9}\% of CLERC queries and the fallback triggers.
+
+\subsection{Why CUAD fails}
+CUAD query texts are templated prompts of the form
+\emph{``Highlight the parts (if any) of this contract related to
+`X' that should be reviewed by a lawyer.''} The extractor emits
+\num{0} or \num{1} constraints depending on whether the templated
+slot contains a capitalized phrase. When \num{0} constraints are
+emitted, the ratio is undefined and the fallback triggers by
+construction. \num{65.9}\% of CUAD queries produced zero
+constraints; \num{34.1}\% produced exactly one. In both cases, the
+frozen ratio of \num{0.5} cannot be satisfied.
+
+\subsection{Why GreekBarBench fails}
+GreekBarBench query texts are in Greek. The frozen extractor uses
+ASCII ranges only
+(\texttt{[A-Z][a-z]}, \texttt{\textbackslash b(19|20)\textbackslash
+d\{2\}\textbackslash b}, etc.) and was deliberately not extended to
+Unicode capitals in any amendment. On Greek text the extractor emits
+almost no constraints: \num{89.8}\% of queries produced zero
+constraints, and the fallback triggers.
+
+This is a bounded and documented limitation of the frozen spec,
+not a runtime bug. The spec's schema version and the extractor
+version are both pinned, and the limitation is stated in the
+extractor module's own docstring.
+
+\subsection{Why LaRA works}
+LaRA query texts are English natural questions of the form
+\emph{``How does Lucy's decision to end her engagement with Cecil
+differ from her response to Mr.\ Emerson's encouragement about her
+feelings for George?''} The extractor emits \num{1} to \num{5}
+constraints per query. A $\num{0.5}$ ratio then requires a window to
+satisfy \num{1} to \num{3} constraints, which is achievable. The
+metadata filter activates on \num{66.3}\% of LaRA queries.
+
+\subsection{Scientific interpretation}
+The observation can be stated as a design-level finding:
+
+\begin{quote}
+\emph{A metadata-driven retrieval architecture with a frozen
+minimum-match ratio produces a filter that is only active on corpora
+whose query texts emit a constrained number of typed metadata
+signals. When query texts are long, templated, or written in a
+language the frozen extractor cannot tokenise, the filter
+degenerates to a dense-only pipeline and the metadata stage
+contributes nothing.}
+\end{quote}
+
+This is not a defect of the paper's algorithmic family. It is a
+property of the interaction between the family and any fixed
+configuration of its parameters. In a production deployment the
+parameter would be tuned per corpus; in a controlled comparison it
+must be frozen, and the frozen value produces the observed
+behaviour. The comparison therefore measures the architecture's
+behaviour under a fixed, pre-registered configuration, which is
+exactly what a controlled architectural comparison is meant to do.
+
+\subsection{No post-hoc tuning}
+The program's master guidance prohibits post-hoc threshold tuning.
+The frozen \texttt{min\_match\_ratio} of \num{0.5} was declared
+before execution, marked \texttt{tuning\_prohibited: true} in the
+clean-room specification, and remained unchanged throughout. The
+observation is recorded in the readiness declaration's
+\texttt{architectural\_observation} block, and the flag
+\texttt{post\_hoc\_tuning\_applied} is set to \texttt{false}.
+
+% =====================================================================
+\section{Three-Track Comparison}\label{sec:comparison}
+
+\subsection{Setup}
+The comparison covers the three tracks that have been executed on
+the identical four datasets under the identical shared protocol:
+LongRAG (controlled adaptation), Metadata-RAG (paper-derived
+comparator), and My\_RAG (project-owned reference). The comparison
+reads only per-dataset aggregate metrics of each track; it never
+touches per-query data.
+
+\subsection{Primary metric comparison}
+Table~\ref{tab:three} reports the per-dataset and macro primary
+metric.
+
+\begin{table}[h]
+\centering
+\caption{Macro-averaged document \texttt{Recall@10} across tracks.}
+\label{tab:three}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Dataset} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{My\_RAG} \\
+\midrule
+CLERC              & \num{0.0786} & \num{0.2726} & \num{0.3546} \\
+CUAD               & \num{0.0324} & \num{0.0294} & \num{0.0431} \\
+GreekBarBench      & \num{0.2606} & \num{0.2711} & \num{0.2852} \\
+LaRA               & \num{0.8861} & \num{0.8874} & \num{0.9368} \\
+\midrule
+\textbf{Macro}     & \num{0.3144} & \num{0.3651} & \num{0.4049} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Metadata-RAG is \num{16.1}\% above LongRAG and \num{9.8}\% below
+My\_RAG on the primary metric.
+
+\subsection{Full macro metric table}
+Table~\ref{tab:threefull} reports the complete macro metric set.
+
+\begin{table}[h]
+\centering
+\caption{Macro metric set across tracks.}
+\label{tab:threefull}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Metric} & \textbf{LongRAG} & \textbf{Metadata-RAG}
+  & \textbf{My\_RAG} \\
+\midrule
+Hit@1     & \num{0.1957} & \num{0.2313} & \num{0.2553} \\
+Hit@5     & \num{0.2606} & \num{0.3389} & \num{0.3846} \\
+Hit@10    & \num{0.3183} & \num{0.4085} & \num{0.4520} \\
+Hit@20    & \num{0.3881} & \num{0.4789} & \num{0.5416} \\
+Hit@50    & \num{0.4929} & \num{0.5920} & \num{0.6658} \\
+Recall@1  & \num{0.1905} & \num{0.2026} & \num{0.2180} \\
+Recall@5  & \num{0.2569} & \num{0.2999} & \num{0.3394} \\
+Recall@10 & \num{0.3144} & \num{0.3651} & \num{0.4049} \\
+Recall@20 & \num{0.3833} & \num{0.4316} & \num{0.4938} \\
+Recall@50 & \num{0.4870} & \num{0.5478} & \num{0.6210} \\
+Precision@10 & \num{0.0362} & \num{0.0482} & \num{0.0557} \\
+MRR@10    & \num{0.2268} & \num{0.2797} & \num{0.3123} \\
+MRR@50    & \num{0.2349} & \num{0.2882} & \num{0.3225} \\
+nDCG@10   & \num{0.2476} & \num{0.2883} & \num{0.3214} \\
+nDCG@50   & \num{0.2880} & \num{0.3319} & \num{0.3733} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Interpretation of the ranking}
+Metadata-RAG sits between LongRAG and My\_RAG on the primary metric.
+Two architectural facts explain this ordering.
+
+\paragraph{Why Metadata-RAG beats LongRAG.}
+LongRAG groups adjacent documents into long retrieval units of
+$\approx\num{4096}$ tokens. On CLERC, whose documents average a few
+hundred tokens, this packs roughly eleven documents per unit and
+dilutes a single relevant document by ten irrelevant ones. Metadata-RAG
+does not group; its retrieval unit is a single document window. Even
+with the metadata stage inactive, the finer unit preserves document
+identity in the ranking. This is what produces the \num{3.47}$\times$
+relative advantage on CLERC.
+
+\paragraph{Why My\_RAG beats Metadata-RAG.}
+My\_RAG combines three architectural mechanisms that Metadata-RAG
+does not have: hierarchical chunking that never crosses
+semantic-parent boundaries, a learned-sparse lexical signal fused
+with the dense signal by Reciprocal Rank Fusion, and a
+parent-aggregation rule that rewards parents with multiple strong
+child chunks. On a corpus where the metadata filter is inactive,
+Metadata-RAG is a dense-only retriever against a hybrid retriever
+with those additional mechanisms. The gap of \num{9.8}\% on the
+primary metric is consistent with that difference.
+
+\paragraph{Why the LaRA gap is small.}
+On LaRA, the metadata filter activates on \num{66.3}\% of queries
+and Metadata-RAG's lead over LongRAG narrows to \num{0.15}\%
+absolute. This is consistent with the LaRA corpus being a
+near-document-level retrieval problem for both architectures: when
+the retrieval unit is already close to a full document, unit
+granularity has little room to differentiate the two.
+
+% =====================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+\subsection{Paper-status caveat}
+The source paper is a preprint under major revision. No paper-level
+effectiveness claim is made against this baseline. The paper's
+algorithmic claims are the design reference only.
+
+\subsection{No native-fidelity track}
+The architecture has no native-fidelity execution. No foreign source
+exists and the paper pins no native embedder, tokenizer, storage
+backend, or metadata schema. The native track is
+\textsc{DEFERRED\_WITH\_REASON}.
+
+\subsection{Controlled adaptations}
+Three controlled adaptations are present and are documented:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item the embedder is BGE-M3 dense-only, FP16, pinned revision;
+  \item the storage backend is IN\_MEMORY\_EXACT\_DENSE;
+  \item an oversize-document windowing policy (amendment 04) is
+    applied to documents that exceed the BGE-M3 input budget.
+\end{itemize}
+None of these changes the architecture-defining retrieval logic.
+
+\subsection{Frozen threshold, not a tuned threshold}
+The \texttt{min\_match\_ratio} of \num{0.5} was pre-registered and
+never tuned. The fallback rate that results from this choice is a
+property of the frozen design and is reported as-is. A production
+deployment would tune the threshold per corpus; the controlled
+comparison is not permitted to.
+
+\subsection{Single-run execution}
+Both this track and its comparison tracks are executed once,
+deterministically, on the full query set. No bootstrap confidence
+intervals and no paired significance tests are reported. The
+observed differences are descriptive.
+
+\subsection{Precision}
+FP16 embeddings are used. FP32 equivalence is not claimed.
+
+\subsection{Ground-truth projection}
+All three tracks are evaluated at the canonical-document level.
+Datasets such as CUAD and GreekBarBench have span-level or
+clause-level annotations that could arguably be evaluated at finer
+granularity; the program's shared protocol commits to document level
+and the reported numbers reflect that choice.
+
+% =====================================================================
+\section{Reproducibility}\label{sec:repro}
+
+\subsection{Commit chain}
+The Metadata-RAG track closure corresponds to the following commits,
+in order:
+
+\begin{center}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Commit} & \textbf{Stage} \\
+\midrule
+\texttt{c298429} & clean-room spec + controlled-track pipeline + synthetic readiness \\
+\texttt{a91bed7} & oversize document windowing (amendment 04) \\
+\texttt{bf63ee2} & state materialization + Colab bundle prep \\
+\texttt{cabf1e8} & L2--L6 scripts (Colab encode, import, retrieval, evaluation, comparison) \\
+\texttt{8e23fe4} & evaluator dedup fix + legacy-format comparison \\
+\texttt{d7186fe} & readiness declaration REAL\_DATASET\_EXECUTED \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Artifact inventory}
+\begin{center}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Artifact} & \textbf{Location} \\
+\midrule
+Frozen spec & \texttt{baseline\_audit/metadata\_rag\_clean\_room\_spec.yaml} \\
+Amendments 01--04 & \texttt{baseline\_audit/metadata\_rag\_clean\_room\_spec\_amendment\_*.yaml} \\
+Readiness declaration & \texttt{baseline\_audit/metadata\_rag\_readiness\_declaration.yaml} \\
+State, embeddings, retrieval, evaluation & \texttt{outputs/external\_metadata\_rag/<ds>/} \\
+Comparison report & \texttt{baseline\_audit/reports/metadata\_rag\_vs\_baselines.\{json,md\}} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Determinism}
+All artifacts are byte-deterministic given their inputs. Every stage
+writes a manifest with SHA-256 hashes, and later stages verify the
+hashes of the artifacts they consume. Silent drift is detected as a
+hard failure.
+
+\subsection{Test coverage}
+\num{342} tests across nineteen test modules. All pass under ruff,
+mypy strict, and pytest. The suite covers the metadata extractor,
+the adapter, the persistence layer, the embedder contract, the
+reference index, the retrieval pipeline, the expansion stage, the
+evaluation-case builder, the windowing module, the synthetic
+acceptance runner, the Colab encoder, the import-enrich stage, the
+full-retrieval driver, the evaluator, the comparison script, and the
+readiness declaration validator.
+
+% =====================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We have described, frozen, implemented, executed, and evaluated
+Metadata-RAG, a paper-derived reimplementation of a
+metadata-driven multistage retrieval architecture, on four
+heterogeneous canonical corpora. The architecture is complete,
+deterministic, fully validated, and passes \num{342} tests. Its
+macro-averaged document \texttt{Recall@10} across the four datasets
+is \num{0.3651}, between LongRAG's \num{0.3144} and My\_RAG's
+\num{0.4049}.
+
+The substantive finding of this track is not the aggregate metric but
+its decomposition. Under the frozen \texttt{min\_match\_ratio} of
+\num{0.5}, the metadata-filtering stage failed to activate on three
+of the four datasets, and the architecture executed as a pure
+dense-only retriever on those three. We documented this behaviour
+with full transparency, we identified its mechanism, and we made no
+post-hoc adjustment of the frozen specification. The observation is
+architecturally useful: it demonstrates that metadata-driven
+retrieval requires the query text to produce a constrained number of
+typed signals, and that a frozen filter threshold can be inactive on
+corpora whose query texts are long, templated, or written in a
+language the extractor does not cover.
+
+The track is declared closed at commit \texttt{d7186fe} with status
+\textsc{REAL\_DATASET\_EXECUTED}. The next action of the program is
+the comparative report writing that will place the three tracks
+side by side and state the architectural observations that emerge.
+
+% =====================================================================
+\appendix
+
+\section{Appendix A: The Clean-Room Spec at a Glance}
+\begin{lstlisting}[language=yaml]
+architecture:
+  architecture_id: metadata_rag
+  fidelity_class: PAPER_DERIVED_COMPARATOR
+  implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+tracks:
+  controlled: { eligible: true }
+  native:     { eligible: false, reason: DEFERRED_WITH_REASON }
+metadata_schema:
+  schema_version: "0.1.0"
+  schema_status: RESOLVED
+query_metadata_inference:
+  classification: DETERMINISTIC_PROJECT_OWNED
+  llm_required: false
+  query_projection:
+    allowed_fields: [query_id, query_text]
+    prohibited_fields:
+      - doc_ids
+      - relevant_ids
+      - answers
+      - choice
+      - target_content_group_id
+      - ground_truth
+      - spans
+      - metadata
+candidate_filtering:
+  min_match_ratio: 0.5
+  min_match_ratio_frozen: true
+  min_match_ratio_tuning_prohibited: true
+metadata_semantic_fusion:
+  coefficients:
+    alpha_metadata: 0.3
+    alpha_semantic: 0.7
+    frozen: true
+    tuning_prohibited: true
+semantic_retrieval:
+  signal: dense_only
+  embedder:
+    model_id: BAAI/bge-m3
+    model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+    dense_dimension: 1024
+    dense_normalized: true
+    network_fallback_allowed: false
+storage:
+  experimental_backend: IN_MEMORY_EXACT_DENSE
+  replacement_class: SEMANTICALLY_NEUTRAL_FOR_CONTROLLED_TRACK
+  equivalence_test: NOT_REQUIRED
+  approximate_search_allowed: false
+  quantization_allowed: false
+dataset_compatibility:
+  cutoffs: [1, 5, 10, 20, 50, 100]
+  primary_metric: macro_document_recall_at_10
+  zero_relevance_policy: exclude_with_explicit_count
+claims:
+  faithful_reproduction: false
+  paper_effectiveness_reproduced: false
+  native_equivalence: false
+  controlled_adaptation: true
+  paper_derived_comparator: true
+  real_dataset_validated: true
+  publishable_result: false
+  synthetic_validation_is_paper_level_evidence: false
+\end{lstlisting}
+
+\section{Appendix B: The Four Amendments at a Glance}
+\begin{center}
+\small
+\begin{tabular}{p{0.6cm} p{3.6cm} p{5.0cm} p{4.5cm}}
+\toprule
+\textbf{\#} & \textbf{Kind} & \textbf{Change} & \textbf{Reason} \\
+\midrule
+01 & regex correctness &
+  capitalized-phrase pattern now excludes sentence-initial
+  articles \texttt{The|A|An} &
+  document/query extraction symmetry would otherwise be broken
+  silently on the synthetic fixture \\
+02 & storage backend &
+  Qdrant replaced by IN\_MEMORY\_EXACT\_DENSE &
+  paper pins no backend; exact dense index removes approximation
+  risk without fidelity cost \\
+03 & evaluation profile &
+  cutoffs extended to $\{1,5,10,20,50,100\}$, primary metric
+  declared explicitly &
+  align with the executed LongRAG and My\_RAG runs \\
+04 & oversize handling &
+  fixed-size windowing at \num{8190} content tokens using the
+  pinned BGE-M3 tokenizer &
+  three of the four datasets contain documents that would otherwise
+  be truncated by one to two orders of magnitude \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Appendix C: The Fallback Rates in Detail}
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Dataset} & \textbf{Queries} & \textbf{Fallback}
+  & \textbf{Mean candidate count} & \textbf{Max candidate count} \\
+\midrule
+CLERC              & \num{1000}  & \num{99.9}\%
+                   & \num{2753.2} & \num{2756} \\
+CUAD               & \num{20910} & \num{97.6}\%
+                   & \num{992.3}  & \num{1017} \\
+GreekBarBench      & \num{284}   & \num{92.3}\%
+                   & \num{749.0}  & \num{792} \\
+LaRA               & \num{2326}  & \num{33.7}\%
+                   & \num{693.8}  & \num{1160} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The mean candidate count is close to the full corpus size on every
+dataset, which confirms that when the fallback triggers it triggers
+\emph{to the full corpus}, not to an empty set. This is the frozen
+fallback behaviour declared in the clean-room specification.
+
+\end{document}

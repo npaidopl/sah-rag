@@ -1,0 +1,169 @@
+artifact_type: architecture_fidelity_matrix
+artifact_version: "1.0"
+
+matrix:
+  id: wave1_architecture_fidelity
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+status_vocabulary:
+  implementation_status:
+    - NOT_STARTED
+    - PARTIAL
+    - SYNTHETIC_VALIDATED
+    - DATASET_READY
+  fidelity_status:
+    - NATIVE_FAITHFUL
+    - CONTROLLED_ADAPTATION
+    - PAPER_DERIVED_COMPARATOR
+    - UNRESOLVED
+  benchmark_eligibility:
+    - PRIMARY_CONTROLLED_TRACK
+    - SECONDARY_NATIVE_TRACK
+    - BOTH_TRACKS
+    - DEFERRED
+    - EXCLUDED_WITH_REASON
+
+architectures:
+  rag_system:
+    implementation_status: DATASET_READY
+    fidelity_status: NATIVE_FAITHFUL
+    benchmark_eligibility: BOTH_TRACKS
+    classification: PROJECT_OWNED_REFERENCE
+    controlled_track:
+      eligible: true
+      blockers: []
+    native_track:
+      eligible: true
+      blockers: []
+    next_readiness_action: end_to_end_execution_on_controlled_track
+  longrag:
+    implementation_status: SYNTHETIC_VALIDATED
+    fidelity_status: CONTROLLED_ADAPTATION
+    benchmark_eligibility: PRIMARY_CONTROLLED_TRACK
+    controlled_track:
+      eligible: true
+      blockers: []
+    native_track:
+      eligible: false
+      blockers: [native_embedder_identity_unpinned]
+    next_readiness_action: complete_controlled_track_execution
+  raptor:
+    implementation_status: PARTIAL
+    fidelity_status: CONTROLLED_ADAPTATION
+    benchmark_eligibility: PRIMARY_CONTROLLED_TRACK
+    architecture_defining_components:
+      - tree_construction
+      - cluster_summarization
+    controlled_track:
+      eligible: true
+      blockers: []
+      note: llm_summary_stage_preserve_or_defer
+    native_track:
+      eligible: false
+      blockers: [native_llm_stage_not_available]
+    next_readiness_action: freeze_summarization_policy
+  hipporag2:
+    implementation_status: PARTIAL
+    fidelity_status: CONTROLLED_ADAPTATION
+    benchmark_eligibility: PRIMARY_CONTROLLED_TRACK
+    architecture_defining_components:
+      - openie_extraction
+      - graph_construction
+      - personalized_pagerank
+    controlled_track:
+      eligible: true
+      blockers: []
+      note: openie_stage_replacement_prohibited_without_fidelity_label
+    native_track:
+      eligible: false
+      blockers: [openie_llm_stage_not_available]
+    next_readiness_action: freeze_openie_policy
+  lightrag:
+    implementation_status: PARTIAL
+    fidelity_status: CONTROLLED_ADAPTATION
+    benchmark_eligibility: PRIMARY_CONTROLLED_TRACK
+    architecture_defining_components:
+      - entity_relation_extraction
+      - graph_construction
+      - dual_level_retrieval
+    controlled_track:
+      eligible: true
+      blockers: []
+    native_track:
+      eligible: false
+      blockers: [entity_extraction_llm_not_available]
+    next_readiness_action: freeze_extraction_policy
+  pathrag:
+    implementation_status: SYNTHETIC_VALIDATED
+    fidelity_status: PAPER_DERIVED_COMPARATOR
+    benchmark_eligibility: PRIMARY_CONTROLLED_TRACK
+    classification: PROJECT_OWNED_COMPARATOR
+    controlled_track:
+      eligible: true
+      blockers: []
+    native_track:
+      eligible: false
+      blockers: [foreign_repository_execution_blocked]
+    next_readiness_action: freeze_graph_artifact_persistence
+  disretrieval:
+    implementation_status: NOT_STARTED
+    fidelity_status: UNRESOLVED
+    benchmark_eligibility: DEFERRED
+    controlled_track:
+      eligible: false
+      blockers: [clean_room_implementation_not_ready]
+    native_track:
+      eligible: false
+      blockers: [foreign_execution_blocked_license_missing]
+    next_readiness_action: await_clean_room_implementation
+  memorag:
+    implementation_status: NOT_STARTED
+    fidelity_status: UNRESOLVED
+    benchmark_eligibility: DEFERRED
+    controlled_track:
+      eligible: false
+      blockers: [model_license_review, implementation_not_ready]
+    native_track:
+      eligible: false
+      blockers: [gpu_required, weight_license]
+    next_readiness_action: license_review
+  kag:
+    implementation_status: NOT_STARTED
+    fidelity_status: UNRESOLVED
+    benchmark_eligibility: DEFERRED
+    controlled_track:
+      eligible: false
+      blockers: [service_environment_required]
+    native_track:
+      eligible: false
+      blockers: [service_environment_required, hosted_llm_required]
+    next_readiness_action: none_until_service_env_available
+  metadata_rag:
+    implementation_status: NOT_STARTED
+    fidelity_status: UNRESOLVED
+    benchmark_eligibility: DEFERRED
+    controlled_track:
+      eligible: false
+      blockers: [implementation_not_started]
+    native_track:
+      eligible: false
+      blockers: [no_foreign_source_available]
+    next_readiness_action: complete_clean_room_design
+  hikey:
+    implementation_status: NOT_STARTED
+    fidelity_status: UNRESOLVED
+    benchmark_eligibility: DEFERRED
+    controlled_track:
+      eligible: false
+      blockers: [multimodal_contract_missing]
+    native_track:
+      eligible: false
+      blockers: [parser_unresolved, gpu_unavailable, multimodal_required]
+    next_readiness_action: none_until_multimodal_envelope_available
+
+summary:
+  both_tracks_count: 1
+  primary_controlled_only: 5
+  deferred_count: 5
+  total: 11

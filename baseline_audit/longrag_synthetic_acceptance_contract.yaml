@@ -1,0 +1,154 @@
+artifact_type: longrag_synthetic_acceptance_contract
+artifact_version: "1.0"
+
+contract:
+  id: longrag_bounded_controlled_synthetic_acceptance
+  version: "0.1.0"
+  status: APPROVED_FOR_BOUNDED_EXECUTION
+
+dependencies:
+  common_acceptance_contract:
+    path: baseline_audit/architecture_acceptance_test_contract.yaml
+    version: "0.1.0"
+  embedding_contract:
+    path: baseline_audit/longrag_controlled_embedding_contract.yaml
+    version: "0.1.0"
+  storage_equivalence_contract:
+    path: baseline_audit/longrag_storage_equivalence_contract.yaml
+    version: "0.1.0"
+  retrieval_artifact_contract:
+    path: baseline_audit/longrag_retrieval_artifact_contract.yaml
+    version: "0.1.0"
+
+source:
+  canonical_root: processed/canonical/infrastructure-pilot-synthetic-v1
+  documents_path: processed/canonical/infrastructure-pilot-synthetic-v1/documents.jsonl
+  examples_path: processed/canonical/infrastructure-pilot-synthetic-v1/examples.jsonl
+  expected_documents: 12
+  expected_queries: 6
+  expected_relevant_documents_per_query: 2
+
+architecture:
+  architecture_id: longrag
+  fidelity_class: CONTROLLED_ADAPTATION
+  controlled_track_eligible: true
+  native_track_eligible: false
+  native_track_potential_candidate: true
+
+execution:
+  canonical_input_load_enabled: true
+  long_unit_construction_enabled: true
+  dense_embedding_enabled: true
+  reference_dense_index_enabled: true
+  qdrant_index_enabled: true
+  reference_retrieval_enabled: true
+  qdrant_retrieval_enabled: true
+  storage_equivalence_enabled: true
+  canonical_expansion_enabled: true
+  evaluation_case_construction_enabled: true
+  sparse_embedding_enabled: false
+  hybrid_retrieval_enabled: false
+  reranking_enabled: false
+  llm_execution_enabled: false
+  generation_enabled: false
+  metric_computation_enabled: false
+
+longrag:
+  long_unit_builder_module: src/rag_system/baselines/longrag.py
+  long_unit_builder_function: rag_system.baselines.longrag.construct_long_units
+  long_unit_builder_signature: "(dataset_id, segments, target_token_size, construction_policy='adjacent_segments', token_counter=None) -> tuple[LongUnit, ...]"
+  grouping_policy: adjacent_segments
+  grouping_policy_enum:
+    - adjacent_segments
+    - adjacent_document_segments
+    - single_document_if_within_budget
+    - structure_preserving_parent_groups
+  target_token_size: 256
+  token_counter: whitespace_token_count
+  long_unit_identity_function: rag_system.baselines.longrag.build_long_unit_id
+  long_unit_identity_signature: "(dataset_id, construction_policy, target_token_size, ordered_chunk_ids) -> str"
+  long_unit_identity_property: deterministic_content_addressable
+  canonical_expansion_function: rag_system.baselines.longrag.expand_ranked_long_units_to_documents
+  canonical_expansion_signature: "(query_id, ranked_long_units, document_limit) -> tuple[ExpandedLongRAGDocument, ...]"
+  canonical_expansion_property: deduplicated_document_ranking
+  segment_source:
+    builder_function: rag_system.baselines.longrag_pipeline.build_source_segments
+    document_field_doc_id: doc_id
+    document_field_text: text_normalized
+    derived_parent_id: "<doc_id>:p0"
+    derived_chunk_id: "<doc_id>:c0"
+    token_count_method: whitespace_token_count
+    document_order: enumerate_order
+    parent_order: 0
+    chunk_order: 0
+  query_projection:
+    builder_function: rag_system.baselines.longrag_pipeline.project_queries
+    allowed_fields:
+      - query_id
+      - query_text
+    prohibited:
+      - doc_ids
+      - relevant_doc_ids
+      - answers
+      - target_content_group_id
+      - ground_truth
+
+controlled_embedding:
+  adapter_module: src/rag_system/baselines/longrag_bge_m3.py
+  adapter_class: rag_system.baselines.longrag_bge_m3.BgeM3DenseEncoder
+  model_id: BAAI/bge-m3
+  model_revision: 5617a9f61b028005a4858fdac845db406aefb181
+  local_snapshot_required: true
+  snapshot_path: D:/rag_work/hf_cache/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181
+  dense_dimension: 1024
+  dense_normalized: true
+  batch_size: 2
+  device: cpu
+  use_fp16: false
+  network_fallback_allowed: false
+
+reference_backend:
+  module: src/rag_system/baselines/longrag_reference_dense_index.py
+  class: rag_system.baselines.longrag_reference_dense_index.ReferenceDenseIndex
+  similarity: COSINE_VIA_NORMALIZED_DOT_PRODUCT
+  tie_policy:
+    - score_desc
+    - long_unit_id_asc
+
+qdrant_backend:
+  create_function: rag_system.baselines.longrag_storage.create_longrag_collection
+  ingest_function: rag_system.baselines.longrag_storage.ingest_longrag_records
+  retrieve_function: rag_system.baselines.longrag_retrieval.retrieve_long_units
+  vector_name: dense
+  distance: COSINE
+  point_id_function: rag_system.baselines.longrag_storage.build_longrag_point_id
+  collection_name_function: rag_system.baselines.longrag_storage.fingerprint_longrag_collection_name
+  reopen_required: true
+
+acceptance_gates:
+  documents_loaded: 12
+  queries_loaded: 6
+  long_units_nonempty: true
+  every_document_has_long_unit_lineage: true
+  long_unit_embeddings_complete: true
+  query_embeddings_complete: true
+  reference_index_created: true
+  qdrant_collection_created: true
+  qdrant_collection_reopened: true
+  reference_retrieval_complete: true
+  qdrant_retrieval_complete: true
+  storage_equivalence_passed: true
+  canonical_ids_recovered: true
+  duplicate_document_identities_preserved: true
+  evaluation_case_count: 6
+  ground_truth_loaded_during_retrieval: false
+  source_unchanged: true
+  round_trip_valid: true
+  checksums_valid: true
+  deterministic_or_classified: true
+  common_metrics_computed: false
+
+publishability:
+  publishable_result: false
+  native_faithful_reproduction: false
+  controlled_adaptation: true

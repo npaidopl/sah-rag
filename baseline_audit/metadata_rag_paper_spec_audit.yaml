@@ -1,0 +1,203 @@
+artifact_type: paper_specification_audit
+artifact_version: "1.0"
+
+architecture:
+  id: metadata_rag
+  display_name: Metadata-RAG
+  wave: 3
+  family: metadata_driven_multistage_retrieval
+
+identity:
+  paper_title: Metadata-Driven Retrieval-Augmented Generation for Financial Question Answering
+  paper_identifier: "2510.24402"
+  paper_url: https://arxiv.org/abs/2510.24402
+  year: 2025
+  venue: Preprint under major revision
+  verification: PAPER_VERIFIED
+  status: RESOLVED
+  paper_quality_caveat: >
+    The paper is a preprint under major revision. Its algorithmic claims
+    are recorded as the design reference, but no paper-level effectiveness
+    claim will be made against this baseline until the paper is published.
+
+foreign_source:
+  repository_registered: false
+  repository_url: null
+  checkout_present: false
+  foreign_source_license_applicable: false
+  foreign_source_execution_applicable: false
+  foreign_source_reuse_applicable: false
+  license_status: NOT_APPLICABLE
+
+project_owned_state:
+  specification_present: false
+  implementation_present: false
+  tests_present: false
+  schemas_present: false
+  smoke_present: false
+  readiness_declaration_present: false
+
+paper_algorithm:
+  document_metadata_representation: REQUIRED
+  metadata_extraction: REQUIRED
+  metadata_normalization: REQUIRED
+  query_metadata_inference: REQUIRED
+  candidate_filtering: REQUIRED
+  semantic_retrieval: REQUIRED
+  metadata_semantic_fusion: REQUIRED
+  result_ranking: REQUIRED
+  source_lineage: REQUIRED
+  document_expansion: REQUIRED
+  final_generation: OUT_OF_SCOPE
+
+metadata_contract:
+  schema_status: REQUIRES_INDEPENDENT_DESIGN
+  schema_versioning: REQUIRED
+  value_types:
+    - categorical
+    - temporal
+    - numeric
+    - entity
+    - structural
+    - provenance
+  normalization:
+    field_name_normalization: REQUIRED
+    value_normalization: REQUIRED
+    missing_value_policy: REQUIRED
+    multi_value_policy: REQUIRED
+    unknown_field_policy: REQUIRED
+  comparison_semantics:
+    typed_comparison: REQUIRED
+    range_comparison: REQUIRED
+    exact_matching: REQUIRED
+    soft_matching: REQUIRED
+
+query_metadata_inference:
+  required: true
+  implementation_method: REQUIRES_INDEPENDENT_DESIGN
+  deterministic_possible: true
+  llm_required: false
+  hosted_model_required: false
+  output_schema: REQUIRES_INDEPENDENT_DESIGN
+  evidence_or_confidence_exposed: REQUIRED
+  classification: DETERMINISTIC_PROJECT_OWNED
+
+retrieval_fusion:
+  policy: REQUIRES_INDEPENDENT_DESIGN
+  metadata_score_range: REQUIRES_INDEPENDENT_DESIGN
+  semantic_score_range: REQUIRES_INDEPENDENT_DESIGN
+  normalization: REQUIRES_INDEPENDENT_DESIGN
+  coefficients: REQUIRES_INDEPENDENT_DESIGN
+  fallback_when_no_metadata_match: REQUIRES_INDEPENDENT_DESIGN
+  fallback_when_metadata_missing: REQUIRES_INDEPENDENT_DESIGN
+  deterministic_tie_break: REQUIRED
+  paper_claims_fusion_formula: false
+  notes: >
+    The paper defines metadata-driven multistage retrieval but the
+    coefficients and exact fusion formula must be designed
+    independently and frozen before any implementation.
+
+retrieval_boundary:
+  status: DESIGN_REQUIRED
+  metadata_matches_exposed: REQUIRED
+  semantic_scores_exposed: REQUIRED
+  fused_scores_exposed: REQUIRED
+  ranked_items_exposed: REQUIRED
+  final_generation_separable: true
+  final_generation_required: false
+  notes: >
+    Because this is a project-owned reimplementation, the retrieval
+    boundary is fully definable. The design must expose per-item
+    metadata-match evidence, semantic score, fused score, and
+    canonical lineage before any generation stage.
+
+traceability:
+  status: REQUIRES_INDEPENDENT_DESIGN
+  metadata_to_chunk: REQUIRED
+  chunk_to_document: REQUIRED
+  duplicate_content_supported: REQUIRED
+  multiple_documents_per_content_supported: REQUIRED
+  retrieval_score_components_exposed: REQUIRED
+  notes: >
+    The registry marks source_id_traceability as PAPER_SUPPORTED.
+    A typed canonical mapping chain must be designed and implemented
+    before readiness can be declared.
+
+dataset_compatibility:
+  provided_metadata_supported: REQUIRED
+  derived_metadata_supported: REQUIRED
+  heterogeneous_schema_supported: REQUIRED
+  metadata_missingness_supported: REQUIRED
+  query_leakage_risk: MUST_BE_PREVENTED
+  judgment_leakage_risk: MUST_BE_PREVENTED
+  answer_field_leakage_risk: MUST_BE_PREVENTED
+
+leakage_policy:
+  judgments_as_metadata: prohibited
+  reference_answers_as_metadata: prohibited
+  evaluation_labels_as_metadata: prohibited
+  generated_answers_as_metadata: prohibited
+  post_retrieval_annotations_as_metadata: prohibited
+
+resource_feasibility:
+  metadata_ingestion:
+    status: FEASIBLE_ON_LOCAL_HOST
+    reason: text-only ingestion on CPU
+  deterministic_normalization:
+    status: FEASIBLE_ON_LOCAL_HOST
+    reason: pure-Python implementation
+  metadata_index:
+    status: FEASIBLE_ON_LOCAL_HOST
+    reason: small synthetic fixture fits in memory
+  dense_embedding:
+    status: CONDITIONAL_ON_MODEL
+    reason: local CPU embedding feasible for small pilot; GPU recommended for scale
+  query_metadata_inference:
+    status: FEASIBLE_ON_LOCAL_HOST
+    reason: deterministic rules; no hosted model required
+  hybrid_retrieval:
+    status: FEASIBLE_ON_LOCAL_HOST
+    reason: no service stack required
+  final_generator:
+    status: OUT_OF_SCOPE_FOR_RETRIEVAL_ONLY
+  overall:
+    status: CONDITIONAL_ON_MODEL
+    reason: >
+      The retrieval pipeline is feasible on the local Windows host. A
+      local CPU embedding model is sufficient for a small synthetic
+      pilot. The only external dependency is the embedding model, which
+      is not architecture-critical and can be replaced by a
+      project-owned deterministic embedder for interface validation.
+
+classification:
+  verification_level: PAPER_VERIFIED
+  architecture_class: ARCHITECTURAL_COMPARATOR
+  implementation_class: PAPER_DERIVED_REIMPLEMENTATION
+  foreign_execution_decision: NOT_APPLICABLE
+  project_owned_implementation_decision: CONDITIONAL_GO
+
+terminal_disposition:
+  status: CONDITIONAL_GO
+  reason: >
+    The paper identity is resolved (arXiv 2510.24402). No foreign
+    repository exists, so foreign execution, reuse, and license review
+    are not applicable. The architecture is a metadata-driven
+    multistage retrieval pipeline that can be implemented as a
+    project-owned paper-derived reimplementation on the local host.
+    The paper is a preprint under major revision, and its fusion
+    formula and metadata schema are not fully pinned, so independent
+    design and freeze are required before readiness can be declared.
+  next_action: >
+    Write baseline_audit/metadata_rag_clean_room_spec.yaml freezing
+    the metadata schema, the metadata filtering semantics, the
+    retrieval fusion policy, and the canonical mapping chain. Then
+    implement typed metadata artifacts, deterministic metadata index,
+    hybrid-ranking smoke, and a readiness declaration.
+
+blocked_claims:
+  - Paper-to-spec audit is not an execution result.
+  - Project-owned implementation does not establish foreign-code parity.
+  - Synthetic validation is not paper-level effectiveness evidence.
+  - Metadata derived from judgments, reference answers, or evaluation labels is prohibited.
+  - READY_FOR_DATA requires typed artifacts and an end-to-end smoke.
+  - No foreign metadata_rag repository exists; no foreign source was inspected.

@@ -1,0 +1,42 @@
+artifact_type: infrastructure_pilot_closure_manifest
+artifact_version: '1.0'
+closure:
+  closure_id: infrastructure-pilot-wave1-cpu-v1-closure
+  contract_version: 0.1.0
+  status: CLOSED
+approval:
+  evidence_collection_approved: true
+  closure_validation_approved: true
+  pipeline_reexecution_approved: false
+  model_loading_approved: false
+  qdrant_access_approved: false
+  retrieval_execution_approved: false
+  evaluation_execution_approved: false
+  generation_execution_approved: false
+results:
+  evidence_registry_created: true
+  commit_chain_complete: true
+  runtime_manifests_valid: true
+  runtime_checksums_valid: true
+  critical_counts_valid: true
+  safety_flags_valid: true
+  evidence_fingerprint_count: 7
+  full_test_suite_count: 900
+  ruff_passed: true
+  mypy_src_passed: true
+  pip_check_passed: true
+  diff_check_passed: true
+  pilot_closed: true
+claims:
+  infrastructure_chain_completed: true
+  synthetic_data_only: true
+  model_quality_validated: false
+  retrieval_effectiveness_validated_for_real_data: false
+  architecture_comparison_completed: false
+  publishable_benchmark_completed: false
+  real_dataset_execution_completed: false
+  generation_validated: false
+  answer_quality_validated: false
+next_gate:
+  required_step: real_dataset_inventory_and_sizing
+  approved: false

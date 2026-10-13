@@ -1,0 +1,132 @@
+artifact_type: dataset_ground_truth_projection_contract
+artifact_version: "1.0"
+
+contract:
+  id: seven_dataset_ground_truth_projection
+  version: "0.1.0"
+  status: FROZEN_FOR_REGISTRATION
+  note: >
+    During registration, the collector verifies the presence of
+    each declared ground-truth field group by streaming examples.
+    Any missing field group is recorded as an inspection note,
+    not as a hard blocker at this stage.
+
+allowed_evaluation_units:
+  - CANONICAL_DOCUMENT
+  - CANONICAL_CHUNK
+  - SOURCE_SPAN
+  - PASSAGE
+  - NEEDLE_OR_EVIDENCE_ITEM
+
+datasets:
+  ruler:
+    primary_evaluation_unit: NEEDLE_OR_EVIDENCE_ITEM
+    secondary_evaluation_units:
+      - CANONICAL_DOCUMENT
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from: []
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+  loong:
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units:
+      - PASSAGE
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from: []
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+  long_bench_v2:
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units:
+      - PASSAGE
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from: []
+    answers_from:
+      - ground_truth.answers
+      - ground_truth.choice
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+  lara:
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    secondary_evaluation_units: []
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from: []
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+  greek_bar_bench:
+    primary_evaluation_unit: SOURCE_SPAN
+    secondary_evaluation_units:
+      - CANONICAL_DOCUMENT
+      - NEEDLE_OR_EVIDENCE_ITEM
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from:
+      - ground_truth.spans
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+  cuad:
+    primary_evaluation_unit: SOURCE_SPAN
+    secondary_evaluation_units:
+      - CANONICAL_DOCUMENT
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from:
+      - ground_truth.spans
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    zero_relevance_queries_supported: true
+    zero_relevance_count_expected: 14208
+  clerk:
+    primary_evaluation_unit: PASSAGE
+    secondary_evaluation_units:
+      - CANONICAL_DOCUMENT
+    document_ids_from:
+      - query.doc_ids
+    evidence_ids_from:
+      - ground_truth.relevant_ids
+    spans_from: []
+    answers_from:
+      - ground_truth.answers
+    answer_fields_used_for_retrieval: false
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+
+global_rules:
+  ground_truth_available_to_retrieval: false
+  ground_truth_available_to_indexing: false
+  ground_truth_available_to_querying: false
+  ground_truth_available_only_to_evaluator: true
+  answer_fields_prohibited_in_retrieval_pipeline: true
+  duplicate_document_identities_remain_distinct: true

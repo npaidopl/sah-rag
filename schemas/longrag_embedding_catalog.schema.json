@@ -1,0 +1,265 @@
+{
+  "$defs": {
+    "EmbeddingShardCatalogEntry": {
+      "additionalProperties": false,
+      "description": "Catalog identity and integrity data for one shard.",
+      "properties": {
+        "header_path": {
+          "title": "Header Path",
+          "type": "string"
+        },
+        "header_sha256": {
+          "title": "Header Sha256",
+          "type": "string"
+        },
+        "manifest_path": {
+          "title": "Manifest Path",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "record_count": {
+          "exclusiveMinimum": 0,
+          "title": "Record Count",
+          "type": "integer"
+        },
+        "records_path": {
+          "title": "Records Path",
+          "type": "string"
+        },
+        "records_sha256": {
+          "title": "Records Sha256",
+          "type": "string"
+        },
+        "shard_id": {
+          "title": "Shard Id",
+          "type": "string"
+        },
+        "shard_index": {
+          "minimum": 0,
+          "title": "Shard Index",
+          "type": "integer"
+        },
+        "shard_root": {
+          "title": "Shard Root",
+          "type": "string"
+        },
+        "source_end_index": {
+          "exclusiveMinimum": 0,
+          "title": "Source End Index",
+          "type": "integer"
+        },
+        "source_start_index": {
+          "minimum": 0,
+          "title": "Source Start Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shard_id",
+        "shard_index",
+        "shard_root",
+        "header_path",
+        "records_path",
+        "manifest_path",
+        "header_sha256",
+        "records_sha256",
+        "manifest_sha256",
+        "record_count",
+        "source_start_index",
+        "source_end_index"
+      ],
+      "title": "EmbeddingShardCatalogEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Catalog of one condition's embedding shards.",
+  "properties": {
+    "adapter_id": {
+      "title": "Adapter Id",
+      "type": "string"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "artifact_type": {
+      "default": "longrag_embedding_run_catalog",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "artifact_version": {
+      "default": "1.0",
+      "title": "Artifact Version",
+      "type": "string"
+    },
+    "code_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Revision"
+    },
+    "condition_id": {
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "construction_policy": {
+      "title": "Construction Policy",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "dense_dimension": {
+      "exclusiveMinimum": 0,
+      "title": "Dense Dimension",
+      "type": "integer"
+    },
+    "dense_normalized": {
+      "title": "Dense Normalized",
+      "type": "boolean"
+    },
+    "dense_precision": {
+      "title": "Dense Precision",
+      "type": "string"
+    },
+    "document_count": {
+      "exclusiveMinimum": 0,
+      "title": "Document Count",
+      "type": "integer"
+    },
+    "embedding_config_hash": {
+      "title": "Embedding Config Hash",
+      "type": "string"
+    },
+    "execution_profile": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Execution Profile"
+    },
+    "interface_validation": {
+      "default": true,
+      "title": "Interface Validation",
+      "type": "boolean"
+    },
+    "maximum_model_input_tokens": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Model Input Tokens",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_revision": {
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "paper_faithful_result": {
+      "default": false,
+      "title": "Paper Faithful Result",
+      "type": "boolean"
+    },
+    "record_count": {
+      "exclusiveMinimum": 0,
+      "title": "Record Count",
+      "type": "integer"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "shard_count": {
+      "exclusiveMinimum": 0,
+      "title": "Shard Count",
+      "type": "integer"
+    },
+    "shards": {
+      "items": {
+        "$ref": "#/$defs/EmbeddingShardCatalogEntry"
+      },
+      "title": "Shards",
+      "type": "array"
+    },
+    "source_architecture": {
+      "title": "Source Architecture",
+      "type": "string"
+    },
+    "source_architecture_commit": {
+      "title": "Source Architecture Commit",
+      "type": "string"
+    },
+    "source_units_path": {
+      "title": "Source Units Path",
+      "type": "string"
+    },
+    "source_units_sha256": {
+      "title": "Source Units Sha256",
+      "type": "string"
+    },
+    "special_token_count": {
+      "minimum": 0,
+      "title": "Special Token Count",
+      "type": "integer"
+    },
+    "target_token_size": {
+      "exclusiveMinimum": 0,
+      "title": "Target Token Size",
+      "type": "integer"
+    },
+    "tokenizer_id": {
+      "title": "Tokenizer Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "dataset_id",
+    "condition_id",
+    "construction_policy",
+    "target_token_size",
+    "maximum_model_input_tokens",
+    "special_token_count",
+    "model_id",
+    "model_revision",
+    "tokenizer_id",
+    "embedding_config_hash",
+    "dense_dimension",
+    "dense_precision",
+    "dense_normalized",
+    "source_units_path",
+    "source_units_sha256",
+    "shard_count",
+    "record_count",
+    "document_count",
+    "shards",
+    "adapter_id",
+    "adapter_version",
+    "source_architecture",
+    "source_architecture_commit"
+  ],
+  "title": "LongUnitEmbeddingCatalog",
+  "type": "object"
+}

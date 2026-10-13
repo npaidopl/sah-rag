@@ -1,0 +1,137 @@
+artifact_type: cross_baseline_execution_contract
+artifact_version: "1.0"
+
+contract:
+  id: wave1_cross_baseline_execution
+  version: "0.1.0"
+  status: FROZEN_FOR_IMPLEMENTATION
+
+scope:
+  architectures:
+    - longrag
+    - raptor
+    - hipporag2
+    - lightrag
+    - pathrag
+  pathrag_boundary:
+    foreign_repository_execution_allowed: false
+    comparator_only: true
+    required_display_name: PathRAG paper-derived architectural comparator
+  execution_level: retrieval_only
+  final_generation_enabled: false
+  answer_evaluation_enabled: false
+
+experiment_cell:
+  identity_fields:
+    - dataset_id
+    - dataset_revision
+    - split
+    - architecture_id
+    - adapter_id
+    - adapter_version
+    - architecture_configuration_hash
+    - canonical_input_manifest_sha256
+    - random_seed
+    - code_revision
+  identity_algorithm: sha256_canonical_json
+  identifier_format: experiment-cell-{fingerprint}
+
+dataset_input_envelope:
+  required_files:
+    - documents.jsonl
+    - chunks.jsonl
+    - queries.jsonl
+    - judgments.jsonl
+    - dataset.manifest.json
+
+architecture_execution_manifest:
+  execution_status_values:
+    - PLANNED
+    - RUNNING
+    - SUCCEEDED
+    - FAILED
+    - INTERRUPTED
+    - CANCELLED
+  terminal_status_values:
+    - SUCCEEDED
+    - FAILED
+    - CANCELLED
+  status_transitions:
+    PLANNED:     [RUNNING, CANCELLED]
+    RUNNING:     [SUCCEEDED, FAILED, INTERRUPTED, CANCELLED]
+    INTERRUPTED: [RUNNING, CANCELLED]
+    SUCCEEDED:   []
+    FAILED:      []
+    CANCELLED:   []
+
+retrieval_boundary:
+  final_generation_enabled: false
+  qa_model_enabled: false
+  llm_as_judge_enabled: false
+
+required_outputs:
+  - retrieval_cases.jsonl
+  - ranked_items.jsonl
+  - expanded_documents.jsonl
+  - metrics.json
+  - execution.manifest.json
+
+evaluation:
+  level: document
+  metrics:
+    - recall_at_k
+    - precision_at_k
+    - reciprocal_rank
+    - ndcg_at_k
+    - hit_at_k
+  cutoffs: [1, 5, 10, 100]
+
+artifact_layout:
+  root_format: outputs/runs/{dataset_id}/{architecture_id}/{experiment_cell_id}
+  required_paths:
+    input_snapshot: input
+    architecture_artifacts: architecture
+    retrieval_artifacts: retrieval
+    evaluation_artifacts: evaluation
+    logs: logs
+    execution_manifest: execution.manifest.json
+    checksums: checksums.json
+
+persistence:
+  json_encoding: UTF-8
+  line_endings: LF
+  jsonl_sort_keys: true
+  jsonl_compact: true
+  json_indented: true
+  checksum_algorithm: SHA-256
+  atomic_writes_required: true
+
+resume_semantics:
+  resume_allowed_from: [INTERRUPTED]
+  resume_prohibited_from: [SUCCEEDED, FAILED, CANCELLED]
+
+readiness_gate:
+  allowed_readiness_status: [READY_FOR_DATA]
+  pathrag_additional_requirements:
+    - Foreign repository remains blocked.
+    - Only the project-owned comparator is executable.
+    - Result labels identify the paper-derived architectural comparator.
+
+immutability:
+  succeeded_runs_immutable: true
+  overwrite_succeeded_run_prohibited: true
+  rerun_requires_new_experiment_cell_id: true
+
+provenance:
+  required:
+    - project_code_revision
+    - adapter_version
+    - architecture_source_revision
+    - dataset_revision
+    - configuration_hash
+    - input_manifest_sha256
+    - execution_environment_id
+    - random_seed
+
+versioning:
+  contract_version: "0.1.0"

@@ -1,0 +1,216 @@
+artifact_type: longrag_full_track_dataset_envelope
+artifact_version: '1.0'
+contract:
+  id: longrag_full_track_dataset_envelope
+  source_contracts:
+  - baseline_audit/external_canonical_suite_registry.yaml
+  - baseline_audit/dataset_corpus_scope_contract.yaml
+  - baseline_audit/dataset_ground_truth_projection_contract.yaml
+  status: FROZEN_FOR_EXECUTION
+  version: 0.3.0
+dataset_count: 7
+datasets:
+  clerk:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\clerk
+    corpus_selector: frozen_dataset_partition
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 8577683
+    documents_count_registry: 2756
+    documents_count_streamed: 2756
+    documents_sha256: 595237536bfcabcb311556de4f9468adf1f070b690226ecd0cae83f9ad6584ed
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 18229557
+    examples_count_registry: 1000
+    examples_count_streamed: 1000
+    examples_sha256: 7a45c0324a614dd3e6b34cf1ddce31c544be343d0b0a17d874c6bb4d6661b3f4
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/clerk
+    primary_evaluation_unit: PASSAGE
+    qdrant_collection_name: longrag-clerk-v1
+    retrieval_scope: GLOBAL_DATASET_CORPUS
+    secondary_evaluation_units:
+    - CANONICAL_DOCUMENT
+    spans_from: []
+    splits_registry:
+      dev: 100
+      test: 100
+      train: 800
+  cuad:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\cuad
+    corpus_selector: frozen_dataset_partition
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 53378228
+    documents_count_registry: 510
+    documents_count_streamed: 510
+    documents_sha256: 8527fef403a24cbef73f931821220027aa1230e94ec366a18487ccf354bdbb30
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 36370354
+    examples_count_registry: 20910
+    examples_count_streamed: 20910
+    examples_sha256: 35a265e1b2c4f06573dc55bab6b33aada50c8a4de8a93631ebd7559d6f090280
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/cuad
+    primary_evaluation_unit: SOURCE_SPAN
+    qdrant_collection_name: longrag-cuad-v1
+    retrieval_scope: SHARED_DOMAIN_CORPUS
+    secondary_evaluation_units:
+    - CANONICAL_DOCUMENT
+    spans_from:
+    - ground_truth.spans
+    splits_registry:
+      test: 20910
+  greek_bar_bench:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench
+    corpus_selector: query.doc_ids
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 68949846
+    documents_count_registry: 284
+    documents_count_streamed: 284
+    documents_sha256: 4de97c0d5bd6e35b0707bcf0763c0ec943d199f8233e1bbf44a32b1e9f8efb98
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 8744487
+    examples_count_registry: 284
+    examples_count_streamed: 284
+    examples_sha256: 2fbe5f3987cde57ffa3054f8780a0719ca6209355bb0713fb59774201b99e3b4
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/greek_bar_bench
+    primary_evaluation_unit: SOURCE_SPAN
+    qdrant_collection_name: longrag-greek_bar_bench-v1
+    retrieval_scope: QUERY_SPECIFIC_CORPUS
+    secondary_evaluation_units:
+    - CANONICAL_DOCUMENT
+    - NEEDLE_OR_EVIDENCE_ITEM
+    spans_from:
+    - ground_truth.spans
+    splits_registry:
+      test: 284
+  lara:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\lara
+    corpus_selector: frozen_dataset_partition
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 69390194
+    documents_count_registry: 131
+    documents_count_streamed: 131
+    documents_sha256: a49892e982c9a07497fd281df0f351ed6fba5de41c6a58ef8ca9341508b8d658
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 14996106
+    examples_count_registry: 2326
+    examples_count_streamed: 2326
+    examples_sha256: 93252b57e93daac4b7c4c73d2f06eeede67544863c5441de612f1dd66ef28d6d
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/lara
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    qdrant_collection_name: longrag-lara-v1
+    retrieval_scope: SHARED_DOMAIN_CORPUS
+    secondary_evaluation_units: []
+    spans_from: []
+    splits_registry:
+      test: 2326
+  long_bench_v2:
+    answers_from:
+    - ground_truth.answers
+    - ground_truth.choice
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2
+    corpus_selector: query.doc_ids
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 892706503
+    documents_count_registry: 503
+    documents_count_streamed: 503
+    documents_sha256: 082ef4f256b57bbbb4bcc6d4a5e3fc22ecb151fdffdbab9bcf4cf45124621422
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 465821199
+    examples_count_registry: 503
+    examples_count_streamed: 503
+    examples_sha256: 578aab9af35b692f9c650a4a437a5b95e8de0e881e6e51ba8b0dbe796f9a0dc2
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/long_bench_v2
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    qdrant_collection_name: longrag-long_bench_v2-v1
+    retrieval_scope: QUERY_SPECIFIC_CORPUS
+    secondary_evaluation_units:
+    - PASSAGE
+    spans_from: []
+    splits_registry:
+      test: 503
+  loong:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\loong
+    corpus_selector: query.doc_ids
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 645563647
+    documents_count_registry: 695
+    documents_count_streamed: 695
+    documents_sha256: e6084568364bce8f39e9d45ec74546dece9270d464ab5ab3169d919bcc80afb8
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 353029890
+    examples_count_registry: 695
+    examples_count_streamed: 695
+    examples_sha256: ab65a9b9d82b94d7f27626daf7c2f69d767e6aba2c4377bf905a4439792d3f86
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/loong
+    primary_evaluation_unit: CANONICAL_DOCUMENT
+    qdrant_collection_name: longrag-loong-v1
+    retrieval_scope: QUERY_DOCUMENT_BUNDLE
+    secondary_evaluation_units:
+    - PASSAGE
+    spans_from: []
+    splits_registry:
+      test: 695
+  ruler:
+    answers_from:
+    - ground_truth.answers
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\ruler
+    corpus_selector: query.doc_ids
+    document_ids_from:
+    - query.doc_ids
+    documents_bytes: 180002751
+    documents_count_registry: 4000
+    documents_count_streamed: 4000
+    documents_sha256: d10c7c394648aac9b983091ab0d4bb5fbaeeb5b4911236593551f73e4e700345
+    evidence_ids_from:
+    - ground_truth.relevant_ids
+    examples_bytes: 181703213
+    examples_count_registry: 4000
+    examples_count_streamed: 4000
+    examples_sha256: a33cfc0fa6a9d1bebdb7babfcec362d36e5e57912ed9c1733274b23ec4a1af3b
+    ground_truth_used_during_indexing: false
+    ground_truth_used_during_querying: false
+    output_root: outputs/external_longrag/ruler
+    primary_evaluation_unit: NEEDLE_OR_EVIDENCE_ITEM
+    qdrant_collection_name: longrag-ruler-v1
+    retrieval_scope: QUERY_SPECIFIC_CORPUS
+    secondary_evaluation_units:
+    - CANONICAL_DOCUMENT
+    spans_from: []
+    splits_registry:
+      test: 4000
+totals:
+  documents: 8879
+  examples: 29718
