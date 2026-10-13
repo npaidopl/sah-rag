@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M3 import β€” grid embeddings back to local."""
+"""SAH-RAG M3 import — grid embeddings back to local."""
 from __future__ import annotations
 
 import argparse

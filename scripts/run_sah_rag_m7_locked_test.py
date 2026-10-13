@@ -440,7 +440,7 @@ def main() -> int:
 
     # markdown report
     md: list[str] = []
-    md.append("# SAH-RAG M7 β€” Locked Test Evaluation")
+    md.append("# SAH-RAG M7 — Locked Test Evaluation")
     md.append("")
     md.append(f"**Frozen config**: `{cid}`")
     md.append("")
@@ -487,7 +487,7 @@ def main() -> int:
 
     print()
     print("=" * 90)
-    print("M7 LOCKED TEST β€” MACRO (frozen config on test split)")
+    print("M7 LOCKED TEST — MACRO (frozen config on test split)")
     print("=" * 90)
     print(f"Frozen config: {cid}")
     print()
@@ -510,7 +510,7 @@ def main() -> int:
     )
     print()
     print(
-        f"M7 COMPLETE β€” locked test finished in "
+        f"M7 COMPLETE — locked test finished in "
         f"{manifest['wall_clock_seconds']:.1f}s"
     )
     return 0

@@ -104,7 +104,7 @@ def build_bundle(
 
 def write_readme(p: Path) -> None:
     p.write_text(
-        "# SAH-RAG M3 grid β€” Colab embedding run\n\n"
+        "# SAH-RAG M3 grid — Colab embedding run\n\n"
         "Upload every `sah_rag_grid_input_*.tar.gz` to Colab.\n\n"
         "```python\n"
         "!pip -q install FlagEmbedding==1.4.2\n"

@@ -160,7 +160,7 @@ def hypothesis_verdicts(
         "note": h3_note,
     }
 
-    # H4: top_k β€” evaluated as evaluation view
+    # H4: top_k — evaluated as evaluation view
     out["H4"] = {
         "statement": (
             "Recall monotone in top_k, precision not monotone."
@@ -406,7 +406,7 @@ def build_markdown(
 ) -> str:
     macro = locked["macro_metrics"]
     L: list[str] = []
-    L.append("# SAH-RAG Optimal-Operation Study β€” Closure")
+    L.append("# SAH-RAG Optimal-Operation Study — Closure")
     L.append("")
     L.append("**Status:** SAH_RAG_OPTIMAL_OPERATION_STUDY_CLOSED")
     L.append("")

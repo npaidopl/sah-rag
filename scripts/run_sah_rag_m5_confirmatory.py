@@ -396,7 +396,7 @@ def main() -> int:
         gt = load_ground_truth(ds, set(sample_ids))
         q_dense, q_sidx, q_sval = load_query_emb(ds, sample_ids)
 
-        # Cache dense/sparse chunk matrices per (cs, ov) β€” reuse
+        # Cache dense/sparse chunk matrices per (cs, ov) — reuse
         # across different (mode, K) for the same variant.
         variants = sorted({(cs, ov) for cs, ov, _, _ in CONFIRMATORY})
         caches: dict[tuple[int, int], dict[str, Any]] = {}
@@ -546,7 +546,7 @@ def main() -> int:
 
     print()
     print("=" * 90)
-    print("M5 CONFIRMATORY β€” MACRO ACROSS DATASETS (full dev split)")
+    print("M5 CONFIRMATORY — MACRO ACROSS DATASETS (full dev split)")
     print("=" * 90)
     print(f"{'config_id':40s} {'R@10':>8s} {'H@10':>8s} {'nDCG@10':>8s}")
     for r in macro_rows:

@@ -1,4 +1,4 @@
-# LongRAG vs SAH-RAG β€” Comparative Retrieval Report
+# LongRAG vs SAH-RAG — Comparative Retrieval Report
 
 ## Protocol
 

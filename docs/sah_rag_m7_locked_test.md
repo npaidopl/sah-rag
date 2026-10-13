@@ -1,4 +1,4 @@
-# SAH-RAG M7 β€” Locked Test Evaluation
+# SAH-RAG M7 — Locked Test Evaluation
 
 **Frozen config**: `c256_o32_hybrid_rrf_k200`
 

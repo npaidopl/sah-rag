@@ -287,7 +287,7 @@ def build_comparison(
 
 def render_markdown(comparison: dict[str, Any]) -> str:
     lines: list[str] = []
-    lines.append("# Metadata-RAG vs Baselines β€” Comparison\n")
+    lines.append("# Metadata-RAG vs Baselines — Comparison\n")
     lines.append(
         "Retrieval-only comparison of `Metadata-RAG` against "
         "`LongRAG` and `SAH-RAG`.\n"
@@ -314,7 +314,7 @@ def render_markdown(comparison: dict[str, Any]) -> str:
                 PRIMARY_METRIC
             )
             if value is None:
-                cells.append("β€”")
+                cells.append("—")
             else:
                 cells.append(f"{float(value):.4f}")
         lines.append("| " + " | ".join(cells) + " |")
@@ -332,7 +332,7 @@ def render_markdown(comparison: dict[str, Any]) -> str:
         for track in tracks.values():
             value = track["secondary_macro"].get(key)
             if value is None:
-                cells.append("β€”")
+                cells.append("—")
             else:
                 cells.append(f"{float(value):.4f}")
         lines.append("| " + " | ".join(cells) + " |")
@@ -342,8 +342,8 @@ def render_markdown(comparison: dict[str, Any]) -> str:
     lines.append("| Track | Present | Missing |")
     lines.append("|---|---|---|")
     for track in tracks.values():
-        present = ", ".join(track["datasets_present"]) or "β€”"
-        missing = ", ".join(track["datasets_missing"]) or "β€”"
+        present = ", ".join(track["datasets_present"]) or "—"
+        missing = ", ".join(track["datasets_missing"]) or "—"
         lines.append(
             f"| {track['label']} | {present} | {missing} |"
         )

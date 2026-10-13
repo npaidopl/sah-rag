@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M0-L5 import β€” query embeddings back to local."""
+"""SAH-RAG M0-L5 import — query embeddings back to local."""
 from __future__ import annotations
 
 import argparse

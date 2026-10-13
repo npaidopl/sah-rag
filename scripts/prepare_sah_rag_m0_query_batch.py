@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M0-L5 prepare β€” query bundles for Colab."""
+"""SAH-RAG M0-L5 prepare — query bundles for Colab."""
 from __future__ import annotations
 
 import argparse

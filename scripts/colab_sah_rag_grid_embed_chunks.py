@@ -1,4 +1,4 @@
-"""SAH-RAG M3 Colab runner β€” grid chunk embeddings.
+"""SAH-RAG M3 Colab runner — grid chunk embeddings.
 
 Processes one bundle at a time (dataset, chunk_size, chunk_overlap).
 Embeds with BGE-M3 dense + learned sparse, writes output bundle.

@@ -389,7 +389,7 @@ def main() -> int:
         print(f"  ... and {len(combos) - 10} more")
 
     print()
-    print("M4B COMPLETE β€” reduction.json written")
+    print("M4B COMPLETE — reduction.json written")
     return 0
 
 

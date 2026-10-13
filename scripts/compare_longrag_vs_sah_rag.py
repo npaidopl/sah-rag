@@ -158,7 +158,7 @@ def main() -> int:
 
     # --- markdown ---
     md: list[str] = []
-    md.append("# LongRAG vs SAH-RAG β€” Comparative Retrieval Report")
+    md.append("# LongRAG vs SAH-RAG — Comparative Retrieval Report")
     md.append("")
     md.append("## Protocol")
     md.append("")

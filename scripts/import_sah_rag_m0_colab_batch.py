@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M0-L3 import β€” Colab embeddings back to local."""
+"""SAH-RAG M0-L3 import — Colab embeddings back to local."""
 from __future__ import annotations
 
 import argparse

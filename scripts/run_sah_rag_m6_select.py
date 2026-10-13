@@ -490,7 +490,7 @@ def main() -> int:
             f"storage={storage[c]/1e6:.1f} MB"
         )
     print()
-    print(f"M6 COMPLETE β€” frozen config at "
+    print(f"M6 COMPLETE — frozen config at "
           f"baseline_audit/my_rag_m6_frozen_config.yaml")
     return 0
 

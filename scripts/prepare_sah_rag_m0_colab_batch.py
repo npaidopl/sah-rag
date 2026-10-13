@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M0-L3 prepare β€” Colab embedding input bundles."""
+"""SAH-RAG M0-L3 prepare — Colab embedding input bundles."""
 from __future__ import annotations
 
 import argparse

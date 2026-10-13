@@ -1,4 +1,4 @@
-# SAH-RAG Optimal-Operation Study β€” Closure
+# SAH-RAG Optimal-Operation Study — Closure
 
 **Status:** SAH_RAG_OPTIMAL_OPERATION_STUDY_CLOSED
 

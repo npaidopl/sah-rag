@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""SAH-RAG M0-L5b β€” Fast retrieval (raw dicts, resume-safe).
+"""SAH-RAG M0-L5b — Fast retrieval (raw dicts, resume-safe).
 
 Replaces pydantic-heavy path with raw dict manipulation. Uses
 payload field selection to avoid fetching text_normalized. Writes
