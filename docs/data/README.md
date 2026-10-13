@@ -1,6 +1,6 @@
-# Thesis and Manuscript Data
+# Project and Manuscript Data
 
-This directory contains the Diploma Thesis of the SAH-RAG project.
+This directory contains the Report of the SAH-RAG project.
 
 ## Contents
 
