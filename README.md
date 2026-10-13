@@ -83,17 +83,17 @@ sah-rag/
 │
 ├── src/
 │   └── rag_system/
-│   │   ├── canonical/
-│   │   ├── parsing/
-│   │   ├── chunking/
-│   │   ├── embedding/
-│   │   ├── storage/
-│   │   ├── retrieval/
-│   │   ├── evaluation/
-│   │   ├── artifacts/
-│   │   ├── generation/
-│   │   ├── orchestration/
-│   │   └── baselines/
+│       ├── canonical/
+│       ├── parsing/
+│       ├── chunking/
+│       ├── embedding/
+│       ├── storage/
+│       ├── retrieval/
+│       ├── evaluation/
+│       ├── artifacts/
+│       ├── generation/
+│       ├── orchestration/
+│       └── baselines/
 │
 ├── baseline_audit/
 │   ├── common_*.yaml
@@ -120,7 +120,7 @@ sah-rag/
 │   │   └── archived/
 │   ├── pilot/
 │   └── data/
-│       ├── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
+│       └── REPORT_NIKOLAOS_PAIDOPOULOS.pdf
 │
 ├── scripts/
 │   ├── run_sah_rag_*.py
@@ -129,9 +129,9 @@ sah-rag/
 │   └── compare_*.py
 │
 └── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── fixtures/
+    ├── unit/
+    ├── integration/
+    └── fixtures/
 ```
 
 ---
