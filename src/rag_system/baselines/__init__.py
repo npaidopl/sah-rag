@@ -1,7 +1,7 @@
 """Adapters for externally defined retrieval architectures.
 
 This package exposes exactly two comparator families used in the
-SAH-RAG thesis:
+SAH-RAG project:
 
 * LongRAG: a controlled adaptation of the LongRAG paper, grouped
   adjacent documents into long retrieval units retrieved by dense

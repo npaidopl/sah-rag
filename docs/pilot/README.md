@@ -25,5 +25,5 @@ The pilot used a synthetic infrastructure dataset. It is documented here
 for completeness; the primary results come from the full-track evaluation
 on the four canonical datasets (CLERC, CUAD, GreekBarBench, LaRA).
 
-See [thesis `docs/data/`](../data/) and [reports `docs/reports/`](../reports/)
+See [project `docs/data/`](../data/) and [reports `docs/reports/`](../reports/)
 for the full-track results.

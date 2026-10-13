@@ -17,9 +17,9 @@ LaTeX sources of all written reports. See [`reports/README.md`](reports/README.m
 - `metadata_rag_full_track_report.tex` — Metadata-RAG comparator
 - `three_way_comparison.tex` — SAH-RAG vs LongRAG vs Metadata-RAG
 
-### Thesis (`data/`)
+### Project (`data/`)
 
-- `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` — Full Diploma Thesis
+- `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` — Full Diploma Project
 
 ### Pilot design docs (`pilot/`)
 

@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this software or reference its results, please cite the accompanying thesis."
+message: "If you use this software or reference its results, please cite the accompanying project."
 title: "SAH-RAG: Structure-Aware Hierarchical Hybrid Retrieval for Long-Context RAG Systems"
 abstract: >-
   Reference implementation and evaluation framework for SAH-RAG, a
