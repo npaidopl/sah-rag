@@ -233,7 +233,7 @@ Written artifacts are available under [`docs/reports/`](docs/reports/):
 - **Three-way comparison** — `three_way_comparison.tex`
 - **Non-executed architectures** — `archived/*.tex`
 
-The full Diploma Thesis PDF is in [`docs/data/`](docs/data/).
+The full Ptoject PDF is in [`docs/data/`](docs/data/).
 
 ---
 
@@ -249,7 +249,7 @@ If you use this software or reference its results, please cite:
   school       = {University of Thessaly},
   department   = {Department of Electrical and Computer Engineering},
   year         = {2026},
-  type         = {Diploma Thesis},
+  type         = {Project},
   url          = {https://github.com/npaidopl/sah-rag}
 }
 ```
