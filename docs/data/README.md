@@ -6,7 +6,7 @@ This directory contains the Diploma Thesis of the SAH-RAG project.
 
 | File | Description |
 |---|---|
-| `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` | Full Diploma Thesis. Greek main text with English abstract and keywords. |
+| `REPORT_NIKOLAOS_PAIDOPOULOS.pdf` | Full Ptoject. Greek main text with English abstract and keywords. |
 
 ## Related resources
 
