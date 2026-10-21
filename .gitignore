@@ -79,7 +79,7 @@ raw/
 
 # --- Qdrant & local services ---
 qdrant_storage/
-storage/
+/storage/
 snapshots/
 
 # --- Logs ---
@@ -124,3 +124,12 @@ tmp/
 # --- Hugging Face cache ---
 .huggingface/
 hf_cache/
+# ============================================================
+# v2 additions (SAH-RAG research refactor)
+# ============================================================
+workspace/
+experiments/
+_review/
+.env.local
+*.sqlite
+*.db
