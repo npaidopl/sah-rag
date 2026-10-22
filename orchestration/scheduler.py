@@ -8,8 +8,27 @@ import sys
 import traceback
 from pathlib import Path
 
-from orchestration.index import RunIndex
-from orchestration.manifest import RunManifest, load_manifest
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _ensure_env_loaded() -> None:
+    """Load .env from project root once if SAH_RAG_EXPERIMENTS_DIR is missing."""
+    if os.getenv("SAH_RAG_EXPERIMENTS_DIR"):
+        return
+    env_file = _PROJECT_ROOT / ".env"
+    if not env_file.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_file, override=False)
+    except ImportError:
+        pass
+
+
+_ensure_env_loaded()
+
+from orchestration.index import RunIndex  # noqa: E402
+from orchestration.manifest import RunManifest, load_manifest  # noqa: E402
 
 
 def _output_root(manifest: RunManifest) -> Path:
@@ -17,7 +36,10 @@ def _output_root(manifest: RunManifest) -> Path:
         return Path(manifest.output_root)
     env = os.getenv("SAH_RAG_EXPERIMENTS_DIR")
     if not env:
-        raise RuntimeError("Neither output_root nor SAH_RAG_EXPERIMENTS_DIR set")
+        raise RuntimeError(
+            "Neither output_root nor SAH_RAG_EXPERIMENTS_DIR set. "
+            f"Create {_PROJECT_ROOT / '.env'} from .env.example."
+        )
     return Path(env) / "runs"
 
 
