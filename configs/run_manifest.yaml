@@ -1,0 +1,10 @@
+# Run Manifest — orchestrator input
+modes:
+  - native
+baselines:
+  - longrag
+  - metadata_rag
+datasets:
+  - infrastructure-pilot-synthetic-v1
+top_k: 10
+output_root: null
