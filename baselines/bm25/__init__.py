@@ -1,0 +1,1 @@
+"""BM25 baseline (Pyserini/Anserini native BM25) for SAH-RAG v2."""

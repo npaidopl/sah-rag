@@ -1,0 +1,6 @@
+name: bm25
+mode: native
+top_k: 10
+extra:
+  k1: 0.9
+  b: 0.4

@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+runs/_e2e_index/
+runs/*.trec
+*.log

@@ -1,0 +1,10 @@
+name: bm25
+mode: controlled
+top_k: 10
+extra:
+  k1: 0.9
+  b: 0.4
+  # NOTE: embedder and llm are NOT listed here.
+  # BM25 is lexical (no dense component); the orchestrator may still inject
+  # them because BaseBaseline requires accepting the kwargs, but BM25 ignores
+  # both. See README "Known limitations".

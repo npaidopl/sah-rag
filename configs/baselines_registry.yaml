@@ -154,3 +154,9 @@ baselines:
   # ---------------------------------------------------------------
   # - name: <new_baseline_11>
   #   ...
+  - name: bm25
+    status: executable
+    supports_native: true
+    supports_controlled: true
+    is_llm_based: false
+    notes: "Lexical baseline (Pyserini/Anserini). Native-fidelity: PAPER_EXACT_NATIVE (SciFact). Controlled-mode components structurally unused (see baselines/bm25/ARM_REGISTRY.md section 2)."
