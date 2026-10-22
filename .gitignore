@@ -133,3 +133,7 @@ _review/
 .env.local
 *.sqlite
 *.db
+
+# --- Runtime outputs ---
+outputs/
+
