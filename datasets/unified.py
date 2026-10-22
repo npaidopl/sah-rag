@@ -70,17 +70,14 @@ def load_dataset(
 
 def list_available_datasets(root: Path | None = None) -> list[str]:
     """List dataset IDs present under `processed/canonical/`."""
+    from sah_rag.canonical.paths import get_canonical_root
     if root is None:
-        raw = os.getenv("RAG_CANONICAL_ROOT")
-        if not raw:
-            raise RuntimeError("RAG_CANONICAL_ROOT is not configured")
-        root = Path(raw)
+        root = get_canonical_root()
     if not root.exists():
         return []
     return sorted(
         p.name for p in root.iterdir() if p.is_dir() and (p / "examples.jsonl").exists()
     )
-
 
 __all__ = [
     "CanonicalDatasetPaths",

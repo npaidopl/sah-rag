@@ -1,0 +1,156 @@
+# Baselines Registry
+# -------------------------------------------------------------------
+# Single source of truth for which baselines exist and how they run.
+#
+# The orchestrator reads this file at run time to know:
+#   - which baselines to iterate over (status != skipped)
+#   - which modes each supports
+#   - where the adapter lives
+#
+# Update this file ONLY when a baseline graduates from workspace/.
+#
+# Status values:
+#   executable  — we have code, can run it (native and/or controlled)
+#   reported    — paper-reported numbers only, no execution
+#   skipped     — explicitly excluded (license, deprecated, out of scope)
+#
+# Modes values:
+#   native      — baseline uses its own embedder/LLM/components
+#   controlled  — orchestrator injects shared embedder (BGE-M3) and LLM
+# -------------------------------------------------------------------
+
+version: 1
+
+defaults:
+  status: reported
+  modes: [native]
+  top_k: 10
+  work_dir_template: "baselines/{name}"
+
+baselines:
+
+  # ---------------------------------------------------------------
+  # 1. DisRetrieval
+  # ---------------------------------------------------------------
+  - name: disretrieval
+    display_name: DisRetrieval
+    paper: "Liu et al., Disentangled Retrieval for Long-Context QA"
+    path: baselines/disretrieval
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Update status to executable once adapter is merged."
+
+  # ---------------------------------------------------------------
+  # 2. HiKEY
+  # ---------------------------------------------------------------
+  - name: hikey
+    display_name: HiKEY
+    paper: "HiKEY — Hierarchical Key Information Extraction"
+    path: baselines/hikey
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Update status to executable once adapter is merged."
+
+  # ---------------------------------------------------------------
+  # 3. PathRAG
+  # ---------------------------------------------------------------
+  - name: pathrag
+    display_name: PathRAG
+    paper: "PathRAG — Path-based Reasoning RAG"
+    path: baselines/pathrag
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Graph-based; controlled mode may need extra component injection review."
+
+  # ---------------------------------------------------------------
+  # 4. LongRAG
+  # ---------------------------------------------------------------
+  - name: longrag
+    display_name: LongRAG
+    paper: "LongRAG — Long-Context Retrieval-Augmented Generation"
+    path: baselines/longrag
+    status: executable
+    modes: [native, controlled]
+    is_llm_based: false
+    notes: "Existing adapter from v1, migrated to v2. Reference implementation."
+
+  # ---------------------------------------------------------------
+  # 5. LightRAG
+  # ---------------------------------------------------------------
+  - name: lightrag
+    display_name: LightRAG
+    paper: "LightRAG — Simple and Fast Retrieval-Augmented Generation"
+    path: baselines/lightrag
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Graph + dual-level; needs graph index persistence."
+
+  # ---------------------------------------------------------------
+  # 6. HippoRAG2
+  # ---------------------------------------------------------------
+  - name: hipporag2
+    display_name: HippoRAG2
+    paper: "HippoRAG2 — Hippocampal-inspired RAG"
+    path: baselines/hipporag2
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "PPR-based; graph index persistence needed."
+
+  # ---------------------------------------------------------------
+  # 7. RAPTOR
+  # ---------------------------------------------------------------
+  - name: raptor
+    display_name: RAPTOR
+    paper: "RAPTOR — Recursive Abstractive Processing for Tree-Organized Retrieval"
+    path: baselines/raptor
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Recursive tree; controlled mode needs cluster-summary generation via injected LLM."
+
+  # ---------------------------------------------------------------
+  # 8. Metadata-RAG
+  # ---------------------------------------------------------------
+  - name: metadata_rag
+    display_name: Metadata-RAG
+    paper: "Metadata-Enriched RAG with Windowing"
+    path: baselines/metadata_rag
+    status: executable
+    modes: [native, controlled]
+    is_llm_based: false
+    notes: "Existing adapter from v1, migrated to v2. Reference implementation."
+
+  # ---------------------------------------------------------------
+  # 9. MemoRAG
+  # ---------------------------------------------------------------
+  - name: memorag
+    display_name: MemoRAG
+    paper: "MemoRAG — Memory-Augmented RAG"
+    path: baselines/memorag
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Memory-based; controlled mode requires reviewing KV-cache injection."
+
+  # ---------------------------------------------------------------
+  # 10. KAG
+  # ---------------------------------------------------------------
+  - name: kag
+    display_name: KAG
+    paper: "KAG — Knowledge Augmented Generation"
+    path: baselines/kag
+    status: reported
+    modes: [native, controlled]
+    is_llm_based: true
+    notes: "Knowledge-graph; controlled mode needs KG component review."
+
+  # ---------------------------------------------------------------
+  # Reserved slots for baselines 11-14 (to be added later)
+  # ---------------------------------------------------------------
+  # - name: <new_baseline_11>
+  #   ...
