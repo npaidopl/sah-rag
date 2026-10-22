@@ -13,7 +13,35 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
-from sah_rag.canonical import (
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_ENV_FILE = _PROJECT_ROOT / ".env"
+
+
+def _ensure_env_loaded() -> None:
+    """Load .env if RAG_CANONICAL_ROOT is not already set.
+
+    Why this exists: `sah_rag.canonical.paths.get_canonical_root()` calls
+    an internal `load_project_environment()` whose behavior depends on the
+    current working directory (and sometimes on package import order).
+    When scripts run from arbitrary CWDs (e.g., GPU server, scripts/),
+    that fails silently. This helper loads .env explicitly from the project
+    root so the module works regardless of CWD.
+    """
+    if os.getenv("RAG_CANONICAL_ROOT"):
+        return
+    if not _ENV_FILE.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(_ENV_FILE, override=False)
+
+
+_ensure_env_loaded()
+
+
+from sah_rag.canonical import (  # noqa: E402
     CanonicalDatasetPaths,
     CanonicalDocument,
     CanonicalExample,
@@ -36,24 +64,35 @@ class UnifiedDataset:
         yield from self.examples
 
 
+def _resolve_root(root: Path | None = None) -> Path:
+    """Resolve RAG_CANONICAL_ROOT with fallbacks."""
+    _ensure_env_loaded()
+    if root is not None:
+        return Path(root)
+    try:
+        from sah_rag.canonical.paths import get_canonical_root
+        return get_canonical_root()
+    except RuntimeError:
+        # Last-resort fallback: project_root / processed / canonical
+        return _PROJECT_ROOT / "processed" / "canonical"
+
+
 def load_dataset(
     dataset_id: str,
     root: Path | None = None,
 ) -> UnifiedDataset:
     """Load a canonical dataset from `processed/canonical/<dataset_id>/`.
 
-    Uses `RAG_CANONICAL_ROOT` env var if `root` is None.
-
     Required files under `<root>/<dataset_id>/`:
       - documents.jsonl
       - examples.jsonl
-      - manifest.json  (optional, for metadata)
 
     Raises:
         FileNotFoundError: if the dataset directory does not exist.
         ValueError: if required jsonl files are missing.
     """
-    paths = resolve_dataset_paths(dataset_id, root=root)
+    _ensure_env_loaded()
+    paths = resolve_dataset_paths(dataset_id, root=_resolve_root(root))
     documents = list(iter_canonical_documents(paths))
     examples = list(iter_canonical_examples(paths))
     return UnifiedDataset(
@@ -70,14 +109,15 @@ def load_dataset(
 
 def list_available_datasets(root: Path | None = None) -> list[str]:
     """List dataset IDs present under `processed/canonical/`."""
-    from sah_rag.canonical.paths import get_canonical_root
-    if root is None:
-        root = get_canonical_root()
-    if not root.exists():
+    resolved = _resolve_root(root)
+    if not resolved.exists():
         return []
     return sorted(
-        p.name for p in root.iterdir() if p.is_dir() and (p / "examples.jsonl").exists()
+        p.name
+        for p in resolved.iterdir()
+        if p.is_dir() and (p / "examples.jsonl").exists()
     )
+
 
 __all__ = [
     "CanonicalDatasetPaths",
