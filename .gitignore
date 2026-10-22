@@ -137,3 +137,5 @@ _review/
 # --- Runtime outputs ---
 outputs/
 
+# ===== LLM tool worktrees (auto-generated) =====
+*.worktrees/
