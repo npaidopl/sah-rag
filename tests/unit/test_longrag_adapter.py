@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag_system.baselines import (
+from baselines import (
     LongRAGSourceSegment,
     RankedLongUnit,
     construct_long_units,

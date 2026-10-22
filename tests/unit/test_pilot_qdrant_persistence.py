@@ -36,7 +36,7 @@ def _run(script: Path) -> subprocess.CompletedProcess:
 
 
 def test_local_collection_storage_directory_exists_if_succeeded():
-    from rag_system.storage.qdrant import fingerprint_collection_name  # noqa: F401
+    from sah_rag.storage.qdrant import fingerprint_collection_name  # noqa: F401
     # The collection is created only after the runner has been executed.
     # If the runner has not yet been executed, skip gracefully.
     manifest_path = REPO_ROOT / "baseline_audit" / "pilot_qdrant_execution_manifest.yaml"
@@ -94,7 +94,7 @@ def test_embedding_subtree_untouched_by_qdrant_suite():
         REPO_ROOT
         / "outputs" / "infrastructure_pilot"
         / "infrastructure-pilot-synthetic-v1"
-        / "rag_system" / "embedding"
+        / "sah_rag" / "embedding"
     )
     # This test only asserts that the current embedding subtree
     # (if it existed at the start of the run) is not deleted by

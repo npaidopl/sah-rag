@@ -1,11 +1,11 @@
 """Derived artifact models and utilities."""
 
-from rag_system.artifacts.fingerprints import (
+from sah_rag.artifacts.fingerprints import (
     count_nonempty_lines,
     file_size_bytes,
     sha256_file,
 )
-from rag_system.artifacts.identity import (
+from sah_rag.artifacts.identity import (
     build_chunk_id,
     build_experiment_id,
     build_parent_id,
@@ -15,12 +15,12 @@ from rag_system.artifacts.identity import (
     sha256_fingerprint,
     short_fingerprint,
 )
-from rag_system.artifacts.jsonl import (
+from sah_rag.artifacts.jsonl import (
     AtomicJsonlWriter,
     serialize_record,
     write_jsonl_atomic,
 )
-from rag_system.artifacts.manifest import (
+from sah_rag.artifacts.manifest import (
     ArtifactReference,
     ComponentReference,
     ExecutionEnvironment,
@@ -28,11 +28,11 @@ from rag_system.artifacts.manifest import (
     ExperimentManifest,
     ExperimentStatus,
 )
-from rag_system.artifacts.manifest_io import (
+from sah_rag.artifacts.manifest_io import (
     read_json_model,
     write_json_model_atomic,
 )
-from rag_system.artifacts.models import (
+from sah_rag.artifacts.models import (
     ArtifactBaseModel,
     BoundaryEvidence,
     BoundaryMethod,
@@ -41,10 +41,10 @@ from rag_system.artifacts.models import (
     ParsedDocument,
     SemanticParent,
 )
-from rag_system.artifacts.revision import (
+from sah_rag.artifacts.revision import (
     get_git_revision,
 )
-from rag_system.artifacts.sidecar import (
+from sah_rag.artifacts.sidecar import (
     ArtifactComponentReference,
     ArtifactInputReference,
     ArtifactSidecarManifest,

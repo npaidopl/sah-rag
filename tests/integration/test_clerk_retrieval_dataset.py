@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.evaluation import (
+from evaluation import (
     load_clerk_retrieval_dataset,
 )
 

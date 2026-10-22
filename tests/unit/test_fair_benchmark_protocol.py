@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PATH = REPO_ROOT / "baseline_audit" / "fair_benchmark_protocol.yaml"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_fair_benchmark_protocol.py"
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 DATASETS = ("ruler","loong","long_bench_v2","lara","greek_bar_bench","cuad","clerk")
 

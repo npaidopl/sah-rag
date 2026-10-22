@@ -92,12 +92,12 @@ def _unit_vector(dim: int, index: int) -> list[float]:
 
 def _fake_state() -> Any:
     """Build a minimal MetadataRAGState from the synthetic fixture."""
-    from rag_system.baselines.metadata_rag_adapter import (
+    from baselines.metadata_rag_adapter import (
         build_indexed_documents,
     )
-    from rag_system.baselines.metadata_rag_state import build_state
-    from rag_system.canonical.loaders import iter_validated_models
-    from rag_system.canonical.models import CanonicalDocument
+    from baselines.metadata_rag_state import build_state
+    from sah_rag.canonical.loaders import iter_validated_models
+    from sah_rag.canonical.models import CanonicalDocument
 
     fixture = (
         REPO_ROOT

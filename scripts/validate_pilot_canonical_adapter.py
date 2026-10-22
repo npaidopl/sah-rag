@@ -6,11 +6,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from rag_system.canonical.pilot_adapter import (
+from sah_rag.canonical.pilot_adapter import (
     ADAPTER_ID,
     validate_pilot_canonical_adapter,
 )
-from rag_system.canonical.pilot_adapter_persistence import (
+from sah_rag.canonical.pilot_adapter_persistence import (
     read_pilot_canonical_adapter,
 )
 

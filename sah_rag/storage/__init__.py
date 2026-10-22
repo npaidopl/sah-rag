@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from rag_system.storage.models import (
+from sah_rag.storage.models import (
     QdrantCollectionManifest,
 )
-from rag_system.storage.qdrant import (
+from sah_rag.storage.qdrant import (
     DENSE_VECTOR_NAME,
     SPARSE_VECTOR_NAME,
     build_point,

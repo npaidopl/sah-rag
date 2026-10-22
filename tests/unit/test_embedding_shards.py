@@ -7,16 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactSidecarManifest,
     ChildChunk,
     OffsetSpan,
     read_json_model,
 )
-from rag_system.artifacts.jsonl import (
+from sah_rag.artifacts.jsonl import (
     write_jsonl_atomic,
 )
-from rag_system.embedding import (
+from sah_rag.embedding import (
     EmbeddingKind,
     EmbeddingShardHeader,
     VectorPrecision,

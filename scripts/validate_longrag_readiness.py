@@ -21,8 +21,8 @@ EXPECTED_FLAGS = {
 
 EXPECTED_EVIDENCE: dict[str, tuple[str, ...]] = {
     "adapter": (
-        "src/rag_system/baselines/longrag.py",
-        "src/rag_system/baselines/longrag_embeddings.py",
+        "src/sah_rag/baselines/longrag.py",
+        "src/sah_rag/baselines/longrag_embeddings.py",
         "schemas/longrag_long_unit.schema.json",
         "schemas/longrag_embedding_record.schema.json",
         "schemas/longrag_embedding_shard_header.schema.json",
@@ -34,8 +34,8 @@ EXPECTED_EVIDENCE: dict[str, tuple[str, ...]] = {
         "outputs/longrag_clerk_source_corrected_pilot/LONGRAG-ADJ-4096/units.jsonl",
     ),
     "execution": (
-        "src/rag_system/baselines/longrag_storage.py",
-        "src/rag_system/baselines/longrag_retrieval.py",
+        "src/sah_rag/baselines/longrag_storage.py",
+        "src/sah_rag/baselines/longrag_retrieval.py",
         "schemas/longrag_collection_manifest.schema.json",
         "schemas/longrag_retrieved_unit.schema.json",
     ),

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from statistics import mean, median
 
-from rag_system.artifacts.models import ParsedDocument
+from sah_rag.artifacts.models import ParsedDocument
 
 
 @dataclass(slots=True)

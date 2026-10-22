@@ -69,7 +69,7 @@ def test_dataset_ready_count_is_three() -> None:
     assert set(data["dataset_ready_members"]) == {
         "longrag",
         "pathrag",
-        "rag_system",
+        "sah_rag",
     }
 
 

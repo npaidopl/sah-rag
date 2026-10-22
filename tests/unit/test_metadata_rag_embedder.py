@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_embedder."""
+"""Tests for baselines.metadata_rag_embedder."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from collections.abc import Sequence
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_embedder import (
     EMBEDDER_VERSION,
     FROZEN_DENSE_DIMENSION,
     FROZEN_MODEL_ID,

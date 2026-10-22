@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     count_nonempty_lines,
     file_size_bytes,
     sha256_file,

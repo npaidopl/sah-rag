@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_expansion."""
+"""Tests for baselines.metadata_rag_expansion."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ import math
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_expansion import (
+from baselines.metadata_rag_expansion import (
     EXPANSION_VERSION,
     ExpandedDocument,
     MetadataRAGExpansionError,
     expand_ranked_items_to_documents,
 )
-from rag_system.baselines.metadata_rag_retrieval import (
+from baselines.metadata_rag_retrieval import (
     FallbackFlags,
     RankedItem,
     RankedItemMetadata,

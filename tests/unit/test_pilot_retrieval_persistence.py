@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_system.retrieval.document_resolution import RetrievedDocument
-from rag_system.retrieval.pilot_persistence import (
+from sah_rag.retrieval.document_resolution import RetrievedDocument
+from sah_rag.retrieval.pilot_persistence import (
     read_pilot_retrieval_artifacts,
     write_pilot_retrieval_artifacts,
 )

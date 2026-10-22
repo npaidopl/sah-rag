@@ -19,11 +19,11 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-from rag_system.chunking.hierarchical import HierarchicalChildChunker
-from rag_system.chunking.huggingface import HuggingFaceOffsetTokenizer
-from rag_system.chunking.pipeline import chunk_parsed_artifacts
-from rag_system.parsing.deterministic import DeterministicStructuralParser
-from rag_system.parsing.pipeline import parse_canonical_dataset
+from sah_rag.chunking.hierarchical import HierarchicalChildChunker
+from sah_rag.chunking.huggingface import HuggingFaceOffsetTokenizer
+from sah_rag.chunking.pipeline import chunk_parsed_artifacts
+from sah_rag.parsing.deterministic import DeterministicStructuralParser
+from sah_rag.parsing.pipeline import parse_canonical_dataset
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 SNAPSHOT = Path(

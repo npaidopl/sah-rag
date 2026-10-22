@@ -6,14 +6,14 @@ from collections.abc import Sequence
 
 from qdrant_client import QdrantClient, models
 
-from rag_system.retrieval.aggregation import (
+from sah_rag.retrieval.aggregation import (
     aggregate_chunks_to_parents,
 )
-from rag_system.retrieval.models import (
+from sah_rag.retrieval.models import (
     RetrievedChunk,
     RetrievedParent,
 )
-from rag_system.storage import (
+from sah_rag.storage import (
     DENSE_VECTOR_NAME,
     SPARSE_VECTOR_NAME,
 )

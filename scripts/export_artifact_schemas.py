@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactSidecarManifest,
 )
-from rag_system.baselines import (
+from baselines import (
     ExpandedHippoRAG2Document,
     ExpandedLightRAGDocument,
     ExpandedPathRAGDocument,
@@ -65,22 +65,22 @@ from rag_system.baselines import (
     RetrievedLongUnit,
     RetrievedRAPTORNode,
 )
-from rag_system.canonical.pilot_adapter import (
+from sah_rag.canonical.pilot_adapter import (
     PilotAdapterExampleMapping,
     PilotAdapterManifest,
     PilotAdapterValidation,
 )
-from rag_system.evaluation import (
+from evaluation import (
     RetrievalEvaluationCase,
     RetrievalEvaluationRun,
 )
-from rag_system.evaluation_contracts import (
+from evaluation.contracts import (
     AggregateCutoffMetrics,
     CommonRetrievalEvaluationManifest,
     CommonRetrievalEvaluationRun,
     QueryCutoffMetrics,
 )
-from rag_system.execution_contracts import (
+from orchestration.contracts import (
     ArchitectureExecutionManifest,
     DatasetInputEnvelope,
     ExecutionArtifactRecord,
@@ -89,29 +89,29 @@ from rag_system.execution_contracts import (
     ExperimentCellIdentity,
     ReadinessRegistryEntry,
 )
-from rag_system.generation import (
+from sah_rag.generation import (
     ContextPack,
     GeneratedAnswer,
     GenerationPrompt,
 )
-from rag_system.orchestration import (
+from orchestration import (
     OrchestratorArtifactLayout,
     OrchestratorDryRunPlan,
     OrchestratorExecutionRequest,
     OrchestratorPlanManifest,
     OrchestratorStagePlan,
 )
-from rag_system.pilot_dataset import (
+from datasets.pilot_synthetic import (
     PilotCanonicalChunk,
     PilotCanonicalDocument,
     PilotCanonicalJudgment,
     PilotCanonicalQuery,
     PilotDatasetManifest,
 )
-from rag_system.retrieval.document_resolution import (
+from sah_rag.retrieval.document_resolution import (
     RetrievedDocument,
 )
-from rag_system.storage import (
+from sah_rag.storage import (
     QdrantCollectionManifest,
 )
 

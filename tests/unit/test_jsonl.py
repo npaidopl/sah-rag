@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.canonical.jsonl import (
+from sah_rag.canonical.jsonl import (
     JsonlReadError,
     count_jsonl_records,
     iter_jsonl,

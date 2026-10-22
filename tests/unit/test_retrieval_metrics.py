@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from rag_system.evaluation import (
+from evaluation import (
     RetrievalEvaluationCase,
     RetrievalJudgment,
     aggregate_metrics,

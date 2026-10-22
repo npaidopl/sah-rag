@@ -43,12 +43,12 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Final
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     MetadataRAGProjectedQuery,
     build_indexed_documents,
     project_queries,
 )
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_embedder import (
     FROZEN_DENSE_DIMENSION,
     EncoderConfig,
     MetadataRAGDocumentEmbedding,
@@ -56,33 +56,33 @@ from rag_system.baselines.metadata_rag_embedder import (
     build_document_embedding,
     build_query_embedding,
 )
-from rag_system.baselines.metadata_rag_evaluation_case import (
+from baselines.metadata_rag_evaluation_case import (
     MetadataRAGEvaluationCase,
     build_evaluation_case,
 )
-from rag_system.baselines.metadata_rag_expansion import (
+from baselines.metadata_rag_expansion import (
     ExpandedDocument,
     expand_ranked_items_to_documents,
 )
-from rag_system.baselines.metadata_rag_persistence import (
+from baselines.metadata_rag_persistence import (
     read_state,
     write_state,
 )
-from rag_system.baselines.metadata_rag_reference_index import (
+from baselines.metadata_rag_reference_index import (
     ReferenceDenseIndex,
     build_reference_dense_index,
 )
-from rag_system.baselines.metadata_rag_retrieval import (
+from baselines.metadata_rag_retrieval import (
     QueryRetrievalResult,
     RetrievalConfig,
     retrieve_batch,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     MetadataRAGState,
     build_state,
 )
-from rag_system.canonical.loaders import iter_validated_models
-from rag_system.canonical.models import (
+from sah_rag.canonical.loaders import iter_validated_models
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )

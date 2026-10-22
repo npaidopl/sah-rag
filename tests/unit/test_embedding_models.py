@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from rag_system.embedding import (
+from sah_rag.embedding import (
     ChunkEmbeddingRecord,
     EmbeddingConfig,
     EmbeddingKind,

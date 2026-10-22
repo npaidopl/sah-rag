@@ -1,11 +1,11 @@
-"""Tests for rag_system.baselines.metadata_rag_evaluation_case."""
+"""Tests for baselines.metadata_rag_evaluation_case."""
 
 from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_evaluation_case import (
+from baselines.metadata_rag_evaluation_case import (
     EVALUATION_CASE_VERSION,
     MetadataRAGEvaluationCase,
     MetadataRAGEvaluationCaseError,

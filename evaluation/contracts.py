@@ -1,10 +1,10 @@
 """Common cross-baseline retrieval evaluation contract (Step 67).
 
-This module wraps the existing ``rag_system.evaluation`` primitives in a
+This module wraps the existing ``evaluation`` primitives in a
 multi-cutoff, run-level contract with deterministic persistence. It does
 NOT replace ``evaluate_case`` or ``aggregate_metrics``. The naming
 ``CommonRetrievalEvaluationRun`` / ``CommonRetrievalEvaluationManifest``
-avoids a collision with ``rag_system.evaluation.RetrievalEvaluationRun``.
+avoids a collision with ``evaluation.RetrievalEvaluationRun``.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from rag_system.evaluation import (
+from evaluation import (
     RetrievalEvaluationCase,
     aggregate_metrics,
     evaluate_case,

@@ -7,7 +7,7 @@ import yaml
 
 PATH = Path("baseline_audit/architecture_readiness_gap_registry.yaml")
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 REQUIRED = (

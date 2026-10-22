@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     build_file_sidecar_manifest,
     get_git_revision,
@@ -12,7 +12,7 @@ from rag_system.artifacts import (
     sha256_fingerprint,
     write_json_model_atomic,
 )
-from rag_system.generation import (
+from sah_rag.generation import (
     DeterministicDryRunAdapter,
     GenerationPrompt,
     GenerationRequest,

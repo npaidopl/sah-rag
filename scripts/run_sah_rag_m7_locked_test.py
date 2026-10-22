@@ -27,7 +27,7 @@ import numpy as np
 import scipy.sparse as sp
 import yaml
 
-from rag_system.canonical.loaders import iter_canonical_examples
+from sah_rag.canonical.loaders import iter_canonical_examples
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 QE_ROOT = OUT_ROOT / "_query_embeddings"

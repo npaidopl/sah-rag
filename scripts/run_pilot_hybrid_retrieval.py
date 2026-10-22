@@ -239,7 +239,7 @@ def retrieval_for_query(
     candidate_limit: int,
     child_limit: int,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-    from rag_system.retrieval.qdrant import (
+    from sah_rag.retrieval.qdrant import (
         retrieve_dense,
         retrieve_hybrid_rrf,
         retrieve_sparse,
@@ -305,8 +305,8 @@ def parents_for_query(
     additional_child_weight: float,
     parent_limit: int,
 ) -> list[dict[str, Any]]:
-    from rag_system.retrieval.aggregation import aggregate_chunks_to_parents
-    from rag_system.retrieval.models import RetrievedChunk
+    from sah_rag.retrieval.aggregation import aggregate_chunks_to_parents
+    from sah_rag.retrieval.models import RetrievedChunk
 
     chunk_objs = tuple(
         RetrievedChunk(
@@ -351,10 +351,10 @@ def documents_for_query(
     query_id: str,
     doc_limit: int,
 ) -> list[dict[str, Any]]:
-    from rag_system.retrieval.document_resolution import (
+    from sah_rag.retrieval.document_resolution import (
         resolve_parents_to_documents,
     )
-    from rag_system.retrieval.models import RetrievedParent
+    from sah_rag.retrieval.models import RetrievedParent
 
     parent_objs = tuple(
         RetrievedParent(
@@ -510,8 +510,8 @@ def main() -> int:
     wall_clock = time.perf_counter() - wall_start
 
     # ---- Convert documents to typed RetrievedDocument objects ----
-    from rag_system.retrieval.document_resolution import RetrievedDocument
-    from rag_system.retrieval.pilot_persistence import (
+    from sah_rag.retrieval.document_resolution import RetrievedDocument
+    from sah_rag.retrieval.pilot_persistence import (
         read_pilot_retrieval_artifacts,
         write_pilot_retrieval_artifacts,
     )

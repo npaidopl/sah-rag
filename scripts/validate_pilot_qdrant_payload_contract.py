@@ -86,7 +86,7 @@ def main() -> int:
 
     impl = data["implementation"]
     _require(
-        impl["builder_function"] == "rag_system.storage.qdrant.build_payload",
+        impl["builder_function"] == "sah_rag.storage.qdrant.build_payload",
         "implementation.builder_function changed",
     )
     _require(impl["frozen"] is True, "implementation.frozen must be true")

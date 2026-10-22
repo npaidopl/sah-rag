@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.orchestration import (
+from orchestration import (
     PATHRAG_REQUIRED_LABEL,
     OrchestratorExecutionRequest,
     build_orchestrator_dry_run_plan,
     build_planned_execution_manifest,
 )
-from rag_system.orchestration_persistence import (
+from orchestration.persistence import (
     read_orchestrator_dry_run,
     write_orchestrator_dry_run,
 )

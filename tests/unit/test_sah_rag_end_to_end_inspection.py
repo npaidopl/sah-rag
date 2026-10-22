@@ -1,4 +1,4 @@
-"""Tests for the rag_system end-to-end static inspection."""
+"""Tests for the sah_rag end-to-end static inspection."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _run_validator() -> subprocess.CompletedProcess:
 def test_validator_accepts_current_audit():
     r = _run_validator()
     assert r.returncode == 0, r.stderr
-    assert "[OK] rag_system end-to-end static inspection" in r.stdout
+    assert "[OK] sah_rag end-to-end static inspection" in r.stdout
 
 
 def test_pipeline_is_project_owned():

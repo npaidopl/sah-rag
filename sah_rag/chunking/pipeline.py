@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     ArtifactSidecarManifest,
     build_input_reference,
@@ -15,13 +15,13 @@ from rag_system.artifacts import (
     get_git_revision,
     write_json_model_atomic,
 )
-from rag_system.artifacts.jsonl import AtomicJsonlWriter
-from rag_system.artifacts.models import (
+from sah_rag.artifacts.jsonl import AtomicJsonlWriter
+from sah_rag.artifacts.models import (
     ChildChunk,
     ParsedDocument,
 )
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.chunking.hierarchical import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.chunking.hierarchical import (
     HierarchicalChildChunker,
 )
 
@@ -210,10 +210,10 @@ def _write_chunking_manifest(
     )
 
     if input_manifest_path is not None:
-        from rag_system.artifacts import (
+        from sah_rag.artifacts import (
             ArtifactSidecarManifest as SidecarModel,
         )
-        from rag_system.artifacts import (
+        from sah_rag.artifacts import (
             read_json_model,
         )
 

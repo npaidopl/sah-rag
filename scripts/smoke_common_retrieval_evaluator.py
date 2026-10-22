@@ -5,13 +5,13 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from rag_system.evaluation import RetrievalEvaluationCase, RetrievalJudgment
-from rag_system.evaluation_contracts import (
+from evaluation import RetrievalEvaluationCase, RetrievalJudgment
+from evaluation.contracts import (
     CommonRetrievalEvaluationRun,
     evaluate_retrieval_run,
     validate_evaluation_results,
 )
-from rag_system.evaluation_persistence import (
+from evaluation.persistence import (
     read_retrieval_evaluation_artifacts,
     write_retrieval_evaluation_artifacts,
 )

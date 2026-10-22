@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     normalize_identifier,
     short_fingerprint,
 )

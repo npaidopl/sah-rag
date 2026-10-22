@@ -30,10 +30,10 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-from rag_system.chunking.config import ChildChunkerConfig
-from rag_system.chunking.hierarchical import HierarchicalChildChunker
-from rag_system.chunking.huggingface import HuggingFaceOffsetTokenizer
-from rag_system.chunking.pipeline import chunk_parsed_artifacts
+from sah_rag.chunking.config import ChildChunkerConfig
+from sah_rag.chunking.hierarchical import HierarchicalChildChunker
+from sah_rag.chunking.huggingface import HuggingFaceOffsetTokenizer
+from sah_rag.chunking.pipeline import chunk_parsed_artifacts
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 SNAPSHOT = Path(

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     build_input_reference,
     build_jsonl_sidecar_manifest,
@@ -16,15 +16,15 @@ from rag_system.artifacts import (
     sha256_fingerprint,
     write_json_model_atomic,
 )
-from rag_system.artifacts.jsonl import write_jsonl_atomic
-from rag_system.evaluation.identity import (
+from sah_rag.artifacts.jsonl import write_jsonl_atomic
+from evaluation.identity import (
     build_evaluation_run_id,
 )
-from rag_system.evaluation.metrics import (
+from evaluation.metrics import (
     aggregate_metrics,
     evaluate_case,
 )
-from rag_system.evaluation.models import (
+from evaluation.models import (
     RetrievalEvaluationCase,
     RetrievalEvaluationRun,
     RetrievalMetrics,

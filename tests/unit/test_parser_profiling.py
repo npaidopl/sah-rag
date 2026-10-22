@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     BoundaryEvidence,
     BoundaryMethod,
     OffsetSpan,
     ParsedDocument,
     SemanticParent,
 )
-from rag_system.parsing import (
+from sah_rag.parsing import (
     ParserProfileAccumulator,
 )
 

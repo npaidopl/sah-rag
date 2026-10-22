@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.generation.runtime import (
+from sah_rag.generation.runtime import (
     GenerationRequest,
     GenerationRuntimeResponse,
 )

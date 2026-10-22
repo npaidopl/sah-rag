@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_reference_index."""
+"""Tests for baselines.metadata_rag_reference_index."""
 
 from __future__ import annotations
 
@@ -10,31 +10,31 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     build_chunk_id,
     build_indexed_documents,
 )
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_embedder import (
     FROZEN_DENSE_DIMENSION,
     EncoderConfig,
     MetadataRAGDocumentEmbedding,
     build_document_embedding,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     build_document_metadata,
 )
-from rag_system.baselines.metadata_rag_reference_index import (
+from baselines.metadata_rag_reference_index import (
     DenseIndexEntry,
     MetadataRAGReferenceIndexError,
     ReferenceDenseIndex,
     build_reference_dense_index,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     MetadataRAGState,
     build_state,
 )
-from rag_system.canonical.loaders import iter_validated_models
-from rag_system.canonical.models import CanonicalDocument
+from sah_rag.canonical.loaders import iter_validated_models
+from sah_rag.canonical.models import CanonicalDocument
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_ROOT = (

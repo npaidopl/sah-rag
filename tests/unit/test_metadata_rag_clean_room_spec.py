@@ -286,7 +286,7 @@ def test_effective_storage_is_in_memory_exact_dense() -> None:
     assert st["quantization_allowed"] is False
     assert (
         st["reference_index_module"]
-        == "rag_system.baselines.metadata_rag_reference_index"
+        == "baselines.metadata_rag_reference_index"
     )
 
 

@@ -87,7 +87,7 @@ def main() -> int:
 
     physical = collection["physical_name"]
     _require(
-        physical["function"] == "rag_system.storage.qdrant.fingerprint_collection_name",
+        physical["function"] == "sah_rag.storage.qdrant.fingerprint_collection_name",
         "physical_name.function changed",
     )
     _require(physical["deterministic"] is True, "physical_name.deterministic must be true")
@@ -110,7 +110,7 @@ def main() -> int:
 
     identity = data["point_identity"]
     _require(
-        identity["function"] == "rag_system.storage.qdrant.build_qdrant_point_id",
+        identity["function"] == "sah_rag.storage.qdrant.build_qdrant_point_id",
         "point_identity.function changed",
     )
     _require(identity["algorithm"] == "uuid5", "point_identity.algorithm must be uuid5")

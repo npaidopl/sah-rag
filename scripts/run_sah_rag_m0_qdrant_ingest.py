@@ -5,7 +5,7 @@ For each dataset in the 4-dataset scope:
   1. Load embeddings-v1/embedding_records.jsonl
   2. Load chunks-v1/chunks.jsonl
   3. Create hybrid Qdrant collection (dense 1024 COSINE + sparse IP)
-  4. Ingest all points via rag_system.storage.qdrant.ingest_embedding_records
+  4. Ingest all points via sah_rag.storage.qdrant.ingest_embedding_records
   5. Close client, reopen, verify point count
 
 Local Qdrant instance at outputs/external_sah_rag/_qdrant/.
@@ -26,9 +26,9 @@ sys.path.insert(0, str(REPO / "src"))
 
 from qdrant_client import QdrantClient
 
-from rag_system.artifacts.models import ChildChunk
-from rag_system.embedding.models import ChunkEmbeddingRecord
-from rag_system.storage.qdrant import (
+from sah_rag.artifacts.models import ChildChunk
+from sah_rag.embedding.models import ChunkEmbeddingRecord
+from sah_rag.storage.qdrant import (
     create_hybrid_collection,
     ingest_embedding_records,
 )
@@ -148,7 +148,7 @@ def ingest_dataset(
         print(f"[{ds}] collection '{col}' created")
 
     # Build a minimal EmbeddingShardHeader for the ingestion helper
-    from rag_system.embedding.models import (
+    from sah_rag.embedding.models import (
         EmbeddingKind,
         EmbeddingShardHeader,
         VectorPrecision,

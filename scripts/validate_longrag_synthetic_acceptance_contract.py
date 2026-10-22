@@ -85,8 +85,8 @@ def main() -> None:
         fail("target_token_size must be 256")
     for k in ("long_unit_builder_function", "long_unit_identity_function",
               "canonical_expansion_function"):
-        if not lr.get(k, "").startswith("rag_system.baselines.longrag"):
-            fail(f"longrag.{k} must be a rag_system.baselines.longrag function")
+        if not lr.get(k, "").startswith("baselines.longrag"):
+            fail(f"longrag.{k} must be a baselines.longrag function")
 
     gates = d["acceptance_gates"]
     if gates["documents_loaded"] != 12:

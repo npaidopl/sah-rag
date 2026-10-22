@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
-from rag_system.artifacts.manifest import (
+from sah_rag.artifacts.manifest import (
     ComponentReference,
     ExecutionEnvironment,
     ExecutionReference,

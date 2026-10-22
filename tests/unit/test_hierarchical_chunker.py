@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     BoundaryEvidence,
     BoundaryMethod,
     OffsetSpan,
     ParsedDocument,
     SemanticParent,
 )
-from rag_system.chunking import (
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,

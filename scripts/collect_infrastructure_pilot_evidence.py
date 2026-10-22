@@ -46,14 +46,14 @@ FINGERPRINT_GROUPS: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
     ),
     "parser_chunker": (
-        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system",
+        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag",
         (
             "parsing/parsed_documents.jsonl",
             "chunking/child_chunks.jsonl",
         ),
     ),
     "embedding": (
-        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/embedding",
+        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag/embedding",
         (
             "embedding.catalog.json",
             "embedding.manifest.json",
@@ -62,7 +62,7 @@ FINGERPRINT_GROUPS: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
     ),
     "qdrant_inventory": (
-        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/qdrant_ingestion",
+        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag/qdrant_ingestion",
         (
             "collection.manifest.json",
             "point_inventory.jsonl",
@@ -70,7 +70,7 @@ FINGERPRINT_GROUPS: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
     ),
     "retrieval": (
-        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/retrieval",
+        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag/retrieval",
         (
             "query_embeddings.jsonl",
             "ranked_children.jsonl",
@@ -79,7 +79,7 @@ FINGERPRINT_GROUPS: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
     ),
     "evaluation": (
-        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system/evaluation",
+        "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag/evaluation",
         (
             "retrieval_cases.jsonl",
             "query_metrics.jsonl",
@@ -191,7 +191,7 @@ def _validate_critical_counts(registry: dict) -> bool:
     embed_shard = (
         REPO_ROOT
         / "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/"
-        "rag_system/embedding/shards/shard-00000/records.jsonl"
+        "sah_rag/embedding/shards/shard-00000/records.jsonl"
     )
     if _count_jsonl(embed_shard) != counts["embedding_records"]:
         return False
@@ -200,7 +200,7 @@ def _validate_critical_counts(registry: dict) -> bool:
     point_inv = (
         REPO_ROOT
         / "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/"
-        "rag_system/qdrant_ingestion/point_inventory.jsonl"
+        "sah_rag/qdrant_ingestion/point_inventory.jsonl"
     )
     if _count_jsonl(point_inv) != counts["points"]:
         return False
@@ -209,7 +209,7 @@ def _validate_critical_counts(registry: dict) -> bool:
     ranked_docs = (
         REPO_ROOT
         / "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/"
-        "rag_system/retrieval/ranked_documents.jsonl"
+        "sah_rag/retrieval/ranked_documents.jsonl"
     )
     if _count_jsonl(ranked_docs) != counts["ranked_documents"]:
         return False
@@ -218,7 +218,7 @@ def _validate_critical_counts(registry: dict) -> bool:
     qm = (
         REPO_ROOT
         / "outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/"
-        "rag_system/evaluation/query_metrics.jsonl"
+        "sah_rag/evaluation/query_metrics.jsonl"
     )
     return _count_jsonl(qm) == counts["query_metric_rows"]
 

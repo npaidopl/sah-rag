@@ -142,7 +142,7 @@ def load_payload(
     chunks_relative = (
         "outputs/infrastructure_pilot/"
         "infrastructure-pilot-synthetic-v1/"
-        "rag_system/chunking/child_chunks.jsonl"
+        "sah_rag/chunking/child_chunks.jsonl"
     )
     chunks = _load_jsonl(REPO_ROOT / chunks_relative)
 
@@ -163,7 +163,7 @@ def load_payload(
 
 
 def planned_point_ids(records: list[dict]) -> dict[str, str]:
-    from rag_system.storage.qdrant import build_qdrant_point_id
+    from sah_rag.storage.qdrant import build_qdrant_point_id
 
     pairs = {r["chunk_id"]: build_qdrant_point_id(r["chunk_id"]) for r in records}
     return pairs
@@ -228,9 +228,9 @@ def main() -> int:
     # ---- Phase 1: client open, create, ingest, close ----
     from qdrant_client import QdrantClient
 
-    from rag_system.artifacts import ChildChunk
-    from rag_system.embedding import ChunkEmbeddingRecord, EmbeddingShardHeader
-    from rag_system.storage.qdrant import (
+    from sah_rag.artifacts import ChildChunk
+    from sah_rag.embedding import ChunkEmbeddingRecord, EmbeddingShardHeader
+    from sah_rag.storage.qdrant import (
         create_hybrid_collection,
         ingest_embedding_records,
     )
@@ -383,7 +383,7 @@ def main() -> int:
 
     # Reuse build_payload to write normalized payload inventory without
     # re-touching the client.
-    from rag_system.storage.qdrant import build_payload
+    from sah_rag.storage.qdrant import build_payload
 
     header = EmbeddingShardHeader.model_validate(meta["header"])
     record_objs = [ChunkEmbeddingRecord.model_validate(r) for r in records]

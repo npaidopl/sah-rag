@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-from rag_system.artifacts.identity import (
+from sah_rag.artifacts.identity import (
     build_chunk_id,
     sha256_fingerprint,
 )
-from rag_system.artifacts.models import (
+from sah_rag.artifacts.models import (
     ChildChunk,
     OffsetSpan,
     ParsedDocument,
     SemanticParent,
 )
-from rag_system.chunking.config import (
+from sah_rag.chunking.config import (
     ChildChunkerConfig,
 )
-from rag_system.chunking.tokenization import (
+from sah_rag.chunking.tokenization import (
     OffsetTokenizer,
     TokenSpan,
 )
-from rag_system.chunking.windows import build_token_windows
+from sah_rag.chunking.windows import build_token_windows
 
 
 class HierarchicalChildChunker:

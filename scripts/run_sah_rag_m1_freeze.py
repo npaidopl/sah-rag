@@ -29,7 +29,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 import yaml  # noqa: E402
 
-from rag_system.canonical.loaders import (  # noqa: E402
+from sah_rag.canonical.loaders import (  # noqa: E402
     iter_canonical_examples,
 )
 
@@ -43,8 +43,8 @@ DEV_FRACTION = 0.5
 # -----------------------------------------------------------------
 def discover_parameters() -> dict[str, Any]:
     """Source-verify the exposed parameter surface."""
-    from rag_system.chunking.config import ChildChunkerConfig
-    from rag_system.retrieval.qdrant import (
+    from sah_rag.chunking.config import ChildChunkerConfig
+    from sah_rag.retrieval.qdrant import (
         retrieve_dense,
         retrieve_hybrid_rrf,
         retrieve_sparse,

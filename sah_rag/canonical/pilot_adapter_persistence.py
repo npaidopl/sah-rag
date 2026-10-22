@@ -8,8 +8,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from rag_system.canonical.models import CanonicalDocument, CanonicalExample
-from rag_system.canonical.pilot_adapter import (
+from sah_rag.canonical.models import CanonicalDocument, CanonicalExample
+from sah_rag.canonical.pilot_adapter import (
     PilotAdapterManifest,
     PilotAdapterValidation,
 )

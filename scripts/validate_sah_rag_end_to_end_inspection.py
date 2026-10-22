@@ -1,4 +1,4 @@
-"""Validate the rag_system end-to-end static inspection."""
+"""Validate the sah_rag end-to-end static inspection."""
 
 from __future__ import annotations
 
@@ -127,7 +127,7 @@ def main() -> int:
     if len(data["blocked_claims"]) < 4:
         raise SystemExit("blocked_claims must have at least four entries")
 
-    print("[OK] rag_system end-to-end static inspection")
+    print("[OK] sah_rag end-to-end static inspection")
     print(f"  root: {pipeline['root']}")
     print(f"  source files: {data['source_counts']['total_files']}")
     print(f"  python files: {data['source_counts']['python_files']}")

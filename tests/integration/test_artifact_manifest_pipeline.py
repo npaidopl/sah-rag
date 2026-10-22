@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     ArtifactSidecarManifest,
     build_input_reference,
@@ -12,7 +12,7 @@ from rag_system.artifacts import (
     read_json_model,
     write_json_model_atomic,
 )
-from rag_system.artifacts.jsonl import (
+from sah_rag.artifacts.jsonl import (
     write_jsonl_atomic,
 )
 

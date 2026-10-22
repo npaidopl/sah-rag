@@ -5,14 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     ArtifactSidecarManifest,
     sha256_file,
     write_json_model_atomic,
 )
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.parsing import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     parse_canonical_dataset,
 )

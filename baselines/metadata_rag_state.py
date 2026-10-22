@@ -16,12 +16,12 @@ from collections.abc import Iterable
 
 from pydantic import Field, model_validator
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     INDEXED_DOCUMENT_VERSION,
     MetadataRAGBaseModel,
     MetadataRAGIndexedDocument,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
 )

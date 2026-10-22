@@ -62,7 +62,7 @@ def normalize_sparse(weights: dict) -> tuple[tuple[int, ...], tuple[float, ...]]
 
 
 def compute_embedding_config_hash(contract: dict) -> str:
-    from rag_system.artifacts import sha256_fingerprint
+    from sah_rag.artifacts import sha256_fingerprint
 
     model = contract["model"]
     config = {
@@ -98,7 +98,7 @@ def build_records(
     contract: dict,
     config_hash: str,
 ) -> list:
-    from rag_system.embedding.models import (
+    from sah_rag.embedding.models import (
         ChunkEmbeddingRecord,
         SparseVector,
         VectorPrecision,
@@ -135,8 +135,8 @@ def build_records(
 
 
 def build_header(contract: dict, config_hash: str, maximum_records: int):
-    from rag_system.embedding.identity import build_embedding_shard_id
-    from rag_system.embedding.models import (
+    from sah_rag.embedding.identity import build_embedding_shard_id
+    from sah_rag.embedding.models import (
         EmbeddingKind,
         EmbeddingShardHeader,
         VectorPrecision,
@@ -173,7 +173,7 @@ def build_header(contract: dict, config_hash: str, maximum_records: int):
 
 
 def round_trip_ok(path: Path, expected_records: list) -> bool:
-    from rag_system.embedding.shards import iter_embedding_records
+    from sah_rag.embedding.shards import iter_embedding_records
 
     reloaded = list(iter_embedding_records(path))
     if len(reloaded) != len(expected_records):
@@ -249,8 +249,8 @@ def write_catalog(
     chunks: list[dict],
     record_count: int,
 ):
-    from rag_system.artifacts import get_git_revision, sha256_file
-    from rag_system.embedding.catalog import (
+    from sah_rag.artifacts import get_git_revision, sha256_file
+    from sah_rag.embedding.catalog import (
         EmbeddingRunCatalog,
         EmbeddingShardCatalogEntry,
     )
@@ -313,7 +313,7 @@ def write_top_manifest(
     determinism: dict,
     round_trip_valid: bool,
 ):
-    from rag_system.artifacts import get_git_revision, sha256_file
+    from sah_rag.artifacts import get_git_revision, sha256_file
 
     manifest = {
         "artifact_type": "embedding_run_manifest",
@@ -347,7 +347,7 @@ def write_top_manifest(
 
 
 def write_checksums(output_root: Path, shard_dir: Path, catalog_path: Path, manifest_path: Path):
-    from rag_system.artifacts import sha256_file
+    from sah_rag.artifacts import sha256_file
 
     files = {
         "shards/shard-00000/header.json": sha256_file(shard_dir / "header.json"),
@@ -452,7 +452,7 @@ def main() -> int:
     records1 = build_records(chunks, encoded1, contract, config_hash)
 
     # Write shard
-    from rag_system.embedding.shards import write_embedding_shard
+    from sah_rag.embedding.shards import write_embedding_shard
 
     header = build_header(contract, config_hash, maximum_records=len(chunks))
     write_embedding_shard(

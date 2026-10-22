@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_system.canonical.models import CanonicalDocument
-from rag_system.parsing import (
+from sah_rag.canonical.models import CanonicalDocument
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     iter_paragraph_spans,
 )

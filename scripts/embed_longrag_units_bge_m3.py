@@ -18,7 +18,7 @@ import numpy as np
 from FlagEmbedding import BGEM3FlagModel
 from transformers import AutoTokenizer
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     build_file_sidecar_manifest,
     build_input_reference,
@@ -26,12 +26,12 @@ from rag_system.artifacts import (
     sha256_fingerprint,
     write_json_model_atomic,
 )
-from rag_system.baselines import (
+from baselines import (
     LongUnitEmbeddingCatalog,
     LongUnitEmbeddingRecord,
     LongUnitEmbeddingShardHeader,
 )
-from rag_system.embedding import EmbeddingShardCatalogEntry
+from sah_rag.embedding import EmbeddingShardCatalogEntry
 
 MODEL_REPORT_PATH = Path("outputs/bge_m3_model_download.json")
 UNITS_ROOT = Path("outputs/longrag_clerk_source_corrected_pilot")

@@ -24,7 +24,7 @@ if str(SRC_ROOT) not in sys.path:
 
 import yaml
 
-from rag_system.artifacts import get_git_revision
+from sah_rag.artifacts import get_git_revision
 
 OUTPUT_ROOT = REPO_ROOT / "outputs" / "external_longrag"
 BASELINE_AUDIT = REPO_ROOT / "baseline_audit"
@@ -203,7 +203,7 @@ def build_closure_manifest(
                 "long_unit_rank expansion. When a document appears "
                 "in multiple retrieved units, only its first "
                 "occurrence is scored. This matches the reference "
-                "implementation in rag_system.baselines.longrag."
+                "implementation in baselines.longrag."
             ),
             (
                 "Embeddings: FP16 GPU (Colab T4). Query embeddings: "

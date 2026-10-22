@@ -10,8 +10,8 @@ from pathlib import Path
 
 from transformers import AutoTokenizer
 
-from rag_system.canonical.paths import resolve_dataset_paths
-from rag_system.evaluation import load_clerk_retrieval_dataset
+from sah_rag.canonical.paths import resolve_dataset_paths
+from evaluation import load_clerk_retrieval_dataset
 
 
 def run_grid() -> None:

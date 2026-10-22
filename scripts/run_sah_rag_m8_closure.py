@@ -24,7 +24,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 import yaml
 
-from rag_system.artifacts import get_git_revision
+from sah_rag.artifacts import get_git_revision
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 BASELINE = REPO / "baseline_audit"

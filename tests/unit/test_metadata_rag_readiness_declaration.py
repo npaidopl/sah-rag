@@ -189,15 +189,15 @@ def test_registry_covers_all_production_modules() -> None:
     registry = data["artifact_registry"]
     paths = {entry["path"] for entry in registry}
     required = {
-        "src/rag_system/baselines/metadata_rag_metadata.py",
-        "src/rag_system/baselines/metadata_rag_adapter.py",
-        "src/rag_system/baselines/metadata_rag_state.py",
-        "src/rag_system/baselines/metadata_rag_persistence.py",
-        "src/rag_system/baselines/metadata_rag_embedder.py",
-        "src/rag_system/baselines/metadata_rag_reference_index.py",
-        "src/rag_system/baselines/metadata_rag_retrieval.py",
-        "src/rag_system/baselines/metadata_rag_expansion.py",
-        "src/rag_system/baselines/metadata_rag_evaluation_case.py",
+        "src/sah_rag/baselines/metadata_rag_metadata.py",
+        "src/sah_rag/baselines/metadata_rag_adapter.py",
+        "src/sah_rag/baselines/metadata_rag_state.py",
+        "src/sah_rag/baselines/metadata_rag_persistence.py",
+        "src/sah_rag/baselines/metadata_rag_embedder.py",
+        "src/sah_rag/baselines/metadata_rag_reference_index.py",
+        "src/sah_rag/baselines/metadata_rag_retrieval.py",
+        "src/sah_rag/baselines/metadata_rag_expansion.py",
+        "src/sah_rag/baselines/metadata_rag_evaluation_case.py",
     }
     assert required.issubset(paths)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 PATH = Path("baseline_audit/architecture_fidelity_matrix.yaml")
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 
@@ -46,7 +46,7 @@ def main() -> int:
         _require("next_readiness_action" in rec, f"{name}: next_readiness_action missing")
 
     # Spot checks
-    _require(a["rag_system"]["fidelity_status"] == "NATIVE_FAITHFUL", "rag_system fidelity changed")
+    _require(a["sah_rag"]["fidelity_status"] == "NATIVE_FAITHFUL", "sah_rag fidelity changed")
     _require(
         a["pathrag"]["fidelity_status"] == "PAPER_DERIVED_COMPARATOR",
         "pathrag fidelity changed",

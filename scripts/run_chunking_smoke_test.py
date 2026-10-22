@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts.jsonl import write_jsonl_atomic
-from rag_system.canonical.models import CanonicalDocument
-from rag_system.chunking import (
+from sah_rag.artifacts.jsonl import write_jsonl_atomic
+from sah_rag.canonical.models import CanonicalDocument
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,
 )
-from rag_system.parsing import DeterministicStructuralParser
+from sah_rag.parsing import DeterministicStructuralParser
 
 FIXTURE_PATH = Path(
     "tests/fixtures/structured_document.json"

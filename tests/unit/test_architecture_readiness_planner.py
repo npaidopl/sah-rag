@@ -13,7 +13,7 @@ PLANNER = REPO_ROOT / "scripts" / "plan_architecture_readiness_sequence.py"
 MANIFEST = REPO_ROOT / "baseline_audit" / "architecture_readiness_gap_manifest.yaml"
 REGISTRY = REPO_ROOT / "baseline_audit" / "architecture_readiness_gap_registry.yaml"
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 
@@ -31,7 +31,7 @@ def test_planner_runs():
 
 def test_rag_system_order_is_zero():
     a = yaml.safe_load(REGISTRY.read_text(encoding="utf-8"))["architectures"]
-    assert a["rag_system"]["recommended_order"] == 0
+    assert a["sah_rag"]["recommended_order"] == 0
 
 
 def test_sequence_includes_all_architectures():

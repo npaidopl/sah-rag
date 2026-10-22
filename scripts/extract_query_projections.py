@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
 sys.path.insert(0, str(SRC_ROOT))
 
-from rag_system.canonical.loaders import iter_canonical_examples
+from sah_rag.canonical.loaders import iter_canonical_examples
 
 OUT = REPO_ROOT / "outputs" / "_shared_query_projections"
 OUT.mkdir(parents=True, exist_ok=True)

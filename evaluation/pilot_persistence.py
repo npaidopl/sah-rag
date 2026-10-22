@@ -8,8 +8,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from rag_system.evaluation import RetrievalEvaluationCase
-from rag_system.evaluation_contracts import (
+from evaluation import RetrievalEvaluationCase
+from evaluation.contracts import (
     AggregateCutoffMetrics,
     QueryCutoffMetrics,
 )

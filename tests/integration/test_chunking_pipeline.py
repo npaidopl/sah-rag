@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts import ChildChunk
-from rag_system.artifacts.jsonl import write_jsonl_atomic
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.canonical.models import CanonicalDocument
-from rag_system.chunking import (
+from sah_rag.artifacts import ChildChunk
+from sah_rag.artifacts.jsonl import write_jsonl_atomic
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.canonical.models import CanonicalDocument
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,
     chunk_parsed_artifacts,
 )
-from rag_system.parsing import DeterministicStructuralParser
+from sah_rag.parsing import DeterministicStructuralParser
 
 
 def test_chunk_parsed_artifacts_pipeline(

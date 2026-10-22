@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-from rag_system.chunking.tokenization import TokenSpan
+from sah_rag.chunking.tokenization import TokenSpan
 
 
 class HuggingFaceOffsetTokenizer:

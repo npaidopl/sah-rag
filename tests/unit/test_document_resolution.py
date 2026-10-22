@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from rag_system.retrieval.document_resolution import (
+from sah_rag.retrieval.document_resolution import (
     RetrievedDocument,
     resolve_parents_to_documents,
 )
-from rag_system.retrieval.models import RetrievedParent
+from sah_rag.retrieval.models import RetrievedParent
 
 
 def _parent(

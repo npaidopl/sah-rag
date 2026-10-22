@@ -8,11 +8,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from rag_system.canonical.loaders import (
+from sah_rag.canonical.loaders import (
     iter_canonical_documents,
     iter_canonical_examples,
 )
-from rag_system.canonical.paths import list_dataset_ids
+from sah_rag.canonical.paths import list_dataset_ids
 
 OUTPUT_PATH = Path(
     "outputs/canonical_model_validation.json"

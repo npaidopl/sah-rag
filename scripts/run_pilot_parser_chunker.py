@@ -10,13 +10,13 @@ import sys
 import time
 from pathlib import Path
 
-from rag_system.chunking import (
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,
     chunk_parsed_artifacts,
 )
-from rag_system.parsing import (
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     parse_canonical_dataset,
 )
@@ -25,7 +25,7 @@ DATASET_ID = "infrastructure-pilot-synthetic-v1"
 CANONICAL_ROOT_REL = Path("processed") / "canonical"
 OUTPUT_ROOT = (
     Path("outputs") / "infrastructure_pilot"
-    / DATASET_ID / "rag_system"
+    / DATASET_ID / "sah_rag"
 )
 PARSING_DIR = OUTPUT_ROOT / "parsing"
 CHUNKING_DIR = OUTPUT_ROOT / "chunking"

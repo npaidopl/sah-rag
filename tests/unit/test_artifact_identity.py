@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag_system.artifacts.identity import (
+from sah_rag.artifacts.identity import (
     build_chunk_id,
     build_experiment_id,
     build_parent_id,

@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
-from rag_system.parsing.blocks import TextBlock
-from rag_system.parsing.config import (
+from sah_rag.parsing.blocks import TextBlock
+from sah_rag.parsing.config import (
     DeterministicParserConfig,
 )
-from rag_system.parsing.deterministic import (
+from sah_rag.parsing.deterministic import (
     DeterministicStructuralParser,
 )
-from rag_system.parsing.headings import (
+from sah_rag.parsing.headings import (
     HeadingReason,
     detect_heading_reason,
     is_heading_candidate,
 )
-from rag_system.parsing.pipeline import (
+from sah_rag.parsing.pipeline import (
     ParsingRunSummary,
     parse_canonical_dataset,
 )
-from rag_system.parsing.profiling import (
+from sah_rag.parsing.profiling import (
     ParserProfileAccumulator,
 )
-from rag_system.parsing.segmentation import (
+from sah_rag.parsing.segmentation import (
     iter_paragraph_spans,
 )
 

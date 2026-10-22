@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from rag_system.canonical.pilot_adapter import (
+from sah_rag.canonical.pilot_adapter import (
     adapt_pilot_dataset_to_canonical,
 )
 

@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_adapter and _state."""
+"""Tests for baselines.metadata_rag_adapter and _state."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     ADAPTER_VERSION,
     INDEXED_DOCUMENT_VERSION,
     MetadataRAGProjectedQuery,
@@ -20,18 +20,18 @@ from rag_system.baselines.metadata_rag_adapter import (
     build_window_id,
     project_queries,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
     build_document_metadata,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     STATE_VERSION,
     MetadataRAGState,
     build_state,
 )
-from rag_system.canonical.loaders import iter_validated_models
-from rag_system.canonical.models import (
+from sah_rag.canonical.loaders import iter_validated_models
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )
@@ -61,7 +61,7 @@ class _FixedSizeSplitter:
         return self._max_chars
 
     def split(self, text: str) -> tuple[Any, ...]:
-        from rag_system.baselines.metadata_rag_windowing import WindowSpan
+        from baselines.metadata_rag_windowing import WindowSpan
 
         if not text:
             raise ValueError("text must be non-empty")

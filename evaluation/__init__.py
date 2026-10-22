@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.evaluation.clerk import (
+from evaluation.clerk import (
     ClerkQuery,
     ClerkRetrievalDataset,
     aggregate_clerk_document_chunks,
@@ -10,10 +10,10 @@ from rag_system.evaluation.clerk import (
     load_clerk_retrieval_dataset,
     rank_unique_documents,
 )
-from rag_system.evaluation.identity import (
+from evaluation.identity import (
     build_evaluation_run_id,
 )
-from rag_system.evaluation.metrics import (
+from evaluation.metrics import (
     aggregate_metrics,
     evaluate_case,
     ndcg_at_k,
@@ -21,20 +21,20 @@ from rag_system.evaluation.metrics import (
     recall_at_k,
     reciprocal_rank,
 )
-from rag_system.evaluation.models import (
+from evaluation.models import (
     RetrievalAggregateMetrics,
     RetrievalEvaluationCase,
     RetrievalEvaluationRun,
     RetrievalJudgment,
     RetrievalMetrics,
 )
-from rag_system.evaluation.pipeline import (
+from evaluation.pipeline import (
     EvaluationArtifactPaths,
     EvaluationWriteSummary,
     resolve_evaluation_paths,
     write_retrieval_evaluation,
 )
-from rag_system.evaluation.statistics import (
+from evaluation.statistics import (
     PairedBootstrapResult,
     paired_bootstrap_difference,
 )

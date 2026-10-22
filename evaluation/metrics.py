@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping, Sequence
 
-from rag_system.evaluation.models import (
+from evaluation.models import (
     RetrievalAggregateMetrics,
     RetrievalEvaluationCase,
     RetrievalMetrics,

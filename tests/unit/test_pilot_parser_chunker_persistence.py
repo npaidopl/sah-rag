@@ -14,10 +14,10 @@ RAG_ROOT = (
     REPO_ROOT
     / "outputs" / "infrastructure_pilot"
     / "infrastructure-pilot-synthetic-v1"
-    / "rag_system"
+    / "sah_rag"
 )
 # The parser+chunker runner writes only these two subdirectories.
-# We must never delete the entire rag_system/ tree: sibling
+# We must never delete the entire sah_rag/ tree: sibling
 # directories (embedding/, qdrant/) belong to later pipeline stages.
 PARSER_CHUNKER_SUBDIRS = ("parsing", "chunking")
 
@@ -46,7 +46,7 @@ def _tree_sha(root: Path) -> str:
 
 
 def _parser_chunker_sha() -> str:
-    """Hash only the parser+chunker subtree, not the whole rag_system/."""
+    """Hash only the parser+chunker subtree, not the whole sah_rag/."""
     h = hashlib.sha256()
     for name in PARSER_CHUNKER_SUBDIRS:
         subtree = RAG_ROOT / name

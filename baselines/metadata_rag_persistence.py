@@ -25,15 +25,15 @@ import os
 from pathlib import Path
 from typing import Any, Final, cast
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     ADAPTER_VERSION,
     MetadataRAGIndexedDocument,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     STATE_VERSION,
     MetadataRAGState,
 )

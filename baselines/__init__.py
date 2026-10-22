@@ -19,7 +19,7 @@ contracts are preserved in ``baseline_audit/``, but their code is
 not part of this repository. See ``docs/remaining_baselines_sequencing.md``.
 """
 
-from rag_system.baselines.longrag import (
+from baselines.longrag import (
     ExpandedLongRAGDocument,
     LongRAGSourceSegment,
     LongUnit,
@@ -34,18 +34,18 @@ from rag_system.baselines.longrag import (
     expand_ranked_long_units_to_documents,
     summarize_long_units,
 )
-from rag_system.baselines.longrag_bge_m3 import (
+from baselines.longrag_bge_m3 import (
     BGE_M3_DENSE_DIMENSION,
     BGE_M3_MODEL_ID,
     BGE_M3_MODEL_REVISION,
     BgeM3DenseEncoder,
 )
-from rag_system.baselines.longrag_embeddings import (
+from baselines.longrag_embeddings import (
     LongUnitEmbeddingCatalog,
     LongUnitEmbeddingRecord,
     LongUnitEmbeddingShardHeader,
 )
-from rag_system.baselines.longrag_pipeline import (
+from baselines.longrag_pipeline import (
     LongRAGEvaluationCase,
     ProjectedQuery,
     build_embedding_record,
@@ -54,15 +54,15 @@ from rag_system.baselines.longrag_pipeline import (
     extract_relevant_ids,
     project_queries,
 )
-from rag_system.baselines.longrag_reference_dense_index import (
+from baselines.longrag_reference_dense_index import (
     ReferenceDenseIndex,
 )
-from rag_system.baselines.longrag_retrieval import (
+from baselines.longrag_retrieval import (
     RetrievedLongUnit,
     retrieve_long_units,
     retrieved_to_ranked_long_units,
 )
-from rag_system.baselines.longrag_storage import (
+from baselines.longrag_storage import (
     LongRAGCollectionManifest,
     build_longrag_payload,
     build_longrag_point,
@@ -72,14 +72,14 @@ from rag_system.baselines.longrag_storage import (
     ingest_longrag_records,
 )
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     MetadataRAGIndexedDocument,
     MetadataRAGProjectedQuery,
     build_indexed_document,
     build_indexed_documents,
     project_queries,
 )
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_embedder import (
     FROZEN_DENSE_DIMENSION,
     FROZEN_MODEL_ID,
     FROZEN_MODEL_REVISION,
@@ -91,15 +91,15 @@ from rag_system.baselines.metadata_rag_embedder import (
     build_document_embedding,
     build_query_embedding,
 )
-from rag_system.baselines.metadata_rag_evaluation_case import (
+from baselines.metadata_rag_evaluation_case import (
     MetadataRAGEvaluationCase,
     build_evaluation_case as build_metadata_rag_evaluation_case,
 )
-from rag_system.baselines.metadata_rag_expansion import (
+from baselines.metadata_rag_expansion import (
     ExpandedDocument,
     expand_ranked_items_to_documents,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
     MetadataConstraint,
@@ -108,28 +108,28 @@ from rag_system.baselines.metadata_rag_metadata import (
     build_query_metadata,
     derive_query_constraints,
 )
-from rag_system.baselines.metadata_rag_persistence import (
+from baselines.metadata_rag_persistence import (
     read_state,
     write_state,
 )
-from rag_system.baselines.metadata_rag_reference_index import (
+from baselines.metadata_rag_reference_index import (
     DenseIndexEntry,
     DenseSearchHit,
     ReferenceDenseIndex as MetadataRAGReferenceDenseIndex,
     build_reference_dense_index,
 )
-from rag_system.baselines.metadata_rag_retrieval import (
+from baselines.metadata_rag_retrieval import (
     QueryRetrievalResult,
     RankedItem,
     RetrievalConfig,
     retrieve_batch,
     retrieve_query,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     MetadataRAGState,
     build_state,
 )
-from rag_system.baselines.metadata_rag_windowing import (
+from baselines.metadata_rag_windowing import (
     BgeM3WindowSplitter,
     SingleWindowSplitter,
     WindowSpan,

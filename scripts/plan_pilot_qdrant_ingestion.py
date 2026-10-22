@@ -173,7 +173,7 @@ def validate_payload_presence(
 
 
 def build_point_ids(records: list[dict]) -> list[tuple[str, str]]:
-    from rag_system.storage.qdrant import build_qdrant_point_id
+    from sah_rag.storage.qdrant import build_qdrant_point_id
 
     pairs = []
     for rec in records:
@@ -183,7 +183,7 @@ def build_point_ids(records: list[dict]) -> list[tuple[str, str]]:
 
 
 def compute_physical_name(dataset: str, embedding_config_hash: str) -> str:
-    from rag_system.storage.qdrant import fingerprint_collection_name
+    from sah_rag.storage.qdrant import fingerprint_collection_name
 
     return fingerprint_collection_name(
         dataset=dataset,
@@ -275,7 +275,7 @@ def main() -> int:
     child_chunks_relative = (
         "outputs/infrastructure_pilot/"
         "infrastructure-pilot-synthetic-v1/"
-        "rag_system/chunking/child_chunks.jsonl"
+        "sah_rag/chunking/child_chunks.jsonl"
     )
     child_chunks_path = REPO_ROOT / child_chunks_relative
     chunks = _load_child_chunks(child_chunks_path)

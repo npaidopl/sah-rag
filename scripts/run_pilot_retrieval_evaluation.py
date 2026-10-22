@@ -171,8 +171,8 @@ def build_cases(
     judgment_plan_hash: str,
     evaluation_plan_hash: str,
 ):
-    from rag_system.evaluation import RetrievalEvaluationCase
-    from rag_system.evaluation.models import RetrievalJudgment
+    from evaluation import RetrievalEvaluationCase
+    from evaluation.models import RetrievalJudgment
 
     cases: list[RetrievalEvaluationCase] = []
     for qid in sorted(ranked.keys()):
@@ -208,7 +208,7 @@ def build_cases(
 
 
 def build_run(ec: dict[str, Any], query_ids: tuple[str, ...]):
-    from rag_system.evaluation_contracts import CommonRetrievalEvaluationRun
+    from evaluation.contracts import CommonRetrievalEvaluationRun
 
     run_cfg = ec["run"]
     ev = ec["evaluation"]
@@ -329,7 +329,7 @@ def main() -> int:
 
     wall_start = time.perf_counter()
 
-    from rag_system.evaluation_contracts import evaluate_retrieval_run
+    from evaluation.contracts import evaluate_retrieval_run
 
     query_metrics, aggregate_metrics = evaluate_retrieval_run(
         run=run,
@@ -347,7 +347,7 @@ def main() -> int:
     )
 
     # Persist via the new src module
-    from rag_system.evaluation.pilot_persistence import (
+    from evaluation.pilot_persistence import (
         read_pilot_evaluation_artifacts,
         write_pilot_evaluation_artifacts,
     )

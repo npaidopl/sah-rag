@@ -6,12 +6,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from rag_system.pilot_dataset import (
+from datasets.pilot_synthetic import (
     DATASET_ID,
     DATASET_REVISION,
     build_infrastructure_pilot_dataset,
 )
-from rag_system.pilot_dataset_persistence import (
+from datasets.pilot_persistence import (
     read_infrastructure_pilot_dataset,
     write_infrastructure_pilot_dataset,
 )

@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from rag_system.retrieval.document_resolution import RetrievedDocument
+from sah_rag.retrieval.document_resolution import RetrievedDocument
 
 QUERY_EMBEDDINGS_FILE = "query_embeddings.jsonl"
 RANKED_CHILDREN_FILE = "ranked_children.jsonl"

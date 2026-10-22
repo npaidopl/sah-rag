@@ -10,11 +10,11 @@ from pathlib import Path
 from FlagEmbedding import BGEM3FlagModel
 from qdrant_client import QdrantClient
 
-from rag_system.artifacts import read_json_model
-from rag_system.embedding import SparseVector
-from rag_system.evaluation import load_clerk_retrieval_dataset
-from rag_system.retrieval import retrieve_hybrid_rrf
-from rag_system.storage import QdrantCollectionManifest
+from sah_rag.artifacts import read_json_model
+from sah_rag.embedding import SparseVector
+from evaluation import load_clerk_retrieval_dataset
+from sah_rag.retrieval import retrieve_hybrid_rrf
+from sah_rag.storage import QdrantCollectionManifest
 
 MODEL_REPORT_PATH = Path("outputs/bge_m3_model_download.json")
 SERVER_REPORT_PATH = Path("outputs/clerk_qdrant_server_collection.json")

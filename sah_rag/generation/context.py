@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 
-from rag_system.generation.identity import (
+from sah_rag.generation.identity import (
     build_context_pack_id,
 )
-from rag_system.generation.models import (
+from sah_rag.generation.models import (
     ContextItem,
     ContextPack,
 )
-from rag_system.retrieval import RetrievedChunk
+from sah_rag.retrieval import RetrievedChunk
 
 TokenCounter = Callable[[str], int]
 

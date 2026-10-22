@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from rag_system.retrieval.aggregation import (
+from sah_rag.retrieval.aggregation import (
     aggregate_chunks_to_parents,
 )
-from rag_system.retrieval.models import (
+from sah_rag.retrieval.models import (
     RetrievedChunk,
     RetrievedParent,
 )
-from rag_system.retrieval.qdrant import (
+from sah_rag.retrieval.qdrant import (
     retrieve_dense,
     retrieve_hybrid_parents,
     retrieve_hybrid_rrf,

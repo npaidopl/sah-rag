@@ -9,12 +9,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from rag_system.canonical.paths import resolve_dataset_paths
-from rag_system.evaluation.models import (
+from sah_rag.canonical.paths import resolve_dataset_paths
+from evaluation.models import (
     RetrievalEvaluationCase,
     RetrievalJudgment,
 )
-from rag_system.retrieval.models import RetrievedChunk
+from sah_rag.retrieval.models import RetrievedChunk
 
 
 @dataclass(frozen=True, slots=True)

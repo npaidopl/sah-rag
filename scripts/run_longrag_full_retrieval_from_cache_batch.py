@@ -37,14 +37,14 @@ if str(SRC_ROOT) not in sys.path:
 
 from qdrant_client import QdrantClient
 
-from rag_system.baselines.longrag import (
+from baselines.longrag import (
     expand_ranked_long_units_to_documents,
 )
-from rag_system.baselines.longrag_retrieval import (
+from baselines.longrag_retrieval import (
     retrieve_long_units,
     retrieved_to_ranked_long_units,
 )
-from rag_system.canonical.loaders import iter_canonical_examples
+from sah_rag.canonical.loaders import iter_canonical_examples
 
 OUTPUT_ROOT = REPO_ROOT / "outputs" / "external_longrag"
 QDRANT_PATH = OUTPUT_ROOT / "_qdrant"

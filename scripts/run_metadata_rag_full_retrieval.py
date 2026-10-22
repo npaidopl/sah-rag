@@ -36,24 +36,24 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     MetadataRAGProjectedQuery,
 )
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_embedder import (
     MetadataRAGDocumentEmbedding,
     MetadataRAGQueryEmbedding,
 )
-from rag_system.baselines.metadata_rag_persistence import read_state
-from rag_system.baselines.metadata_rag_reference_index import (
+from baselines.metadata_rag_persistence import read_state
+from baselines.metadata_rag_reference_index import (
     ReferenceDenseIndex,
     build_reference_dense_index,
 )
-from rag_system.baselines.metadata_rag_retrieval import (
+from baselines.metadata_rag_retrieval import (
     QueryRetrievalResult,
     RetrievalConfig,
     retrieve_batch,
 )
-from rag_system.baselines.metadata_rag_state import MetadataRAGState
+from baselines.metadata_rag_state import MetadataRAGState
 
 DEFAULT_OUTPUT_ROOT: Final[Path] = (
     REPO_ROOT / "outputs" / "external_metadata_rag"

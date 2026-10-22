@@ -162,7 +162,7 @@ def compute_query_plan_hash(queries: list[dict]) -> str:
 
 
 def compute_retrieval_plan_hash(query_plan_hash: str) -> str:
-    from rag_system.storage.qdrant import fingerprint_collection_name
+    from sah_rag.storage.qdrant import fingerprint_collection_name
 
     collection_name = fingerprint_collection_name(
         dataset=FROZEN_DATASET,

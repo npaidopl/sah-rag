@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag_system.evaluation import (
+from evaluation import (
     paired_bootstrap_difference,
 )
 

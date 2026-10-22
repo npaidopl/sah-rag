@@ -10,23 +10,23 @@ from typing import Any
 from FlagEmbedding import BGEM3FlagModel
 from qdrant_client import QdrantClient
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ChildChunk,
     read_json_model,
 )
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.embedding import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.embedding import (
     EmbeddingShardHeader,
     SparseVector,
     iter_embedding_records,
 )
-from rag_system.retrieval import (
+from sah_rag.retrieval import (
     retrieve_dense,
     retrieve_hybrid_parents,
     retrieve_hybrid_rrf,
     retrieve_sparse,
 )
-from rag_system.storage import (
+from sah_rag.storage import (
     create_hybrid_collection,
     fingerprint_collection_name,
     ingest_embedding_records,

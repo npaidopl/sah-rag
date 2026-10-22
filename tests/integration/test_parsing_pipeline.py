@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts.models import ParsedDocument
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.parsing import (
+from sah_rag.artifacts.models import ParsedDocument
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     pipeline,
 )
@@ -49,7 +49,7 @@ def test_parse_canonical_dataset_streams_artifacts(
     ) -> object:
         assert dataset_id == "synthetic"
 
-        from rag_system.canonical.models import (
+        from sah_rag.canonical.models import (
             CanonicalDocument,
         )
 

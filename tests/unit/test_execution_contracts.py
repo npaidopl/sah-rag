@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from rag_system.execution_contracts import (
+from orchestration.contracts import (
     ArchitectureExecutionManifest,
     ExecutionArtifactRecord,
     ExecutionResourceUsage,

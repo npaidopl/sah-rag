@@ -30,7 +30,7 @@ def test_runner_does_not_reference_judgments_or_reference_answers_in_runtime():
 
 def test_runner_does_not_import_evaluation_module():
     source = RUNNER.read_text(encoding="utf-8")
-    assert "rag_system.evaluation" not in source
+    assert "evaluation" not in source
 
 
 def test_runner_does_not_call_retrieval_evaluation():

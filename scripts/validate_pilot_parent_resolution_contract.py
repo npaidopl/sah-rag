@@ -32,7 +32,7 @@ def main() -> int:
     pr = data["parent_resolution"]
     _require(
         pr["implementation"]
-        == "rag_system.retrieval.aggregation.aggregate_chunks_to_parents",
+        == "sah_rag.retrieval.aggregation.aggregate_chunks_to_parents",
         "parent_resolution implementation changed",
     )
     _require(

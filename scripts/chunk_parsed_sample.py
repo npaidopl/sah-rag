@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from rag_system.chunking import (
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,

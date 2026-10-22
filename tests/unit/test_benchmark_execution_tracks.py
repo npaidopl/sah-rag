@@ -50,7 +50,7 @@ def test_track_b_is_not_leaderboard_eligible():
 
 def test_track_b_currently_eligible_vs_potential():
     b = _load()["tracks"]["track_b_native_fidelity"]
-    assert b["currently_eligible"] == ["rag_system"]
+    assert b["currently_eligible"] == ["sah_rag"]
     assert b["currently_eligible_count"] == 1
     assert b["potential_candidate_count"] == 4
     assert set(b["currently_eligible"]) & set(b["potential_candidates"]) == set()

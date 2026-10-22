@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-OUTPUT_ROOT = Path("outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system")
+OUTPUT_ROOT = Path("outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag")
 SOURCE_ROOTS = (
     Path("data/pilot/infrastructure-pilot-synthetic-v1"),
     Path("processed/canonical/infrastructure-pilot-synthetic-v1"),

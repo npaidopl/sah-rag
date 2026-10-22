@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ChildChunk,
     sha256_fingerprint,
 )
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.embedding import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.embedding import (
     EmbeddingKind,
     EmbeddingShardHeader,
     VectorPrecision,

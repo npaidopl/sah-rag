@@ -20,7 +20,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from rag_system.artifacts import sha256_fingerprint
+from sah_rag.artifacts import sha256_fingerprint
 
 EXECUTION_STATUS_VALUES = (
     "PLANNED",

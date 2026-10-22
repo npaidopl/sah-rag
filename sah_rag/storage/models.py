@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import ArtifactBaseModel
+from sah_rag.artifacts import ArtifactBaseModel
 
 
 class QdrantCollectionManifest(ArtifactBaseModel):

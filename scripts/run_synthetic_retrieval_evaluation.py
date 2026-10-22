@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.evaluation import (
+from evaluation import (
     RetrievalEvaluationCase,
     RetrievalJudgment,
     write_retrieval_evaluation,

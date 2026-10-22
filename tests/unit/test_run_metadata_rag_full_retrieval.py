@@ -76,17 +76,17 @@ def test_load_query_texts_rejects_duplicates(tmp_path: Path) -> None:
 
 
 def test_verify_bijections_happy_path() -> None:
-    from rag_system.baselines.metadata_rag_adapter import (
+    from baselines.metadata_rag_adapter import (
         build_indexed_documents,
     )
-    from rag_system.baselines.metadata_rag_embedder import (
+    from baselines.metadata_rag_embedder import (
         EncoderConfig,
         build_document_embedding,
         build_query_embedding,
     )
-    from rag_system.baselines.metadata_rag_state import build_state
-    from rag_system.canonical.loaders import iter_validated_models
-    from rag_system.canonical.models import CanonicalDocument
+    from baselines.metadata_rag_state import build_state
+    from sah_rag.canonical.loaders import iter_validated_models
+    from sah_rag.canonical.models import CanonicalDocument
 
     fixture = (
         REPO_ROOT
@@ -137,16 +137,16 @@ def test_verify_bijections_happy_path() -> None:
 
 
 def test_verify_bijections_rejects_missing_doc() -> None:
-    from rag_system.baselines.metadata_rag_adapter import (
+    from baselines.metadata_rag_adapter import (
         build_indexed_documents,
     )
-    from rag_system.baselines.metadata_rag_embedder import (
+    from baselines.metadata_rag_embedder import (
         EncoderConfig,
         build_document_embedding,
     )
-    from rag_system.baselines.metadata_rag_state import build_state
-    from rag_system.canonical.loaders import iter_validated_models
-    from rag_system.canonical.models import CanonicalDocument
+    from baselines.metadata_rag_state import build_state
+    from sah_rag.canonical.loaders import iter_validated_models
+    from sah_rag.canonical.models import CanonicalDocument
 
     fixture = (
         REPO_ROOT

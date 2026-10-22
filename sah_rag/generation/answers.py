@@ -6,14 +6,14 @@ import re
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactBaseModel,
     sha256_fingerprint,
 )
-from rag_system.generation.prompts import (
+from sah_rag.generation.prompts import (
     GenerationPrompt,
 )
-from rag_system.generation.runtime import (
+from sah_rag.generation.runtime import (
     GenerationRequest,
     GenerationRuntimeResponse,
 )

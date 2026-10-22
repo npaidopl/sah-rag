@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from rag_system.evaluation import (
+from evaluation import (
     ClerkQuery,
     RetrievalJudgment,
     build_clerk_evaluation_case,
     rank_unique_documents,
 )
-from rag_system.retrieval import RetrievedChunk
+from sah_rag.retrieval import RetrievedChunk
 
 
 def make_chunk(
@@ -140,7 +140,7 @@ def test_build_clerk_case_uses_document_level() -> None:
 
 def test_document_chunk_aggregation_rewards_multiple_hits() -> None:
     """Multiple matching chunks may boost one document."""
-    from rag_system.evaluation import aggregate_clerk_document_chunks
+    from evaluation import aggregate_clerk_document_chunks
     chunks = (
         make_chunk(chunk_id="chunk-a1", doc_id="doc-a", rank=1, score=0.60),
         make_chunk(chunk_id="chunk-b1", doc_id="doc-b", rank=2, score=0.58),
@@ -153,7 +153,7 @@ def test_document_chunk_aggregation_rewards_multiple_hits() -> None:
 
 def test_document_chunk_aggregation_is_deterministic() -> None:
     """Equivalent inputs should produce equal ordering."""
-    from rag_system.evaluation import aggregate_clerk_document_chunks
+    from evaluation import aggregate_clerk_document_chunks
     chunks = (
         make_chunk(chunk_id="chunk-a", doc_id="doc-a", rank=1, score=0.5),
         make_chunk(chunk_id="chunk-b", doc_id="doc-b", rank=2, score=0.5),

@@ -9,12 +9,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from rag_system.canonical.inspection import (
+from sah_rag.canonical.inspection import (
     collect_key_types,
     describe_record_structure,
 )
-from rag_system.canonical.jsonl import iter_jsonl, read_first_record
-from rag_system.canonical.paths import (
+from sah_rag.canonical.jsonl import iter_jsonl, read_first_record
+from sah_rag.canonical.paths import (
     get_canonical_root,
     list_dataset_ids,
     resolve_dataset_paths,

@@ -14,7 +14,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 import yaml
 
-from rag_system.artifacts import get_git_revision
+from sah_rag.artifacts import get_git_revision
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 BASELINE = REPO / "baseline_audit"
@@ -172,7 +172,7 @@ def build_markdown(states: list[dict[str, Any]],
                    cross: dict[str, Any]) -> str:
     macro = cross["macro_average_across_datasets"]
     L: list[str] = []
-    L.append("# SAH-RAG (rag_system) M0 Baseline Closure Report")
+    L.append("# SAH-RAG (sah_rag) M0 Baseline Closure Report")
     L.append("")
     L.append("**Fidelity class:** PROJECT_OWNED_REFERENCE")
     L.append("")

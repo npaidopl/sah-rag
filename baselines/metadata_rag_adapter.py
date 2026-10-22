@@ -39,17 +39,17 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
     MetadataRecord,
     build_document_metadata,
 )
-from rag_system.baselines.metadata_rag_windowing import (
+from baselines.metadata_rag_windowing import (
     SingleWindowSplitter,
     WindowSplitterProtocol,
 )
-from rag_system.canonical.models import (
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )

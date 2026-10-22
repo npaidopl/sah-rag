@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from rag_system.canonical.models import (
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
     GroundTruthType,

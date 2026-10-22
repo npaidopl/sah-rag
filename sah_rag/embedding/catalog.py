@@ -6,14 +6,14 @@ from pathlib import Path
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactBaseModel,
     ArtifactSidecarManifest,
     read_json_model,
     sha256_file,
 )
-from rag_system.embedding.models import EmbeddingShardHeader
-from rag_system.embedding.shards import iter_embedding_records
+from sah_rag.embedding.models import EmbeddingShardHeader
+from sah_rag.embedding.shards import iter_embedding_records
 
 
 class EmbeddingShardCatalogEntry(ArtifactBaseModel):

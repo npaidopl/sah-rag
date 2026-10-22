@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.chunking import build_token_windows
+from sah_rag.chunking import build_token_windows
 
 
 def test_short_input_creates_one_window() -> None:

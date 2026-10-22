@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from qdrant_client import QdrantClient
 
-from rag_system.baselines import (
+from baselines import (
     LongUnitEmbeddingRecord,
     build_longrag_point,
     build_longrag_point_id,

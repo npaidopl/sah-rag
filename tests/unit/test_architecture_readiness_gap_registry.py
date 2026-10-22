@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PATH = REPO_ROOT / "baseline_audit" / "architecture_readiness_gap_registry.yaml"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_architecture_readiness_gap_registry.py"
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 REQUIRED = (
@@ -67,7 +67,7 @@ def test_every_record_has_next_action():
 
 
 def test_rag_system_is_dataset_ready():
-    assert _load()["architectures"]["rag_system"]["implementation_status"] == "DATASET_READY"
+    assert _load()["architectures"]["sah_rag"]["implementation_status"] == "DATASET_READY"
 
 
 def test_summary_counts_match_records():

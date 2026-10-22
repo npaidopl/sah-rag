@@ -35,7 +35,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from rag_system.canonical.loaders import iter_canonical_examples
+from sah_rag.canonical.loaders import iter_canonical_examples
 
 DEFAULT_OUTPUT_ROOT: Final[Path] = (
     REPO_ROOT / "outputs" / "external_metadata_rag"

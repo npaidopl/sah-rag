@@ -9,9 +9,9 @@ from typing import Any
 from pydantic import Field, model_validator
 from qdrant_client import QdrantClient, models
 
-from rag_system.artifacts import ArtifactBaseModel
-from rag_system.baselines.longrag_embeddings import LongUnitEmbeddingRecord
-from rag_system.storage import DENSE_VECTOR_NAME
+from sah_rag.artifacts import ArtifactBaseModel
+from baselines.longrag_embeddings import LongUnitEmbeddingRecord
+from sah_rag.storage import DENSE_VECTOR_NAME
 
 LONGRAG_POINT_ID_PREFIX = "rag-longunit"
 

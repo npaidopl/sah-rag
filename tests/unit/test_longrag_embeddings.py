@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from rag_system.baselines import (
+from baselines import (
     LongUnitEmbeddingRecord,
 )
 

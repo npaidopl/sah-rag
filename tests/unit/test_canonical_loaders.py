@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.canonical.loaders import (
+from sah_rag.canonical.loaders import (
     CanonicalModelValidationError,
     iter_validated_models,
 )
-from rag_system.canonical.models import CanonicalDocument
+from sah_rag.canonical.models import CanonicalDocument
 
 
 def write_jsonl(

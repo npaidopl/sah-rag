@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     ArtifactSidecarManifest,
     build_input_reference,
@@ -14,15 +14,15 @@ from rag_system.artifacts import (
     get_git_revision,
     write_json_model_atomic,
 )
-from rag_system.artifacts.jsonl import AtomicJsonlWriter
-from rag_system.artifacts.models import ParsedDocument
-from rag_system.canonical.loaders import (
+from sah_rag.artifacts.jsonl import AtomicJsonlWriter
+from sah_rag.artifacts.models import ParsedDocument
+from sah_rag.canonical.loaders import (
     iter_canonical_documents,
 )
-from rag_system.canonical.paths import (
+from sah_rag.canonical.paths import (
     resolve_dataset_paths,
 )
-from rag_system.parsing.deterministic import (
+from sah_rag.parsing.deterministic import (
     DeterministicStructuralParser,
 )
 

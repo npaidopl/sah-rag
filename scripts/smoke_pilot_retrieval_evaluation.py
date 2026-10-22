@@ -25,7 +25,7 @@ def main() -> int:
     for name in contract["output"]["required_files"]:
         _require((root / name).exists(), "missing: " + name)
 
-    from rag_system.evaluation.pilot_persistence import (
+    from evaluation.pilot_persistence import (
         read_pilot_evaluation_artifacts,
     )
 

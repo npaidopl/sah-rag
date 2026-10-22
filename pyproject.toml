@@ -3,8 +3,8 @@ requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rag-architecture"
-version = "0.1.0"
+name = "sah-rag"
+version = "0.2.0"
 description = "A structure-aware hierarchical hybrid-retrieval RAG research framework."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -57,19 +57,21 @@ embedding = [
 ]
 
 all = [
-    "rag-architecture[dev,data,storage,tokenizer,embedding]"
+    "sah-rag[dev,data,storage,tokenizer,embedding]"
 ]
 
 
 [tool.setuptools]
-package-dir = { "" = "src" }
+package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["sah_rag*", "baselines*", "evaluation*", "orchestration*", "datasets*"]
+exclude = ["tests*", "scripts*", "_archive*", "_review*", "workspace*", "experiments*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["."]
 addopts = [
     "-ra",
     "--strict-markers",
@@ -81,8 +83,9 @@ target-version = "py312"
 line-length = 100
 extend-exclude = [
     "external/baselines",
+    "scripts/phase2_rewrite.py",
 ]
-src = ["src", "tests", "scripts"]
+src = ["sah_rag", "baselines", "evaluation", "orchestration", "datasets", "tests", "scripts"]
 
 [tool.ruff.lint]
 select = [
@@ -101,14 +104,13 @@ select = [
 python_version = "3.12"
 strict = true
 warn_unused_configs = true
-mypy_path = "src"
-packages = ["rag_system"]
+mypy_path = "."
+packages = ["sah_rag", "baselines", "evaluation", "orchestration", "datasets"]
 
 [tool.coverage.run]
 branch = true
-source = ["rag_system"]
+source = ["sah_rag", "baselines", "evaluation", "orchestration", "datasets"]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-

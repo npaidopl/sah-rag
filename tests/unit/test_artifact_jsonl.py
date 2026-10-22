@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.artifacts.jsonl import (
+from sah_rag.artifacts.jsonl import (
     AtomicJsonlWriter,
     write_jsonl_atomic,
 )

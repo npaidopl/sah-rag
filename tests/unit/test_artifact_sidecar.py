@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactComponentReference,
     ArtifactSidecarManifest,
     build_input_reference,
@@ -160,7 +160,7 @@ def test_manifest_writer_rejects_existing_file(
 
 def test_general_file_sidecar_uses_explicit_count(tmp_path: Path) -> None:
     """General JSON sidecars should use semantic counts."""
-    from rag_system.artifacts import build_file_sidecar_manifest
+    from sah_rag.artifacts import build_file_sidecar_manifest
 
     artifact_path = tmp_path / "catalog.json"
     artifact_path.write_text('{\n  "run_id": "run-001",\n  "shards": []\n}\n', encoding="utf-8")

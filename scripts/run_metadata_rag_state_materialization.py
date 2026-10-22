@@ -38,24 +38,24 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     ADAPTER_VERSION,
     MetadataRAGProjectedQuery,
     build_indexed_documents,
     project_queries,
 )
-from rag_system.baselines.metadata_rag_persistence import (
+from baselines.metadata_rag_persistence import (
     write_state,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     MetadataRAGState,
     build_state,
 )
-from rag_system.baselines.metadata_rag_windowing import (
+from baselines.metadata_rag_windowing import (
     WINDOW_CONTENT_TOKENS,
     build_bge_m3_window_splitter,
 )
-from rag_system.canonical.loaders import (
+from sah_rag.canonical.loaders import (
     iter_canonical_documents,
     iter_canonical_examples,
 )

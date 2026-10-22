@@ -9,7 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from transformers import AutoTokenizer
 
-from rag_system.chunking import (
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     HuggingFaceOffsetTokenizer,

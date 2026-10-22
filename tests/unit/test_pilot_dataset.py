@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.pilot_dataset import (
+from datasets.pilot_synthetic import (
     build_infrastructure_pilot_dataset,
 )
 

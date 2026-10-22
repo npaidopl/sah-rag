@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from rag_system.embedding.models import (
+from sah_rag.embedding.models import (
     EmbeddingKind,
     VectorPrecision,
 )

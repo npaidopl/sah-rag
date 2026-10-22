@@ -6,12 +6,12 @@ from typing import Any
 
 from qdrant_client import QdrantClient, models
 
-from rag_system.artifacts import ArtifactBaseModel
-from rag_system.baselines.longrag import (
+from sah_rag.artifacts import ArtifactBaseModel
+from baselines.longrag import (
     LongUnitConstructionPolicy,
     RankedLongUnit,
 )
-from rag_system.storage import DENSE_VECTOR_NAME
+from sah_rag.storage import DENSE_VECTOR_NAME
 
 
 class RetrievedLongUnit(ArtifactBaseModel):

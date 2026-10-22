@@ -7,8 +7,8 @@ from collections.abc import Sequence
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import ArtifactBaseModel
-from rag_system.retrieval.models import RetrievedParent
+from sah_rag.artifacts import ArtifactBaseModel
+from sah_rag.retrieval.models import RetrievedParent
 
 PROHIBITED_METADATA_KEYS = frozenset(
     {

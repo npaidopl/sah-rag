@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from qdrant_client import QdrantClient, models
 
-from rag_system.artifacts import ChildChunk, OffsetSpan
-from rag_system.embedding import (
+from sah_rag.artifacts import ChildChunk, OffsetSpan
+from sah_rag.embedding import (
     ChunkEmbeddingRecord,
     EmbeddingKind,
     EmbeddingShardHeader,
     SparseVector,
     VectorPrecision,
 )
-from rag_system.storage import (
+from sah_rag.storage import (
     DENSE_VECTOR_NAME,
     SPARSE_VECTOR_NAME,
     create_hybrid_collection,

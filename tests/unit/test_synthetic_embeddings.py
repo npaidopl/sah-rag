@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from rag_system.artifacts import ChildChunk, OffsetSpan
-from rag_system.embedding import (
+from sah_rag.artifacts import ChildChunk, OffsetSpan
+from sah_rag.embedding import (
     create_synthetic_embedding,
 )
 

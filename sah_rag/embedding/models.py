@@ -7,7 +7,7 @@ from enum import StrEnum
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts.models import ArtifactBaseModel
+from sah_rag.artifacts.models import ArtifactBaseModel
 
 
 class EmbeddingKind(StrEnum):

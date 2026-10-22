@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PATH = REPO_ROOT / "baseline_audit" / "architecture_readiness_gap_contract.yaml"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_architecture_readiness_gap_contract.py"
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 

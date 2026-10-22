@@ -1,28 +1,28 @@
 
-from rag_system.embedding.catalog import (
+from sah_rag.embedding.catalog import (
     EmbeddingRunCatalog,
     EmbeddingShardCatalogEntry,
     validate_embedding_catalog_files,
 )
-from rag_system.embedding.config import EmbeddingConfig
-from rag_system.embedding.identity import (
+from sah_rag.embedding.config import EmbeddingConfig
+from sah_rag.embedding.identity import (
     build_embedding_shard_id,
 )
-from rag_system.embedding.models import (
+from sah_rag.embedding.models import (
     ChunkEmbeddingRecord,
     EmbeddingKind,
     EmbeddingShardHeader,
     SparseVector,
     VectorPrecision,
 )
-from rag_system.embedding.shards import (
+from sah_rag.embedding.shards import (
     EmbeddingShardPaths,
     EmbeddingShardWriteSummary,
     iter_embedding_records,
     resolve_embedding_shard_paths,
     write_embedding_shard,
 )
-from rag_system.embedding.synthetic import (
+from sah_rag.embedding.synthetic import (
     create_synthetic_embedding,
 )
 

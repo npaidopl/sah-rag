@@ -14,7 +14,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from rag_system.embedding.models import ChunkEmbeddingRecord
+from sah_rag.embedding.models import ChunkEmbeddingRecord
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 COLAB_ROOT = OUT_ROOT / "_colab_v1"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from rag_system.retrieval.models import (
+from sah_rag.retrieval.models import (
     RetrievedChunk,
     RetrievedParent,
 )

@@ -8,12 +8,12 @@ from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.canonical.models import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )
-from rag_system.canonical.paths import (
+from sah_rag.canonical.paths import (
     CanonicalDatasetPaths,
     resolve_dataset_paths,
 )

@@ -32,8 +32,8 @@ if str(SRC_ROOT) not in sys.path:
 
 from qdrant_client import QdrantClient
 
-from rag_system.baselines.longrag_embeddings import LongUnitEmbeddingRecord
-from rag_system.baselines.longrag_storage import (
+from baselines.longrag_embeddings import LongUnitEmbeddingRecord
+from baselines.longrag_storage import (
     create_longrag_collection,
     ingest_longrag_records,
 )

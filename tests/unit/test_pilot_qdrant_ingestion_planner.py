@@ -18,7 +18,7 @@ def _load_planner():
 
 
 def test_deterministic_point_id_for_same_chunk():
-    from rag_system.storage.qdrant import build_qdrant_point_id
+    from sah_rag.storage.qdrant import build_qdrant_point_id
 
     a = build_qdrant_point_id("chunk-X")
     b = build_qdrant_point_id("chunk-X")
@@ -26,7 +26,7 @@ def test_deterministic_point_id_for_same_chunk():
 
 
 def test_twelve_unique_point_ids():
-    from rag_system.storage.qdrant import build_qdrant_point_id
+    from sah_rag.storage.qdrant import build_qdrant_point_id
 
     chunk_ids = [f"chunk-{i:05d}" for i in range(12)]
     point_ids = [build_qdrant_point_id(c) for c in chunk_ids]

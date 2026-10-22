@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.baselines import (
+from baselines import (
     RetrievedLongUnit,
     retrieved_to_ranked_long_units,
 )

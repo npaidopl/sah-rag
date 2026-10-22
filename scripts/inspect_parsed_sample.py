@@ -1,7 +1,7 @@
 ﻿from pathlib import Path
 
-from rag_system.artifacts import ParsedDocument
-from rag_system.canonical.jsonl import iter_jsonl
+from sah_rag.artifacts import ParsedDocument
+from sah_rag.canonical.jsonl import iter_jsonl
 
 path = Path("outputs/clerk_parsed_sample.jsonl")
 

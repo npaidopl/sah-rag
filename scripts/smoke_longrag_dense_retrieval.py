@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from qdrant_client import QdrantClient
 
-from rag_system.baselines import (
+from baselines import (
     LongUnitEmbeddingRecord,
     build_longrag_point_id,
     create_longrag_collection,

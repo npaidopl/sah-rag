@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
-from rag_system.generation.prompts import (
+from sah_rag.generation.prompts import (
     GenerationPrompt,
 )
 

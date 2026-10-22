@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.chunking import RegexOffsetTokenizer
+from sah_rag.chunking import RegexOffsetTokenizer
 
 
 def test_regex_tokenizer_preserves_offsets() -> None:

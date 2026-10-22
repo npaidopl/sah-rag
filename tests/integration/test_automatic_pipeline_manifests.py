@@ -5,18 +5,18 @@ from pathlib import Path
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from rag_system.canonical import CanonicalDocument
-from rag_system.chunking import (
+from sah_rag.canonical import CanonicalDocument
+from sah_rag.chunking import (
     ChildChunkerConfig,
     RegexOffsetTokenizer,
     chunk_parsed_artifacts,
 )
-from rag_system.chunking.hierarchical import HierarchicalChildChunker
-from rag_system.parsing import (
+from sah_rag.chunking.hierarchical import HierarchicalChildChunker
+from sah_rag.parsing import (
     DeterministicParserConfig,
     DeterministicStructuralParser,
 )
-from rag_system.parsing import pipeline as parsing_pipeline
+from sah_rag.parsing import pipeline as parsing_pipeline
 
 
 def test_parsing_atomic_manifest_publication(

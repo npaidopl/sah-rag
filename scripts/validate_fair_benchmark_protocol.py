@@ -7,7 +7,7 @@ import yaml
 
 PATH = Path("baseline_audit/fair_benchmark_protocol.yaml")
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 DATASETS = ("ruler","loong","long_bench_v2","lara","greek_bar_bench","cuad","clerk")
 

@@ -484,7 +484,7 @@ def _check_storage(data: dict[str, Any]) -> None:
     )
     _require(
         st.get("reference_index_module")
-        == "rag_system.baselines.metadata_rag_reference_index",
+        == "baselines.metadata_rag_reference_index",
         "storage.reference_index_module must point to the "
         "project-owned reference index module",
     )

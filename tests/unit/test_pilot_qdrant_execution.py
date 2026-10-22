@@ -79,7 +79,7 @@ def test_storage_path_safety_rejects_outside_paths(tmp_path: Path):
     runner = _load_runner()
     pilot_root = tmp_path / "outputs" / "infrastructure_pilot"
     pilot_root.mkdir(parents=True)
-    inside = pilot_root / "infrastructure-pilot-synthetic-v1" / "rag_system" / "qdrant"
+    inside = pilot_root / "infrastructure-pilot-synthetic-v1" / "sah_rag" / "qdrant"
     outside = tmp_path / "elsewhere" / "qdrant"
 
     # Inside path must pass

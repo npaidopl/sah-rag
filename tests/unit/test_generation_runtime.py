@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.generation import (
+from sah_rag.generation import (
     ContextItem,
     ContextPack,
     DeterministicDryRunAdapter,

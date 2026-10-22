@@ -4,27 +4,27 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from rag_system.artifacts.identity import (
+from sah_rag.artifacts.identity import (
     build_parent_id,
     sha256_fingerprint,
 )
-from rag_system.artifacts.models import (
+from sah_rag.artifacts.models import (
     BoundaryEvidence,
     BoundaryMethod,
     OffsetSpan,
     ParsedDocument,
     SemanticParent,
 )
-from rag_system.canonical.models import CanonicalDocument
-from rag_system.parsing.blocks import TextBlock
-from rag_system.parsing.config import (
+from sah_rag.canonical.models import CanonicalDocument
+from sah_rag.parsing.blocks import TextBlock
+from sah_rag.parsing.config import (
     DeterministicParserConfig,
 )
-from rag_system.parsing.headings import (
+from sah_rag.parsing.headings import (
     detect_heading_reason,
     is_heading_candidate,
 )
-from rag_system.parsing.segmentation import (
+from sah_rag.parsing.segmentation import (
     iter_paragraph_spans,
 )
 

@@ -22,13 +22,13 @@ def test_no_actual_placeholders_remain() -> None:
 def test_long_unit_builder_is_real_function(contract: dict) -> None:
     lr = contract["longrag"]
     assert lr["long_unit_builder_function"] == (
-        "rag_system.baselines.longrag.construct_long_units"
+        "baselines.longrag.construct_long_units"
     )
     assert lr["long_unit_identity_function"] == (
-        "rag_system.baselines.longrag.build_long_unit_id"
+        "baselines.longrag.build_long_unit_id"
     )
     assert lr["canonical_expansion_function"] == (
-        "rag_system.baselines.longrag.expand_ranked_long_units_to_documents"
+        "baselines.longrag.expand_ranked_long_units_to_documents"
     )
 
 

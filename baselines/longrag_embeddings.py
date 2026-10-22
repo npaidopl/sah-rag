@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import ArtifactBaseModel
-from rag_system.embedding import (
+from sah_rag.artifacts import ArtifactBaseModel
+from sah_rag.embedding import (
     EmbeddingShardCatalogEntry,
 )
 

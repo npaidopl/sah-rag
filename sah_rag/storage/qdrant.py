@@ -10,8 +10,8 @@ from typing import Any
 
 from qdrant_client import QdrantClient, models
 
-from rag_system.artifacts import ChildChunk
-from rag_system.embedding import (
+from sah_rag.artifacts import ChildChunk
+from sah_rag.embedding import (
     ChunkEmbeddingRecord,
     EmbeddingShardHeader,
 )

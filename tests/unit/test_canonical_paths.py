@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.canonical.paths import (
+from sah_rag.canonical.paths import (
     list_dataset_ids,
     resolve_dataset_paths,
 )

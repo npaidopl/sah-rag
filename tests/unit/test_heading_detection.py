@@ -1,7 +1,7 @@
 ﻿"""Tests for deterministic heading provenance."""
 from __future__ import annotations
 
-from rag_system.parsing import (
+from sah_rag.parsing import (
     DeterministicParserConfig,
     HeadingReason,
     TextBlock,

@@ -31,7 +31,7 @@ if str(SRC_ROOT) not in sys.path:
 import yaml  # noqa: E402
 from qdrant_client import QdrantClient  # noqa: E402
 
-from rag_system.baselines.longrag import (  # noqa: E402
+from baselines.longrag import (  # noqa: E402
     LongUnit,
     LongUnitConstructionPolicy,
     RankedLongUnit,
@@ -39,33 +39,33 @@ from rag_system.baselines.longrag import (  # noqa: E402
     expand_ranked_long_units_to_documents,
     summarize_long_units,
 )
-from rag_system.baselines.longrag_bge_m3 import (  # noqa: E402
+from baselines.longrag_bge_m3 import (  # noqa: E402
     BGE_M3_DENSE_DIMENSION,
     BGE_M3_MODEL_ID,
     BGE_M3_MODEL_REVISION,
     BGE_M3_SPECIAL_TOKEN_COUNT,
     BgeM3DenseEncoder,
 )
-from rag_system.baselines.longrag_pipeline import (  # noqa: E402
+from baselines.longrag_pipeline import (  # noqa: E402
     build_embedding_record,
     build_evaluation_case,
     build_source_segments,
     extract_relevant_ids,
     project_queries,
 )
-from rag_system.baselines.longrag_reference_dense_index import (  # noqa: E402
+from baselines.longrag_reference_dense_index import (  # noqa: E402
     ReferenceDenseIndex,
 )
-from rag_system.baselines.longrag_retrieval import (  # noqa: E402
+from baselines.longrag_retrieval import (  # noqa: E402
     retrieve_long_units,
     retrieved_to_ranked_long_units,
 )
-from rag_system.baselines.longrag_storage import (  # noqa: E402
+from baselines.longrag_storage import (  # noqa: E402
     create_longrag_collection,
     fingerprint_longrag_collection_name,
     ingest_longrag_records,
 )
-from rag_system.canonical.models import (  # noqa: E402
+from sah_rag.canonical.models import (  # noqa: E402
     CanonicalDocument,
     CanonicalExample,
 )

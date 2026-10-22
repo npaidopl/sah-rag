@@ -14,7 +14,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 import yaml
 
-from rag_system.artifacts import get_git_revision
+from sah_rag.artifacts import get_git_revision
 
 LR_ROOT = REPO / "outputs" / "external_longrag"
 MR_ROOT = REPO / "outputs" / "external_sah_rag"

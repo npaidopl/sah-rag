@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from rag_system.generation import (
+from sah_rag.generation import (
     build_context_pack,
 )
-from rag_system.retrieval import RetrievedChunk
+from sah_rag.retrieval import RetrievedChunk
 
 
 def make_chunk(

@@ -29,7 +29,7 @@ SNAPSHOT_PATH = Path(
     "5617a9f61b028005a4858fdac845db406aefb181"
 )
 
-from rag_system.baselines.longrag_bge_m3 import (  # noqa: E402
+from baselines.longrag_bge_m3 import (  # noqa: E402
     BGE_M3_DENSE_DIMENSION,
     BgeM3DenseEncoder,
 )

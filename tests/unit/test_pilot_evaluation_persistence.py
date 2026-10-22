@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_system.evaluation import RetrievalEvaluationCase
-from rag_system.evaluation.models import RetrievalJudgment
-from rag_system.evaluation.pilot_persistence import (
+from evaluation import RetrievalEvaluationCase
+from evaluation.models import RetrievalJudgment
+from evaluation.pilot_persistence import (
     read_pilot_evaluation_artifacts,
     write_pilot_evaluation_artifacts,
 )
-from rag_system.evaluation_contracts import (
+from evaluation.contracts import (
     AggregateCutoffMetrics,
     QueryCutoffMetrics,
 )
@@ -36,7 +36,7 @@ def _qm(qid: str, cutoff: int, base: float) -> QueryCutoffMetrics:
     return QueryCutoffMetrics(
         experiment_cell_id="e1",
         dataset_id="d1",
-        architecture_id="rag_system",
+        architecture_id="sah_rag",
         query_id=qid,
         cutoff=cutoff,
         hit_at_k=base,
@@ -54,7 +54,7 @@ def _agg(cutoff: int, mean: float) -> AggregateCutoffMetrics:
     return AggregateCutoffMetrics(
         experiment_cell_id="e1",
         dataset_id="d1",
-        architecture_id="rag_system",
+        architecture_id="sah_rag",
         cutoff=cutoff,
         query_count=6,
         mean_hit_at_k=mean,

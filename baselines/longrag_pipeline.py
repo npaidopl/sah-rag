@@ -7,15 +7,15 @@ from collections.abc import Sequence
 
 from pydantic import Field
 
-from rag_system.artifacts import ArtifactBaseModel
-from rag_system.baselines.longrag import (
+from sah_rag.artifacts import ArtifactBaseModel
+from baselines.longrag import (
     LongRAGSourceSegment,
     LongUnit,
 )
-from rag_system.baselines.longrag_embeddings import (
+from baselines.longrag_embeddings import (
     LongUnitEmbeddingRecord,
 )
-from rag_system.canonical.models import (
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )

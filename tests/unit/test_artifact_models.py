@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from rag_system.artifacts.models import (
+from sah_rag.artifacts.models import (
     BoundaryEvidence,
     BoundaryMethod,
     ChildChunk,

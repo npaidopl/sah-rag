@@ -1,7 +1,7 @@
 """Deterministic persistence for orchestrator dry-run plans.
 
-Uses the frozen planner API in ``rag_system.orchestration`` (which is
-re-exported from ``rag_system.orchestration.planner``).
+Uses the frozen planner API in ``orchestration`` (which is
+re-exported from ``orchestration.planner``).
 """
 
 from __future__ import annotations
@@ -11,14 +11,14 @@ import os
 from pathlib import Path
 from typing import Any
 
-from rag_system.artifacts import sha256_file
-from rag_system.execution_contracts import ArchitectureExecutionManifest
-from rag_system.orchestration import (
+from sah_rag.artifacts import sha256_file
+from orchestration.contracts import ArchitectureExecutionManifest
+from orchestration import (
     OrchestratorDryRunPlan,
     OrchestratorPlanManifest,
     build_orchestrator_plan_manifest,
 )
-from rag_system.orchestration.planner import _sha256_json
+from orchestration.planner import _sha256_json
 
 
 def _atomic_write_json(path: Path, payload: Any) -> None:

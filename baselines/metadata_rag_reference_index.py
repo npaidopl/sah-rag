@@ -40,13 +40,13 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from rag_system.baselines.metadata_rag_adapter import build_chunk_id
-from rag_system.baselines.metadata_rag_embedder import (
+from baselines.metadata_rag_adapter import build_chunk_id
+from baselines.metadata_rag_embedder import (
     FROZEN_DENSE_DIMENSION,
     MetadataRAGDocumentEmbedding,
 )
-from rag_system.baselines.metadata_rag_metadata import MetadataRecord
-from rag_system.baselines.metadata_rag_state import MetadataRAGState
+from baselines.metadata_rag_metadata import MetadataRecord
+from baselines.metadata_rag_state import MetadataRAGState
 
 REFERENCE_INDEX_VERSION: Final[str] = "0.2.0"
 

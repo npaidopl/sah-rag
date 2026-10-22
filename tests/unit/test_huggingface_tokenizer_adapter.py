@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from rag_system.chunking import (
+from sah_rag.chunking import (
     HuggingFaceOffsetTokenizer,
 )
 
@@ -120,7 +120,7 @@ def test_bge_style_budget_reserves_special_tokens() -> None:
         model_id="BAAI/bge-m3",
     )
 
-    from rag_system.chunking import (
+    from sah_rag.chunking import (
         ChildChunkerConfig,
     )
 
@@ -138,7 +138,7 @@ def test_bge_style_budget_reserves_special_tokens() -> None:
 def test_model_budget_rejects_insufficient_capacity() -> None:
     """The model budget must exceed special-token overhead."""
 
-    from rag_system.chunking import ChildChunkerConfig
+    from sah_rag.chunking import ChildChunkerConfig
 
     config = ChildChunkerConfig(
         chunk_size=2,

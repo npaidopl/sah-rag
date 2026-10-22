@@ -20,7 +20,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from rag_system.baselines.longrag_embeddings import (  # noqa: E402
+from baselines.longrag_embeddings import (  # noqa: E402
     LongUnitEmbeddingRecord,
 )
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_system.artifacts import ChildChunk, ParsedDocument
+from sah_rag.artifacts import ChildChunk, ParsedDocument
 
-OUTPUT_ROOT = Path("outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/rag_system")
+OUTPUT_ROOT = Path("outputs/infrastructure_pilot/infrastructure-pilot-synthetic-v1/sah_rag")
 PARSING_DIR = OUTPUT_ROOT / "parsing"
 CHUNKING_DIR = OUTPUT_ROOT / "chunking"
 

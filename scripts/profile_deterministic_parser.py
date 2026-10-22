@@ -7,11 +7,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from rag_system.canonical import (
+from sah_rag.canonical import (
     iter_canonical_documents,
     list_dataset_ids,
 )
-from rag_system.parsing import (
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     ParserProfileAccumulator,
 )

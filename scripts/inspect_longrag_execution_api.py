@@ -14,10 +14,10 @@ if str(SRC_ROOT) not in sys.path:
 
 
 CANDIDATE_MODULES = [
-    "rag_system.baselines.longrag",
-    "rag_system.baselines.longrag_embeddings",
-    "rag_system.baselines.longrag_retrieval",
-    "rag_system.baselines.longrag_storage",
+    "baselines.longrag",
+    "baselines.longrag_embeddings",
+    "baselines.longrag_retrieval",
+    "baselines.longrag_storage",
 ]
 
 
@@ -48,7 +48,7 @@ for module_name in CANDIDATE_MODULES:
         if name.startswith("_"):
             continue
         if inspect.isfunction(obj) or inspect.isclass(obj):
-            if not getattr(obj, "__module__", "").startswith("rag_system"):
+            if not getattr(obj, "__module__", "").startswith("sah_rag"):
                 continue
             members[name] = describe_member(obj)
     summary[module_name] = members

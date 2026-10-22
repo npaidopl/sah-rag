@@ -7,11 +7,11 @@ from collections.abc import Callable
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactBaseModel,
     sha256_fingerprint,
 )
-from rag_system.generation.models import (
+from sah_rag.generation.models import (
     ContextPack,
 )
 

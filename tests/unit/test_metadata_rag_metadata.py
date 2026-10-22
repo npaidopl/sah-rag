@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_metadata."""
+"""Tests for baselines.metadata_rag_metadata."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 import yaml
 
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     CAPITALIZED_PHRASE_PATTERN,
     EXTRACTOR_VERSION,
     MEDIUM_MAX_WORDS,
@@ -27,8 +27,8 @@ from rag_system.baselines.metadata_rag_metadata import (
     extract_numeric_tokens,
     extract_year_mentions,
 )
-from rag_system.canonical.loaders import iter_validated_models
-from rag_system.canonical.models import (
+from sah_rag.canonical.loaders import iter_validated_models
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
 )

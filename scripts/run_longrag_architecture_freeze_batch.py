@@ -39,8 +39,8 @@ if str(SRC_ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 
-from rag_system.canonical.loaders import iter_validated_models  # noqa: E402
-from rag_system.canonical.models import (  # noqa: E402
+from sah_rag.canonical.loaders import iter_validated_models  # noqa: E402
+from sah_rag.canonical.models import (  # noqa: E402
     CanonicalDocument,
     CanonicalExample,
 )
@@ -670,7 +670,7 @@ def build_plan() -> dict[str, Any]:
                         "external_canonical_suite_registry.yaml"
                     ),
                     "baseline_audit/longrag_*.yaml",
-                    "src/rag_system/canonical/",
+                    "src/sah_rag/canonical/",
                     (
                         _SAH_RAG_CANONICAL_ROOT,
                     ),

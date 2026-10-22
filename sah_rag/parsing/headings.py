@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from enum import StrEnum
 
-from rag_system.parsing.blocks import TextBlock
-from rag_system.parsing.config import (
+from sah_rag.parsing.blocks import TextBlock
+from sah_rag.parsing.config import (
     DeterministicParserConfig,
 )
 

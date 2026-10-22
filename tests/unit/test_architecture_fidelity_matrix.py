@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PATH = REPO_ROOT / "baseline_audit" / "architecture_fidelity_matrix.yaml"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_architecture_fidelity_matrix.py"
 
-ARCHS = ("rag_system","longrag","raptor","hipporag2","lightrag","pathrag",
+ARCHS = ("sah_rag","longrag","raptor","hipporag2","lightrag","pathrag",
          "disretrieval","memorag","kag","metadata_rag","hikey")
 
 
@@ -44,7 +44,7 @@ def test_every_record_has_required_fields():
 
 
 def test_rag_system_native_faithful():
-    a = _load()["architectures"]["rag_system"]
+    a = _load()["architectures"]["sah_rag"]
     assert a["fidelity_status"] == "NATIVE_FAITHFUL"
     assert a["benchmark_eligibility"] == "BOTH_TRACKS"
 

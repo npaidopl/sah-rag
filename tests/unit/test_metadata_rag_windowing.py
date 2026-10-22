@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_windowing."""
+"""Tests for baselines.metadata_rag_windowing."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from rag_system.baselines.metadata_rag_windowing import (
+from baselines.metadata_rag_windowing import (
     MAXIMUM_MODEL_INPUT_TOKENS,
     SPECIAL_TOKEN_COUNT,
     WINDOW_CONTENT_TOKENS,

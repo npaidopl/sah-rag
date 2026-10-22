@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rag_system.retrieval import (
+from sah_rag.retrieval import (
     RetrievedChunk,
     aggregate_chunks_to_parents,
 )

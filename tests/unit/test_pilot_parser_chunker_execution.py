@@ -5,14 +5,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from rag_system.artifacts import ChildChunk, ParsedDocument
-from rag_system.chunking import (
+from sah_rag.artifacts import ChildChunk, ParsedDocument
+from sah_rag.chunking import (
     ChildChunkerConfig,
     HierarchicalChildChunker,
     RegexOffsetTokenizer,
     chunk_parsed_artifacts,
 )
-from rag_system.parsing import (
+from sah_rag.parsing import (
     DeterministicStructuralParser,
     parse_canonical_dataset,
 )

@@ -1,33 +1,33 @@
 ﻿"""Context assembly and answer-generation artifacts."""
 
-from rag_system.generation.adapters import (
+from sah_rag.generation.adapters import (
     DeterministicDryRunAdapter,
 )
-from rag_system.generation.answers import (
+from sah_rag.generation.answers import (
     AnswerCitationValidation,
     GeneratedAnswer,
     build_generated_answer,
     extract_answer_citations,
     validate_answer_citations,
 )
-from rag_system.generation.context import (
+from sah_rag.generation.context import (
     TokenCounter,
     build_context_pack,
 )
-from rag_system.generation.identity import (
+from sah_rag.generation.identity import (
     build_context_pack_id,
 )
-from rag_system.generation.models import (
+from sah_rag.generation.models import (
     ContextItem,
     ContextPack,
 )
-from rag_system.generation.prompts import (
+from sah_rag.generation.prompts import (
     GenerationPrompt,
     PromptTokenCounter,
     build_generation_prompt,
     render_context,
 )
-from rag_system.generation.runtime import (
+from sah_rag.generation.runtime import (
     GenerationRequest,
     GenerationRuntimeAdapter,
     GenerationRuntimeResponse,

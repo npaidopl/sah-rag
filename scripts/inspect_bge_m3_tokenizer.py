@@ -10,7 +10,7 @@ from typing import Any
 from dotenv import load_dotenv
 from transformers import AutoTokenizer
 
-from rag_system.chunking import (
+from sah_rag.chunking import (
     HuggingFaceOffsetTokenizer,
     RegexOffsetTokenizer,
 )

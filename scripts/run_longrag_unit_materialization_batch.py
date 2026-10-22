@@ -41,12 +41,12 @@ if str(SRC_ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 
-from rag_system.baselines import (  # noqa: E402
+from baselines import (  # noqa: E402
     LongRAGSourceSegment,
     LongUnit,
     build_long_unit_id,
 )
-from rag_system.canonical.loaders import iter_canonical_documents  # noqa: E402
+from sah_rag.canonical.loaders import iter_canonical_documents  # noqa: E402
 
 CANONICAL_ROOT = Path(
     _SAH_RAG_CANONICAL_ROOT

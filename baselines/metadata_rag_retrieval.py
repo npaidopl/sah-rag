@@ -33,10 +33,10 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     MetadataRAGProjectedQuery,
 )
-from rag_system.baselines.metadata_rag_metadata import (
+from baselines.metadata_rag_metadata import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
     MetadataConstraint,
@@ -44,7 +44,7 @@ from rag_system.baselines.metadata_rag_metadata import (
     build_query_metadata,
     derive_query_constraints,
 )
-from rag_system.baselines.metadata_rag_reference_index import (
+from baselines.metadata_rag_reference_index import (
     ReferenceDenseIndex,
 )
 

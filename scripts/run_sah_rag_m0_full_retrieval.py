@@ -27,7 +27,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 from qdrant_client import QdrantClient, models as qm
 
-from rag_system.canonical.loaders import iter_canonical_examples
+from sah_rag.canonical.loaders import iter_canonical_examples
 
 OUT_ROOT = REPO / "outputs" / "external_sah_rag"
 QDRANT_PATH = OUT_ROOT / "_qdrant"

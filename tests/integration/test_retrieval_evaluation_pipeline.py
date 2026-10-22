@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactSidecarManifest,
     read_json_model,
     sha256_file,
 )
-from rag_system.canonical.jsonl import iter_jsonl
-from rag_system.evaluation import (
+from sah_rag.canonical.jsonl import iter_jsonl
+from evaluation import (
     RetrievalAggregateMetrics,
     RetrievalEvaluationCase,
     RetrievalEvaluationRun,

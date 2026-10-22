@@ -1,4 +1,4 @@
-"""Tests for rag_system.baselines.metadata_rag_persistence."""
+"""Tests for baselines.metadata_rag_persistence."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from rag_system.baselines.metadata_rag_adapter import (
+from baselines.metadata_rag_adapter import (
     build_indexed_documents,
 )
-from rag_system.baselines.metadata_rag_persistence import (
+from baselines.metadata_rag_persistence import (
     ARTIFACT_TYPE,
     ARTIFACT_VERSION,
     CHECKSUMS_FILE,
@@ -22,12 +22,12 @@ from rag_system.baselines.metadata_rag_persistence import (
     verify_checksums,
     write_state,
 )
-from rag_system.baselines.metadata_rag_state import (
+from baselines.metadata_rag_state import (
     MetadataRAGState,
     build_state,
 )
-from rag_system.canonical.loaders import iter_validated_models
-from rag_system.canonical.models import CanonicalDocument
+from sah_rag.canonical.loaders import iter_validated_models
+from sah_rag.canonical.models import CanonicalDocument
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_ROOT = (

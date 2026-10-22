@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from rag_system.pilot_dataset_persistence import read_infrastructure_pilot_dataset
+from datasets.pilot_persistence import read_infrastructure_pilot_dataset
 
 DEFAULT_ROOT = Path("data/pilot/infrastructure-pilot-synthetic-v1")
 

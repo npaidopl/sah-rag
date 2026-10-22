@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from rag_system.parsing.blocks import TextBlock
+from sah_rag.parsing.blocks import TextBlock
 
 _PARAGRAPH_SEPARATOR = re.compile(
     r"(?:\r?\n[ \t]*){2,}"

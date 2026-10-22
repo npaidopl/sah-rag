@@ -8,12 +8,12 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts.fingerprints import (
+from sah_rag.artifacts.fingerprints import (
     count_nonempty_lines,
     file_size_bytes,
     sha256_file,
 )
-from rag_system.artifacts.models import ArtifactBaseModel
+from sah_rag.artifacts.models import ArtifactBaseModel
 
 JsonObject = dict[str, Any]
 

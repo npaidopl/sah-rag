@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag_system.orchestration import (
+from orchestration import (
     PATHRAG_REQUIRED_LABEL,
     STAGE_SEQUENCE,
     WAVE1_ARCHITECTURES,

@@ -5,8 +5,8 @@ from __future__ import annotations
 import hashlib
 import math
 
-from rag_system.artifacts import ChildChunk
-from rag_system.embedding.models import (
+from sah_rag.artifacts import ChildChunk
+from sah_rag.embedding.models import (
     ChunkEmbeddingRecord,
     SparseVector,
     VectorPrecision,

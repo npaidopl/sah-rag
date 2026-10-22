@@ -14,7 +14,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from rag_system.artifacts import (
+from sah_rag.artifacts import (
     ArtifactBaseModel,
     normalize_identifier,
     short_fingerprint,

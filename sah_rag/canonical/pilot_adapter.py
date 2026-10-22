@@ -1,7 +1,7 @@
-"""Canonical envelope adapter: pilot envelope -> rag_system canonical.
+"""Canonical envelope adapter: pilot envelope -> sah_rag canonical.
 
 The adapter reads the immutable Step 78 pilot envelope and emits a
-derived canonical envelope in the shape that ``rag_system`` expects.
+derived canonical envelope in the shape that ``sah_rag`` expects.
 
 Nothing is executed. No parser, chunker, embedding, retrieval,
 evaluation, or generation runs. Source artifacts are never modified.
@@ -15,20 +15,20 @@ from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from rag_system.canonical.models import (
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
     CanonicalGroundTruth,
     CanonicalQuery,
     GroundTruthType,
 )
-from rag_system.pilot_dataset import (
+from datasets.pilot_synthetic import (
     PilotCanonicalChunk,
     PilotCanonicalDocument,
     PilotCanonicalJudgment,
     PilotCanonicalQuery,
 )
-from rag_system.pilot_dataset_persistence import (
+from datasets.pilot_persistence import (
     read_infrastructure_pilot_dataset,
 )
 
@@ -222,7 +222,7 @@ def adapt_pilot_dataset_to_canonical(
     PilotAdapterValidation,
     dict[str, Any],
 ]:
-    """Convert the pilot envelope into the rag_system canonical shape."""
+    """Convert the pilot envelope into the sah_rag canonical shape."""
     loaded = read_infrastructure_pilot_dataset(root=pilot_root)
     source_manifest = loaded["manifest"]
     source_documents = cast(

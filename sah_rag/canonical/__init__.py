@@ -1,19 +1,19 @@
 ﻿"""Canonical dataset integration package."""
 
-from rag_system.canonical.loaders import (
+from sah_rag.canonical.loaders import (
     CanonicalModelValidationError,
     iter_canonical_documents,
     iter_canonical_examples,
     iter_validated_models,
 )
-from rag_system.canonical.models import (
+from sah_rag.canonical.models import (
     CanonicalDocument,
     CanonicalExample,
     CanonicalGroundTruth,
     CanonicalQuery,
     GroundTruthType,
 )
-from rag_system.canonical.paths import (
+from sah_rag.canonical.paths import (
     CanonicalDatasetPaths,
     get_canonical_root,
     list_dataset_ids,
