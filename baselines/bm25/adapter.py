@@ -16,6 +16,13 @@ Structural exception (documented, intentional):
 
 Chunking:
     BM25 operates at document level. `chunk_id == doc_id` by construction.
+
+Performance note:
+    The LuceneSearcher is lazily opened once on the first retrieve() and
+    reused across calls. It is closed by cleanup() and at the start of a
+    subsequent build_index() (dangling-ref safety). This avoids per-query
+    index open/close overhead, which otherwise dominates runtime on
+    benchmarks with hundreds/thousands of queries.
 """
 from __future__ import annotations
 
@@ -43,7 +50,7 @@ class BM25Baseline(BaseBaseline):
     """Pyserini/Anserini BM25, default Lucene BM25Similarity (k1=0.9, b=0.4)."""
 
     name = "bm25"
-    version = "0.1.0"
+    version = "0.1.1"
     status = BaselineStatus.EXECUTABLE
     supports_native = True
     supports_controlled = True
@@ -60,6 +67,7 @@ class BM25Baseline(BaseBaseline):
         super().__init__(config=config, work_dir=work_dir, embedder=embedder, llm=llm)
         self._index_dir = self.work_dir / "lucene_index"
         self._corpus_dir = self.work_dir / "corpus_jsonl"
+        self._searcher: Any | None = None  # lazily opened in retrieve()
         self._k1 = float(self.config.extra.get("k1", 0.9))
         self._b = float(self.config.extra.get("b", 0.4))
         if self._k1 != 0.9 or self._b != 0.4:
@@ -78,11 +86,14 @@ class BM25Baseline(BaseBaseline):
         """Build a Lucene BM25 index from CanonicalDocument list.
 
         Writes CanonicalDocument -> JSONL (id, contents) under work_dir,
-        then invokes the official Pyserini indexer CLI. Idempotent: rebuilds
-        from scratch on each call.
+        then invokes the official Pyserini indexer CLI. Idempotent: closes
+        any open searcher, rebuilds from scratch on each call.
         """
         if not documents:
             raise ValueError("BM25Baseline.build_index requires at least one document")
+
+        # Close any open searcher before rebuilding (dangling-ref safety).
+        self._close_searcher()
 
         if self._corpus_dir.exists():
             shutil.rmtree(self._corpus_dir)
@@ -129,30 +140,42 @@ class BM25Baseline(BaseBaseline):
                 f"BM25 index not found at {self._index_dir}. Call build_index() first."
             )
 
-        searcher = LuceneSearcher(str(self._index_dir))
-        try:
-            hits = searcher.search(query, k=k)
-            results: list[RetrievedChunk] = []
-            for rank, hit in enumerate(hits, start=1):
-                raw = searcher.doc(hit.docid).raw()
-                try:
-                    text = json.loads(raw).get("contents", "") or raw
-                except Exception:
-                    text = raw
-                results.append(
-                    RetrievedChunk(
-                        doc_id=hit.docid,
-                        chunk_id=hit.docid,  # BM25 has no chunking
-                        text=text,
-                        score=float(hit.score),
-                        rank=rank,
-                        parent_doc_id=None,
-                        metadata={"retriever": "bm25", "mode": self.config.mode.value},
-                    )
-                )
-            return results
-        finally:
+        # Lazy-open searcher ONCE and reuse across queries (perf-critical).
+        if self._searcher is None:
+            self._searcher = LuceneSearcher(str(self._index_dir))
+
+        hits = self._searcher.search(query, k=k)
+        results: list[RetrievedChunk] = []
+        for rank, hit in enumerate(hits, start=1):
+            raw = self._searcher.doc(hit.docid).raw()
             try:
-                searcher.close()
+                text = json.loads(raw).get("contents", "") or raw
+            except Exception:
+                text = raw
+            results.append(
+                RetrievedChunk(
+                    doc_id=hit.docid,
+                    chunk_id=hit.docid,  # BM25 has no chunking
+                    text=text,
+                    score=float(hit.score),
+                    rank=rank,
+                    parent_doc_id=None,
+                    metadata={"retriever": "bm25", "mode": self.config.mode.value},
+                )
+            )
+        return results
+
+    def cleanup(self) -> None:
+        """Close the Lucene searcher. Called after evaluation."""
+        self._close_searcher()
+
+    # ----- internal -------------------------------------------------------
+
+    def _close_searcher(self) -> None:
+        """Best-effort searcher close. Idempotent."""
+        if self._searcher is not None:
+            try:
+                self._searcher.close()
             except Exception:
                 pass
+            self._searcher = None
