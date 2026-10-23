@@ -1,0 +1,3 @@
+# Extra pip dependencies beyond sah-rag[all]
+# Java 21 runtime is a SYSTEM requirement (not pip). See README.md.
+pyserini==2.4.0
