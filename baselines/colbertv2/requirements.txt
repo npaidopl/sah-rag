@@ -1,0 +1,20 @@
+# ColBERTv2 baseline — heavy dependencies
+#
+# These are STRICTLY for this baseline. They are NOT part of the core
+# `sah-rag` project dependencies (pyproject.toml stays untouched).
+#
+# Install with:
+#   GPU:  pip install colbert-ai[torch,faiss-gpu]
+#   CPU:  pip install colbert-ai[torch,faiss-cpu]
+#
+# Explicit pins below for reproducibility. Transitive deps
+# (bitarray, tqdm, scipy, ujson) are resolved by colbert-ai.
+#
+# Python 3.12: supported by colbert-ai >= 0.2.19.
+# If installation fails, use an isolated venv with Python 3.11 for
+# this baseline only (see README "Known limitations").
+
+colbert-ai>=0.2.19
+torch>=2.0.0
+transformers>=4.30.0
+faiss-cpu>=1.7.4

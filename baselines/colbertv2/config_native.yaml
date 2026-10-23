@@ -1,0 +1,28 @@
+# ColBERTv2 — native mode configuration.
+#
+# All values are FROZEN before evaluation (native fidelity requirement).
+# These values are the author-supported native configuration: they reflect
+# defaults and documented options of the official ColBERTv2 implementation
+# (stanford-futuredata/ColBERT) and the official checkpoint
+# colbert-ir/colbertv2.0.
+
+name: colbertv2
+mode: native
+top_k: 10
+extra:
+  # ---- Official checkpoint (author-supported default) ----
+  checkpoint: colbert-ir/colbertv2.0
+
+  # ---- Native indexing parameters ----
+  doc_maxlen: 512        # official default passage length (tokens)
+  nbits: 2               # official recommended compression for PLAID
+  ncells: 1              # small corpus; set >1 only for very large collections
+
+  # ---- Our chunking heuristic (chars, ~4 chars/token) ----
+  # 1800 chars ≈ 450 tokens, safely under doc_maxlen=512.
+  chunk_size: 1800
+  chunk_overlap: 200
+
+  # ---- ColBERTv2 experiment namespace (under work_dir) ----
+  experiment: colbertv2_native
+  index_name: corpus

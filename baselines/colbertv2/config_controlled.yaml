@@ -1,0 +1,36 @@
+# ColBERTv2 — controlled mode configuration.
+#
+# ⚠️  THIS MODE IS NOT SUPPORTED BY THE ColBERTv2 BASELINE.  ⚠️
+#
+# Reason (architectural):
+#   ColBERTv2 performs *late interaction*: it requires token-level
+#   embeddings from a BERT-based encoder, so each query token is scored
+#   against each passage token via a MaxSim operator. BGE-M3 is a dense
+#   (single-vector) embedder and cannot be substituted without destroying
+#   the ColBERTv2 architecture. Controlled adaptation with BGE-M3 would
+#   therefore be an *architectural alteration*, not a controlled comparison.
+#
+# This file exists to satisfy `docs/adapter_contract.md` §1 (both configs
+# must be present). Instantiating `ColBERTv2Baseline` with this config
+# raises `ValueError` in `BaseBaseline._validate()` because
+# `supports_controlled = False`.
+#
+# For the SAH-RAG Stage A (controlled adaptation) leaderboard, ColBERTv2
+# is *excluded by design*. This is documented in the project report.
+#
+# For community-native end-to-end with RAGatouille (Stage Δ), see the
+# separate `ragatouille-wrapper/` folder — not this adapter.
+
+name: colbertv2
+mode: controlled
+top_k: 10
+extra:
+  # Non-component hyperparameters are kept identical to native for
+  # documentation completeness. They are *never* used at runtime because
+  # controlled mode is rejected by the base class.
+  checkpoint: colbert-ir/colbertv2.0
+  doc_maxlen: 512
+  nbits: 2
+  ncells: 1
+  chunk_size: 1800
+  chunk_overlap: 200
