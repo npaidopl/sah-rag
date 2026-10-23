@@ -1,5 +1,0 @@
-# Native SPLADE mode requires heavy deps.
-# Controlled mode only needs numpy (already available via pandas).
-torch>=2.0
-transformers>=4.40
-numpy>=1.26

@@ -1,8 +1,0 @@
-name: splade
-mode: controlled
-top_k: 10
-extra:
-  # Top-M dimensions kept after sparsification of BGE-M3 dense vectors.
-  sparse_top_m: 100
-  # NOTE: embedder and llm are INJECTED by the orchestrator.
-  # Do not list them here.
