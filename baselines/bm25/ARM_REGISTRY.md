@@ -205,3 +205,49 @@ different run file bytes, due to:
 
 Byte-identical was never the target; behavioral equivalence was. Behavioral
 equivalence is confirmed at nDCG@10 = 0.678909 and 300/300 top-10 docid match.
+
+
+---
+
+## 10. Smoke-test verification (end-to-end, real data)
+
+**Date:** 2026-10-23 14:23:19
+
+Two smoke tests were run with **real data from disk** (not synthetic) to
+prove the full pipeline works end-to-end, per the "one-button-press"
+requirement for the eventual SAH-RAG dataset run.
+
+### 10.1 Native E2E smoke
+
+- Script: `baselines/bm25/scripts/smoke_native_e2e.py`
+- Data: 30 real SciFact docs, 5 real SciFact queries (from disk)
+- Result: **PASSED** — CanonicalDocument -> build_index -> retrieve -> ranked output validated
+- Output structure validated: contiguous ranks, all doc_ids in corpus, chunk_id == doc_id
+- Runtime after JVM init: ~4s (build + 5 queries)
+
+### 10.2 Controlled-adaptation smoke (with real BGE-M3)
+
+- Script: `baselines/bm25/scripts/smoke_controlled_e2e.py`
+- Data: same 30 docs, 5 queries
+- Embedder: **real BAAI/bge-m3** (4.27 GB, local snapshot) — not a mock
+- Result: **PASSED**
+  - BGE-M3 loaded and produced 1024-dim dense vectors
+  - Native == Controlled output: identical docids, ranks, scores
+  - Embedder encode calls by BM25: **0** (structural exception confirmed)
+- Protocol integrity: shared embedder injected via contract, structurally unused
+
+### 10.3 Performance benchmark (steady state)
+
+- Script: `baselines/bm25/scripts/bench_retrieval.py`
+- 500 docs, 50 queries
+- JVM init (first query): 12.58s
+- Warm per-query (median): **3.3 ms**
+- Steady-state: **301.7 q/s**
+- MS MARCO projection: ~0.4 min for 6,980 queries
+
+### 10.4 Implication
+
+The adapter is ready for the SAH-RAG dataset. When it arrives, only the
+dataset path needs to change in the smoke scripts. No adapter code change
+is expected. The "one-button-press" requirement is satisfied: the scripts
+are standalone, use venv python directly, and validate output structure.
