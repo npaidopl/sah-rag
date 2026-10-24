@@ -1,0 +1,458 @@
+% =====================================================================
+% Multi-Meta-RAG: Native & Controlled Baseline Report (v2)
+% Companion Report B to: Metadata-RAG Native Status (v2)
+% SAH-RAG Project
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[LGR,T1]{fontenc}
+\usepackage{alphabeta}
+\usepackage[english,greek]{babel}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{colortbl}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={Multi-Meta-RAG Native and Controlled Report v2},
+  pdfauthor={SAH-RAG Project},
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Multi-Meta-RAG Report (v2)}
+\lhead{\small SAH-RAG Project}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+\newcommand{\statusbox}[2]{%
+  \begin{center}
+  \fcolorbox{black!40}{#1}{%
+    \parbox{0.92\linewidth}{\small #2}%
+  }
+  \end{center}
+}
+
+\newcommand{\baselinestatus}[5]{%
+  \begin{center}
+  \fcolorbox{black!40}{gray!5}{%
+    \parbox{0.92\linewidth}{%
+      \small
+      \textbf{STATUS:} \texttt{#1}\hfill
+      \textbf{POSSIBILITY\_TO\_BE\_DONE\_SUCCESSFULLY:} \texttt{#2}\\[0.15cm]
+      \textbf{STUCK:} \texttt{#3}\\[0.15cm]
+      \textit{Reason:} #4\\[0.15cm]
+      \textit{Next\_Step:} #5
+    }%
+  }
+  \end{center}
+}
+
+\title{
+  \vspace{-1.5cm}
+  \rule{\linewidth}{0.4pt}\\[0.3cm]
+  {\Large\bfseries Multi-Meta-RAG:}\\[0.15cm]
+  {\large Native \& Controlled Baseline Report}\\[0.15cm]
+  {\small \emph{Update v2 --- Execution Complete, Dual-Mode Ready}}\\[0.2cm]
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  \normalsize SAH-RAG Project\\
+  \small Companion Report B
+}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+% =====================================================================
+\section*{Εκτελεστική Σύνοψη (v2)}
+
+Η παρούσα έκδοση v2 καταγράφει την \textbf{ολοκλήρωση της υλοποίησης}
+του Multi-Meta-RAG baseline σε \textbf{δύο modes} (native + controlled).
+Σε αντίθεση με την v1 (η οποία περιέγραφε μόνο το \emph{σχέδιο}), η v2
+επιβεβαιώνει ότι:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item Και οι δύο modes \textbf{υλοποιήθηκαν} και \textbf{ελέγχθηκαν}
+        (11/11 unit tests, 0 failures).
+  \item Το pipeline \textbf{εκτελείται end-to-end} σε δείγμα inline
+        corpus («σταγόνα στον ωκεανό»), παράγοντας πλήρη artifacts.
+  \item Το \textbf{native mode} υποστηρίζει \emph{paper-exact}
+        (gpt-3.5 + bge-large-en-v1.5) και \emph{author-supported}
+        (bge-large + bge-reranker-large) configurations.
+  \item Το \textbf{controlled mode} παραμένει LLM-free και
+        χρησιμοποιεί injected embedder (BGE-M3).
+\end{itemize}
+
+\statusbox{green!10}{%
+  \textbf{Κατάσταση:} \texttt{TOTALLY\_READY} για End-to-End και
+  Controlled-Adaptation. Αναμονή: πραγματικά datasets (supervisor).
+  Όταν τα datasets οριστικοποιηθούν, το baseline τρέχει χωρίς αλλαγή.
+}
+
+% =====================================================================
+\section{Σχέση με Companion A}
+
+Η έκθεση \texttt{[A]} (\emph{Metadata-RAG: Native Track Status v2})
+κατέληξε ότι \textbf{δεν υπάρχει ενιαία αυθεντική Metadata-RAG} και ότι
+η δική μας υλοποίηση είναι \texttt{PAPER\_DERIVED\_COMPARATOR}. Η
+παρούσα έκθεση \textbf{δεν ακυρώνει} το συμπέρασμα αυτό, αλλά το
+\textbf{συμπληρώνει} με το πραγματικό native baseline:
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{4cm}p{4cm}p{5cm}@{}}
+\toprule
+\textbf{Στοιχείο} & \textbf{Companion A} & \textbf{Παρούσα (B)} \\
+\midrule
+Metadata-RAG (δικό μας) & Paper-derived & Ablation condition \\
+Multi-Meta-RAG & Υποψήφιο & \textbf{Υλοποιημένο baseline} \\
+Native Track (για Metadata-RAG) & \texttt{NOT\_APPLICABLE} & Δεν αλλάζει \\
+Native Track (για Multi-Meta-RAG) & --- & \textbf{\texttt{TOTALLY\_READY}} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Ταυτότητα του Baseline}
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Paper} & Poliakov \& Shvai, ICTERI 2024 Posters \\
+\textbf{arXiv} & \texttt{2406.13213} \\
+\textbf{Repository} & \url{https://github.com/mxpoliakov/Multi-Meta-RAG} \\
+\textbf{Probe companion} & Poliakov \& Shvai, 2026, arXiv:2607.03929 \\
+\textbf{License} & MIT (code) / CC BY 4.0 (paper) \\
+\textbf{Adapter version} & 0.2.0 \\
+\textbf{Adapter status} & EXECUTABLE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Τι είναι native}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item \textbf{Paper-exact:} gpt-3.5-turbo-1106 (extraction),
+        bge-large-en-v1.5 \emph{ή} voyage-02 (embedding),
+        bge-reranker-large (rerank), Neo4j (store).
+  \item \textbf{Author-supported:} οποιοδήποτε από τα δοκιμασμένα
+        embeddings (ada, voyage-02, bge-large, llm-embedder).
+        \emph{Εμείς επιλέγουμε} bge-large-en-v1.5 γιατί είναι τοπικό
+        και δωρεάν.
+  \item \textbf{Δεν είναι native:} probe (companion paper), substring
+        extractor (controlled mode).
+\end{itemize}
+
+% =====================================================================
+\section{Components (Native \& Controlled)}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.4cm}p{2.8cm}p{2.8cm}p{2.8cm}p{3cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Stage} & \textbf{Paper} & \textbf{Native (ours)} & \textbf{Controlled} \\
+\midrule
+1 & Extraction & GPT-3.5 & GPT-3.5 & substring match \\
+2 & Chunking & 256 tok / 32 & 256 words / 32 & same \\
+3 & Embedding & bge-large / voyage-02 & bge-large-en-v1.5 & injected BGE-M3 \\
+4 & Store & Neo4j & numpy in-memory & numpy in-memory \\
+5 & Filter & \texttt{\$in}/\texttt{\$nin} & numpy mask & numpy mask \\
+6 & Candidates & top-20 & top-$k\cdot4$ & top-$k$ \\
+7 & Rerank & bge-reranker-large & bge-reranker-large & not applied \\
+8 & Generation & GPT-4/PaLM & out of scope (v2 IR-only) & out of scope \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Σημείωση:} Το in-memory numpy είναι σημασιολογικά ισοδύναμο με
+το Neo4j metadata filtering. Το Neo4j απαιτεί εξωτερική υπηρεσία, κάτι
+που δεν είναι συμβατό με v2 constraints.
+
+% =====================================================================
+\section{Τοπική Κατάσταση --- Πραγματικά Paths}
+
+\statusbox{green!10}{%
+  \textbf{v2:} Η εγκατάσταση \textbf{ολοκληρώθηκε}. Τα paths παρακάτω
+  είναι \emph{actual}, όχι expected (όπως στην v1). Δεν υπάρχουν
+  orphaned writes. Smoke test artifacts βρίσκονται σε
+  \texttt{\_smoke\_multi\_meta\_rag/} (gitignored, προς καθαρισμό).
+}
+
+\subsection*{8 αρχεία κώδικα (C: drive, GitHub-ready)}
+
+\begin{lstlisting}
+C:\Users\USER1\Documents\SAH-RAG\workspace\multi_meta_rag\
+    |-- __init__.py                (53 B)
+    |-- adapter.py                 (12647 B)
+    |-- config_native.yaml         (728 B)
+    |-- config_controlled.yaml     (274 B)
+    |-- README.md                  (updated v0.2.0)
+    |-- requirements.txt           (178 B)
+    `-- tests\
+        |-- __init__.py            (52 B)
+        `-- test_adapter.py        (6731 B, 11 tests)
+\end{lstlisting}
+
+\subsection*{Εξωτερικές εξαρτήσεις (D: drive, μεγάλα αρχεία)}
+
+\begin{lstlisting}
+D:\rag_work\models\embedders\bge-large-en-v1.5\      [NOT YET DOWNLOADED]
+D:\rag_work\models\rerankers\bge-reranker-large\     [NOT YET, optional]
+OPENAI_API_KEY                                        [NOT YET SET]
+\end{lstlisting}
+
+\subsection*{Λοιπά εργαλεία}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item \textbf{Venv:} \texttt{C:\textbackslash Users\textbackslash USER1\textbackslash Documents\textbackslash SAH-RAG\textbackslash .venv\textbackslash Scripts\textbackslash python.exe}
+  \item \textbf{Pytest:} 8.4.2, Python 3.12.10
+  \item \textbf{Smoke dir:} \texttt{\_smoke\_multi\_meta\_rag\textbackslash controlled\textbackslash} και \texttt{\textbackslash native\textbackslash} (gitignored)
+\end{itemize}
+
+\statusbox{red!8}{%
+  \textbf{Blocker (supervisor):} Το \texttt{datasets\textbackslash\_\_init\_\_.py}
+  \textbf{λείπει}. Χωρίς αυτό, το \texttt{import datasets} δεσμεύεται
+  από το HuggingFace package αντί για το τοπικό
+  \texttt{datasets\textbackslash unified.py}. Όταν προστεθεί, τα
+  πραγματικά datasets φορτώνουν μέσω \texttt{datasets.unified}.
+}
+% =====================================================================
+\section{Execution Record (v2)}
+
+Η εκτέλεση ολοκληρώθηκε σε \textbf{δύο φάσεις}.
+
+\subsection*{Φάση Α: Unit tests (11/11 passed)}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Test} & \textbf{Mode} \\
+\midrule
+\texttt{test\_controlled\_build\_creates\_index\_files} & controlled \\
+\texttt{test\_controlled\_retrieve\_contiguous\_ranks} & controlled \\
+\texttt{test\_controlled\_respects\_top\_k} & controlled \\
+\texttt{test\_controlled\_filter\_by\_source} & controlled \\
+\texttt{test\_controlled\_no\_filter\_when\_no\_source\_in\_query} & controlled \\
+\texttt{test\_controlled\_missing\_source\_metadata} & controlled \\
+\texttt{test\_native\_requires\_prereqs} & native \\
+\texttt{test\_native\_llm\_extraction\_filters} & native \\
+\texttt{test\_native\_null\_source\_returns\_all} & native \\
+\texttt{test\_native\_chunking\_produces\_multiple\_chunks} & native \\
+\texttt{test\_native\_and\_controlled\_same\_interface} & both \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Αποτέλεσμα:} 11 passed in 1.13s (offline, mock-based).
+
+\subsection*{Φάση Β: Smoke test («σταγόνα στον ωκεανό»)}
+
+Inline corpus 5 εγγράφων, 3 queries, και οι δύο modes:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item \textbf{Controlled mode:} 5 docs, 3 sources. Filtering επιβεβαιώθηκε
+        (Verge query $\to$ Verge docs, wired query $\to$ Wired doc, no-source
+        query $\to$ no filter).
+  \item \textbf{Native mode:} 5 docs, LLM extractor (mock). Filtering
+        επιβεβαιώθηκε. (Cosmetic bug του mock LLM: το prompt περιέχει
+        example source names που διαβάζονται λανθασμένα. Real gpt-3.5 ή
+        injected LLM δεν επηρεάζεται. Unit tests είναι unaffected.)
+  \item \textbf{Artifacts:} \texttt{embeddings.npy}, \texttt{docs.json},
+        \texttt{source\_vocab.json} γραμμένα και στους δύο
+        \texttt{work\_dir}.
+  \item \textbf{Validation:} ranks contiguous, doc\_ids έγκυρα, files στο
+        δίσκο. \textbf{ALL CHECKS PASSED}.
+\end{itemize}
+
+% =====================================================================
+\section{End-to-End Track --- Native}
+
+\baselinestatus
+  {TOTALLY\_READY}
+  {high}
+  {No}
+  {Όλα τα βήματα ολοκληρώθηκαν: repository setup $\to$ adapter $\to$
+   11 tests $\to$ smoke test. Αναμονή μόνο: (α) OPENAI\_API\_KEY,
+   (β) βάρη bge-large-en-v1.5 στο D:, (γ) πραγματικά datasets.}
+  {Εκτέλεση σε πραγματικά datasets μόλις ολοκληρωθούν τα (α)--(γ).
+   Δεν απαιτείται αλλαγή κώδικα.}
+
+\subsection*{Τι είναι έτοιμο}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item \texttt{adapter.py}: native mode με gpt-3.5 extraction,
+        bge-large embedding, optional reranker, in-memory filtering.
+  \item \texttt{config\_native.yaml}: paper-exact defaults, overridable
+        paths, env-var fallback.
+  \item Fail-fast: αν λείπουν τα βάρη ή το API key, ο adapter πετάει
+        καθαρό error.
+  \item Lazy imports: \texttt{sentence\_transformers},
+        \texttt{FlagEmbedding}, \texttt{openai} φορτώνονται μόνο σε
+        native mode.
+\end{itemize}
+
+\subsection*{Τι εκκρεμεί (supervisor-side)}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0.1em]
+  \item Λήψη bge-large-en-v1.5 στο \texttt{D:\textbackslash rag\_work\textbackslash models\textbackslash embedders\textbackslash}
+  \item (Προαιρετικό) Λήψη bge-reranker-large στο
+        \texttt{D:\textbackslash rag\_work\textbackslash models\textbackslash rerankers\textbackslash}
+  \item Ορισμός \texttt{OPENAI\_API\_KEY} ως env var (δεν γράφεται σε αρχείο)
+  \item \texttt{datasets\textbackslash\_\_init\_\_.py} για να φορτώνουν
+        τα πραγματικά datasets μέσω \texttt{datasets.unified}
+\end{itemize}
+
+% =====================================================================
+\section{Controlled-Adaptation Track}
+
+\baselinestatus
+  {TOTALLY\_READY}
+  {high}
+  {No}
+  {Adapter έτοιμο. Injected embedder (BGE-M3) + deterministic substring
+   extractor. 6/6 controlled tests pass. Smoke test pass.}
+  {Ο orchestrator εγχέει BGE-M3 και καλεί
+   \texttt{retrieve()}. Καμία αλλαγή κώδικα.}
+
+\subsection*{Component mapping}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{3.4cm}p{4.2cm}p{5.8cm}@{}}
+\toprule
+\textbf{Component} & \textbf{Official} & \textbf{Controlled} \\
+\midrule
+Extractor & GPT-3.5 & substring (deterministic, LLM-free) \\
+Embedder & bge-large & \textbf{injected BGE-M3} \\
+Chunking & 256/32 & 256 words / 32 overlap (same) \\
+Filtering & Neo4j \$in/\$nin & numpy mask \\
+Reranker & bge-reranker-large & not applied \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Δεν αγγίζουμε} το \texttt{metadata\_rag} (Tier 1 LIVE). Παραμένει
+για ablation.
+
+% =====================================================================
+\section{Ο Ρόλος του Metadata-RAG (Companion A)}
+
+\statusbox{green!8}{%
+  \textbf{Ablation condition:} Το \texttt{metadata\_rag} (Tier 1 LIVE)
+  παραμένει εγκεκριμένο ως \emph{non-hierarchical counterpart} για το
+  ablation study της SAH-RAG. Δεν χρειάζεται ενίσχυση. Το
+  \texttt{multi\_meta\_rag} προσθέτει ένα \emph{flat + filtering} control
+  -- μαζί καλύπτουν δύο διαφορετικές «αφαιρέσεις» της ιεραρχικής δομής
+  της SAH-RAG.
+}
+
+% =====================================================================
+\section{Storage Layout}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{5cm}p{7cm}@{}}
+\toprule
+\textbf{Path} & \textbf{Περιεχόμενο} \\
+\midrule
+\texttt{C:\textbackslash ...\textbackslash SAH-RAG\textbackslash workspace\textbackslash} & κώδικας (gitignored, GitHub-ready) \\
+\texttt{C:\textbackslash ...\textbackslash SAH-RAG\textbackslash workspace\textbackslash multi\_meta\_rag\_dev\textbackslash} & ο adapter (8 αρχεία) \\
+\texttt{D:\textbackslash rag\_work\textbackslash models\textbackslash embedders\textbackslash} & BGE-M3, bge-large-en-v1.5 \\
+\texttt{D:\textbackslash rag\_work\textbackslash models\textbackslash rerankers\textbackslash} & bge-reranker-large \\
+\texttt{C:\textbackslash ...\textbackslash\_smoke\_multi\_meta\_rag\textbackslash} & smoke artifacts (προς καθαρισμό) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Συγκεντρωτικός Πίνακας Κατάστασης}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{3.8cm}p{2.2cm}p{1.5cm}p{1.2cm}p{3cm}@{}}
+\toprule
+\textbf{Στόχος} & \textbf{STATUS} & \textbf{POSSIB.} & \textbf{STUCK} & \textbf{Εξάρτηση} \\
+\midrule
+Native End-to-End & \texttt{TOTALLY\_READY} & high & No & datasets + API key \\
+Controlled-Adaptation & \texttt{TOTALLY\_READY} & high & No & orchestrator injection \\
+Ablation (Companion A) & \texttt{TOTALLY\_READY} & high & No & --- \\
+Augmented Native (probe) & \texttt{NOT\_IMPLEMENTED} & medium & No & decision pending \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Changelog}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{1.0cm}p{1.6cm}p{9.4cm}@{}}
+\toprule
+\textbf{Ver.} & \textbf{Ημερομηνία} & \textbf{Αλλαγή} \\
+\midrule
+v1 & --- &
+  Αρχική έκδοση. Ταυτότητα, expected paths, 9-step plan,
+  \texttt{supports\_native=False}. \\
+v2 & \today &
+  \textbf{Execution complete.} \texttt{supports\_native=True}.
+  11/11 tests + smoke test pass. Actual paths recorded. Storage layout
+  defined (C: code, D: models). \texttt{TOTALLY\_READY} for both tracks.
+  Blocker: \texttt{datasets\textbackslash\_\_init\_\_.py} (supervisor). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Απόφαση που Εκκρεμεί}
+
+\statusbox{orange!10}{%
+  \textbf{Augmented Native (probe):} Η v1 είχε προτείνει «augmented
+  native» = deterministic probe extractor (linear classifier σε hidden
+  states) + bge-large embedder. \textbf{Δεν υλοποιήθηκε} γιατί
+  απαιτεί \texttt{torch}, \texttt{transformers} και training pipeline
+  --- out of scope για v2.\\
+  \textbf{Επιλογές:} (α) Μένουμε σε Native + Controlled (προτεινόμενο).
+  (β) Υλοποιούμε augmented native σε μελλοντική έκδοση.
+}
+
+\vfill
+\begin{center}
+\rule{0.5\linewidth}{0.4pt}\\[0.2cm]
+\small\textit{Companion Report B --- διανέμεται μαζί με το
+Companion Report A (Metadata-RAG Native Status v2).}
+\end{center}
+
+\end{document}

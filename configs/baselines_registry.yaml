@@ -151,3 +151,15 @@ baselines:
     (no generation stage in paper/repo). Controlled mode architecturally
     impossible: BGE-M3 dense vectors are incompatible with ColBERTv2 token-level
     late interaction. See baselines/colbertv2/README.md.
+
+  # ---------------------------------------------------------------
+  # multi_meta_rag — multi-metadata RAG
+  # ---------------------------------------------------------------
+  - name: multi_meta_rag
+    display_name: Multi-Metadata RAG
+    paper: "Companion B (REPORT_v2.tex)"
+    path: baselines/multi_meta_rag
+    status: executable
+    modes: [native, controlled]
+    is_llm_based: false
+    notes: "Dual-mode. Native requires OPENAI_API_KEY + bge-large-en-v1.5 (deferred). Controlled ready with injected BGE-M3."

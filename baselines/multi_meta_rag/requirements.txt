@@ -1,0 +1,7 @@
+# Core dependency (always required)
+numpy>=1.26
+
+# Native mode (heavy; install only when activating native):
+#   sentence-transformers>=2.2
+#   FlagEmbedding>=1.2
+#   openai>=1.0

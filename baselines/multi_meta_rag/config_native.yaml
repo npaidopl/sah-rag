@@ -1,0 +1,17 @@
+# Native mode = paper-exact / author-supported.
+# - Extraction: gpt-3.5-turbo-1106 (requires OPENAI_API_KEY env var)
+# - Embedder:   bge-large-en-v1.5  (local, free; author-supported)
+# - Reranker:   bge-reranker-large (optional; author-supported)
+# - Chunking:   256 words / 32 overlap (approx of paper 256 tokens / 32)
+#
+# Paths below can be overridden. Env vars also honored:
+#   MULTI_META_RAG_EMBEDDER_PATH, MULTI_META_RAG_RERANKER_PATH
+name: multi_meta_rag
+mode: native
+top_k: 10
+extra:
+  native_llm_model: gpt-3.5-turbo-1106
+  native_embedder_path: "D:/rag_work/models/embedders/bge-large-en-v1.5"
+  native_reranker_path: "D:/rag_work/models/rerankers/bge-reranker-large"
+  chunk_size_words: 256
+  chunk_overlap_words: 32

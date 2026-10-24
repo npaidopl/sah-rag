@@ -1,0 +1,10 @@
+# Controlled mode = LLM-free.
+# - Extraction: deterministic word-boundary substring matcher
+# - Embedder:   injected by orchestrator (BGE-M3)
+# - Reranker:   not applied
+name: multi_meta_rag
+mode: controlled
+top_k: 10
+extra:
+  chunk_size_words: 256
+  chunk_overlap_words: 32
