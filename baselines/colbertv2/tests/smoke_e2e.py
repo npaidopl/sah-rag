@@ -14,6 +14,23 @@ from __future__ import annotations
 
 import json
 import os
+
+# SAH_DLL_DIRS_PATCHED
+# Ensure pthreadVC2.dll is discoverable before colbert's C++ extensions load.
+if os.name == "nt":
+    _dll_dirs = [
+        r"D:\rag_work\.venv-colbert\Scripts",
+        r"D:\MSVC\installer\pthreads-extracted\Pre-built.2\dll\x64",
+    ]
+    for _d in _dll_dirs:
+        if os.path.isdir(_d):
+            try:
+                os.add_dll_directory(_d)
+                print(f"[SAH] DLL dir added: {_d}")
+            except Exception as _e:
+                print(f"[SAH] WARN: add_dll_directory({_d}) failed: {_e}")
+
+
 import shutil
 import sys
 from pathlib import Path
