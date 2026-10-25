@@ -29,6 +29,7 @@ Never mislabel the controlled or fallback path as paper-exact native.
 from __future__ import annotations
 
 import hashlib
+import os
 import json
 import logging
 import math
@@ -98,6 +99,11 @@ class LightRAGBaseline(BaseBaseline):
 
         self._vendored_path = self._find_vendored_path()
         self._native_components_loaded = False
+        self._native_llm_name: str | None = None
+        self._native_llm_func: Any | None = None
+        self._native_embed_func: Any | None = None
+        self._native_embed_tokenizer: Any | None = None
+        self._native_embed_model: Any | None = None
         self._full_rag: Any | None = None
         if config.mode == RunMode.NATIVE:
             self._try_load_native_components()
@@ -124,32 +130,145 @@ class LightRAGBaseline(BaseBaseline):
                     return candidate
         return None
 
+    @staticmethod
+    def _resolve_snapshot(model_name: str) -> str | None:
+        """Find a complete local snapshot for a model (offline-safe).
+
+        HF hub has two cache layouts:
+          <HF_HUB_CACHE>/models--<org>--<name>/snapshots/<hash>/ (modern)
+          <HF_HOME>/models--<org>--<name>/snapshots/<hash>/      (legacy)
+
+        When HF_HUB_CACHE points at a partial snapshot, fall back to the
+        other layout. Returns the path to a directory that has
+        config.json + weight files, or None if nothing complete found.
+        """
+        import os as _os
+        from pathlib import Path as _Path
+
+        safe = model_name.replace("/", "--")
+        hf_home = _os.environ.get("HF_HOME", "")
+        hf_hub_cache = _os.environ.get("HF_HUB_CACHE", "")
+        candidates = []
+        if hf_hub_cache:
+            candidates.append(
+                _Path(hf_hub_cache) / f"models--{safe}" / "snapshots"
+            )
+        if hf_home:
+            candidates.append(
+                _Path(hf_home) / "hub" / f"models--{safe}" / "snapshots"
+            )
+            candidates.append(
+                _Path(hf_home) / f"models--{safe}" / "snapshots"
+            )
+        for snapdir in candidates:
+            if not snapdir.is_dir():
+                continue
+            for snap in snapdir.iterdir():
+                if not snap.is_dir():
+                    continue
+                if not (snap / "config.json").exists():
+                    continue
+                has_weights = (
+                    (snap / "pytorch_model.bin").exists()
+                    or (snap / "model.safetensors").exists()
+                    or (snap / "model.safetensors.index.json").exists()
+                    or (snap / "pytorch_model.bin.index.json").exists()
+                    or any(snap.glob("model-*-of-*.safetensors"))
+                    or any(snap.glob("pytorch_model-*-of-*.bin"))
+                )
+                if has_weights:
+                    return str(snap)
+        return None
+
     def _try_load_native_components(self) -> None:
-        """Load HF binding for native mode (no-op if not configured)."""
+        """Load HF binding for native mode (no-op if not configured).
+
+        Based on lightrag/llm/hf.py source inspection:
+
+          - hf_model_complete(prompt, ...) gets the model name from
+            kwargs["hashing_kv"].global_config["llm_model_name"], which
+            LightRAG populates from the llm_model_name argument to
+            LightRAG(...). So we pass the raw function and let LightRAG
+            inject the model name.
+
+          - hf_embed is an EmbeddingFunc whose .func coroutine expects
+            (texts, tokenizer, embed_model, context=..., ...). We
+            pre-load tokenizer + model once and wrap in a custom
+            EmbeddingFunc whose .func closes over them.
+        """
         if self._vendored_path is None:
             return
         hf_llm = self.config.extra.get("hf_llm")
-        hf_embed = self.config.extra.get("hf_embed")
-        if not hf_llm or not hf_embed:
+        hf_embed_model = self.config.extra.get("hf_embed")
+        hf_embed_dim = int(self.config.extra.get("hf_embed_dim", 1024))
+        if not hf_llm or not hf_embed_model:
             return
+        # Force offline cache use (network unavailable in acceptance runs,
+        # and HF/XET retries cause 3+ minute stalls before falling back).
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
         try:
             if str(self._vendored_path) not in sys.path:
                 sys.path.insert(0, str(self._vendored_path))
-            from lightrag.llm.hf import hf_embed, hf_model_complete
-            from functools import partial
-
-            self._native_llm_func = partial(
-                hf_model_complete, hf_llm, max_context_size=32768
+            from lightrag.llm.hf import (
+                hf_embed as hf_embed_fn,
+                hf_model_complete,
             )
-            self._native_embed_func = partial(hf_embed, hf_embed)
+            from lightrag.utils import EmbeddingFunc
+            from transformers import AutoModel, AutoTokenizer
+
+            # LLM: resolve snapshot; set _native_llm_name to snapshot
+            # path if found (so initialize_hf_model loads the complete
+            # copy), else fall back to model id.
+            self._native_llm_func = hf_model_complete
+            llm_snap = self._resolve_snapshot(hf_llm)
+            if llm_snap:
+                self._native_llm_name = llm_snap
+                logger.info("LLM snapshot resolved: %s", llm_snap)
+            else:
+                self._native_llm_name = hf_llm
+                logger.info("LLM snapshot unresolved; using id: %s", hf_llm)
+
+            # Embeddings: pre-load tokenizer + model, wrap in EmbeddingFunc.
+            # Prefer complete snapshot path when available.
+            embed_snap = self._resolve_snapshot(hf_embed_model)
+            embed_load_path = embed_snap or hf_embed_model
+            if embed_snap:
+                logger.info("Embed snapshot resolved: %s", embed_snap)
+            else:
+                logger.info("Embed snapshot unresolved; using id: %s", hf_embed_model)
+            embed_tokenizer = AutoTokenizer.from_pretrained(
+                embed_load_path, trust_remote_code=True, local_files_only=True
+            )
+            embed_model = AutoModel.from_pretrained(
+                embed_load_path, trust_remote_code=True, local_files_only=True
+            )
+            self._native_embed_tokenizer = embed_tokenizer
+            self._native_embed_model = embed_model
+
+            async def _embed(texts, context="document"):
+                return await hf_embed_fn.func(
+                    texts, embed_tokenizer, embed_model,
+                    context=context,
+                )
+
+            self._native_embed_func = EmbeddingFunc(
+                embedding_dim=hf_embed_dim,
+                max_token_size=8192,
+                func=_embed,
+                model_name=hf_embed_model,
+            )
             self._native_components_loaded = True
             logger.info(
-                "LightRAG native HF binding loaded (llm=%s, embed=%s)",
-                hf_llm,
-                hf_embed,
+                "LightRAG native HF binding loaded "
+                "(llm=%s, embed=%s, dim=%d)",
+                hf_llm, hf_embed_model, hf_embed_dim,
             )
         except Exception as exc:
             logger.warning("Native HF binding unavailable: %s", exc)
+            import traceback
+            traceback.print_exc()
 
     def _should_use_full(self) -> bool:
         if self.config.extra.get("disable_full_pipeline", False):
@@ -271,22 +390,38 @@ class LightRAGBaseline(BaseBaseline):
             )
             llm_model_func = _llm
         else:
-            hf_embed_dim = int(self.config.extra.get("hf_embed_dim", 1024))
-            embedding_func = EmbeddingFunc(
-                embedding_dim=hf_embed_dim, max_token_size=8192,
-                func=self._native_embed_func,
-            )
+            # _native_embed_func is already an EmbeddingFunc instance
+            embedding_func = self._native_embed_func
             llm_model_func = self._native_llm_func
 
         lightrag_dir = self.work_dir / "lightrag"
         lightrag_dir.mkdir(parents=True, exist_ok=True)
-        rag = LightRAG(
-            working_dir=str(lightrag_dir),
-            llm_model_func=llm_model_func,
-            embedding_func=embedding_func,
-            chunk_token_size=self.chunk_size,
-            chunk_overlap_token_size=self.chunk_overlap,
-        )
+        if self.config.mode == RunMode.CONTROLLED:
+            llm_name = getattr(self.llm, "name", "controlled_llm")
+        else:
+            llm_name = self._native_llm_name or self.config.extra.get(
+                "hf_llm", "hf_llm"
+            )
+        try:
+            rag = LightRAG(
+                working_dir=str(lightrag_dir),
+                llm_model_func=llm_model_func,
+                embedding_func=embedding_func,
+                chunk_token_size=self.chunk_size,
+                chunk_overlap_token_size=self.chunk_overlap,
+                llm_model_name=llm_name,
+            )
+        except TypeError:
+            logger.warning(
+                "LightRAG rejected llm_model_name kwarg; retrying without it"
+            )
+            rag = LightRAG(
+                working_dir=str(lightrag_dir),
+                llm_model_func=llm_model_func,
+                embedding_func=embedding_func,
+                chunk_token_size=self.chunk_size,
+                chunk_overlap_token_size=self.chunk_overlap,
+            )
         await rag.initialize_storages()
         for doc in documents:
             text = doc.text_normalized or doc.text_raw
@@ -389,14 +524,17 @@ class LightRAGBaseline(BaseBaseline):
     ) -> list[RetrievedChunk]:
         if self._full_rag is None:
             raise RuntimeError("Full LightRAG not built")
-        result_str = await self._full_rag.aquery(
-            query,
-            param={
-                "mode": "hybrid",
-                "top_k": k,
-                "only_need_context": True,
-            },
+        try:
+            from lightrag import QueryParam
+        except ImportError:
+            from lightrag.base import QueryParam
+        param = QueryParam(
+            mode="hybrid",
+            top_k=k,
+            chunk_top_k=k,
+            only_need_context=True,
         )
+        result_str = await self._full_rag.aquery(query, param=param)
         return self._parse_context_to_chunks(result_str, k)
 
     def _parse_context_to_chunks(self, context_str, k):
