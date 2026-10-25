@@ -263,3 +263,79 @@ def test_parse_context_partial_text(tmp_path):
     assert len(results) == 1
     assert results[0].doc_id == "doc_x"
     assert results[0].metadata["matched"] is True
+
+
+def test_retrieve_uses_full_when_full_rag_set(tmp_path):
+    """Regression: retrieve() must not early-return when _chunks is empty
+    but _full_rag is set (index loaded from disk, not rebuilt in memory)."""
+    cfg = BaselineConfig(
+        name="lightrag", mode=RunMode.NATIVE, top_k=3,
+        extra={"strict_full_path": False, "disable_full_pipeline": False},
+    )
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    # Force _should_use_full to True by faking the prerequisites
+    baseline._full_rag = object()  # sentinel non-None
+    baseline._chunks = []  # empty: simulate loaded-from-disk, not rebuilt
+
+    # Patch _retrieve_full to return a sentinel
+    sentinel = [
+        RetrievedChunk(
+            doc_id="doc_x", chunk_id="c1", text="hello",
+            score=1.0, rank=1,
+        )
+    ]
+    called = {"n": 0}
+    def fake_retrieve_full(q, k):
+        called["n"] += 1
+        return sentinel
+    baseline._retrieve_full = fake_retrieve_full
+    baseline._should_use_full = lambda: True
+
+    results = baseline.retrieve("test query", top_k=3)
+    assert called["n"] == 1, "retrieve() should have called _retrieve_full"
+    assert results == sentinel
+
+
+def test_persistent_event_loop_reused(tmp_path):
+    """_run_async uses a single persistent loop across calls."""
+    import asyncio
+
+    cfg = _test_config(RunMode.NATIVE, top_k=3)
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    async def _identity(x):
+        await asyncio.sleep(0)
+        return x
+
+    loop_ids = []
+    results = []
+    for i in range(5):
+        r = baseline._run_async(_identity(i))
+        results.append(r)
+        loop_ids.append(id(baseline._event_loop))
+
+    assert results == [0, 1, 2, 3, 4]
+    assert len(set(loop_ids)) == 1, f"loop changed across calls: {set(loop_ids)}"
+
+    # Cleanup stops the loop
+    baseline._stop_loop()
+    assert baseline._event_loop is None
+    assert baseline._loop_thread is None
+
+
+def test_cleanup_stops_loop(tmp_path):
+    """cleanup() must stop the persistent loop."""
+    import asyncio
+
+    cfg = _test_config(RunMode.NATIVE, top_k=3)
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    async def _noop():
+        return 42
+
+    assert baseline._run_async(_noop()) == 42
+    assert baseline._event_loop is not None
+
+    baseline.cleanup()
+    assert baseline._event_loop is None

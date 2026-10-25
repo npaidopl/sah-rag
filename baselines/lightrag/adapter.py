@@ -106,6 +106,8 @@ class LightRAGBaseline(BaseBaseline):
         self._native_embed_model: Any | None = None
         self._full_rag: Any | None = None
         self._storages_initialized: bool = False
+        self._event_loop: Any | None = None
+        self._loop_thread: Any | None = None
         if config.mode == RunMode.NATIVE:
             self._try_load_native_components()
 
@@ -731,36 +733,87 @@ class LightRAGBaseline(BaseBaseline):
         return mapping
 
     def cleanup(self) -> None:
-        """Close LightRAG storages if they were opened."""
-        if getattr(self, "_full_rag", None) is None:
-            return
-        if not getattr(self, "_storages_initialized", False):
-            return
-        try:
-            if hasattr(self._full_rag, "finalize_storages"):
-                import asyncio
-                try:
-                    asyncio.get_running_loop()
-                except RuntimeError:
-                    asyncio.run(self._full_rag.finalize_storages())
-                else:
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-                        ex.submit(asyncio.run, self._full_rag.finalize_storages()).result()
-                self._storages_initialized = False
-        except Exception as exc:
-            logger.warning("cleanup finalize_storages: %s", exc)
+        """Finalize LightRAG storages and stop the persistent event loop."""
+        if getattr(self, "_full_rag", None) is not None and \
+                getattr(self, "_storages_initialized", False):
+            try:
+                if hasattr(self._full_rag, "finalize_storages"):
+                    self._run_async(self._full_rag.finalize_storages())
+                    self._storages_initialized = False
+            except Exception as exc:
+                logger.warning("cleanup finalize_storages: %s", exc)
+        self._stop_loop()
+    def _ensure_loop(self):
+        """Ensure a persistent event loop is running in a daemon thread.
+
+        This is critical for LightRAG because its embedding worker pools
+        bind to the event loop they are created in. asyncio.run() per call
+        creates a new loop each time, forcing workers to reinitialize
+        (logged as "bound to a different event loop").
+
+        A single persistent loop keeps workers alive across queries,
+        eliminating that overhead entirely.
+        """
+        import asyncio
+        import threading
+
+        if self._event_loop is not None and self._event_loop.is_running():
+            return self._event_loop
+
+        loop = asyncio.new_event_loop()
+
+        def _loop_runner():
+            asyncio.set_event_loop(loop)
+            loop.run_forever()
+
+        thread = threading.Thread(
+            target=_loop_runner,
+            daemon=True,
+            name=f"lightrag-loop-{id(self)}",
+        )
+        thread.start()
+        self._event_loop = loop
+        self._loop_thread = thread
+        logger.debug("Persistent event loop started")
+        return loop
 
     def _run_async(self, coro):
-        """Run an async coroutine from sync code."""
+        """Run an async coroutine on the persistent event loop."""
         import asyncio
+        import concurrent.futures
+
+        # If we're already inside a running loop (e.g. Jupyter),
+        # run in a fresh thread with its own loop — cannot block on
+        # run_coroutine_threadsafe from the loop's own thread.
         try:
             asyncio.get_running_loop()
         except RuntimeError:
+            # Normal case: no running loop, use the persistent one
+            loop = self._ensure_loop()
+            future = asyncio.run_coroutine_threadsafe(coro, loop)
+            return future.result()
+
+        # Fallback: inside a running loop, spawn ephemeral thread
+        def _runner():
             return asyncio.run(coro)
-        import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-            return ex.submit(asyncio.run, coro).result()
+            return ex.submit(_runner).result()
+
+    def _stop_loop(self):
+        """Stop the persistent event loop and join its thread."""
+        if self._event_loop is None:
+            return
+        try:
+            if self._event_loop.is_running():
+                self._event_loop.call_soon_threadsafe(self._event_loop.stop)
+            if self._loop_thread is not None:
+                self._loop_thread.join(timeout=5)
+        except Exception as exc:
+            logger.warning("Failed to stop event loop cleanly: %s", exc)
+        finally:
+            self._event_loop = None
+            self._loop_thread = None
 
     def _write_artifacts(self) -> None:
         with self._chunks_path.open("w", encoding="utf-8") as fh:
