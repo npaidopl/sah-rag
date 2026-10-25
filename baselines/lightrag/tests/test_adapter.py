@@ -1,4 +1,4 @@
-﻿"""Contract test for the LightRAG baseline (offline, CPU-only)."""
+"""Contract test for the LightRAG baseline (offline, CPU-only)."""
 import sys
 from pathlib import Path
 
@@ -125,3 +125,38 @@ def test_controlled_requires_components(tmp_path):
     cfg = _test_config(RunMode.CONTROLLED, top_k=3)
     with pytest.raises(ValueError):
         LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+
+def test_full_pipeline_raises_without_components(tmp_path):
+    """Full pipeline raises if components missing (never silent fallback)."""
+    cfg = BaselineConfig(
+        name="lightrag", mode=RunMode.NATIVE, top_k=3,
+        extra={"strict_full_path": False},
+    )
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+    docs = [_make_doc("d1", "test doc")]
+    with pytest.raises(RuntimeError, match="Vendored|Native mode"):
+        baseline._build_index_full(docs)
+
+
+def test_retrieve_full_raises_without_build(tmp_path):
+    """_retrieve_full raises if not built."""
+    cfg = BaselineConfig(
+        name="lightrag", mode=RunMode.NATIVE, top_k=3,
+        extra={"strict_full_path": False},
+    )
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+    with pytest.raises(RuntimeError, match="not built"):
+        baseline._retrieve_full("query", 3)
+
+
+def test_strict_full_path_raises_at_build(tmp_path):
+    """strict_full_path=true must fail-fast when full pipeline unavailable."""
+    cfg = BaselineConfig(
+        name="lightrag", mode=RunMode.NATIVE, top_k=3,
+        extra={"strict_full_path": True},
+    )
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+    docs = [_make_doc("d1", "test doc")]
+    with pytest.raises(RuntimeError, match="strict_full_path"):
+        baseline.build_index(docs)

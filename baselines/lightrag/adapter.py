@@ -1,4 +1,4 @@
-﻿"""LightRAG baseline adapter for SAH-RAG v2.
+"""LightRAG baseline adapter for SAH-RAG v2.
 
 Implements ``BaseBaseline`` for the LightRAG architecture
 (arXiv:2410.05779, MIT, HKUDS/LightRAG).
@@ -139,7 +139,7 @@ class LightRAGBaseline(BaseBaseline):
             from functools import partial
 
             self._native_llm_func = partial(
-                hf_model_complete, hf_llm, max_context_size=8192
+                hf_model_complete, hf_llm, max_context_size=32768
             )
             self._native_embed_func = partial(hf_embed, hf_embed)
             self._native_components_loaded = True
@@ -221,44 +221,78 @@ class LightRAGBaseline(BaseBaseline):
     def _build_index_full(
         self, documents: list[CanonicalDocument]
     ) -> None:
-        """Full vendored LightRAG pipeline (provisioned for GPU server).
+        """Full vendored LightRAG pipeline (real execution).
 
-        Requirements:
-          controlled mode: injected Embedder + LLM.
-          native mode:     config.extra['hf_llm'] and ['hf_embed'] set,
-                           and HF binding imported successfully
-                           (see _try_load_native_components).
-
-        The implementation calls the official LightRAG entry points:
-
-            from lightrag import LightRAG
-            from lightrag.utils import EmbeddingFunc
-            rag = LightRAG(
-                working_dir=...,
-                llm_model_func=...,
-                embedding_func=EmbeddingFunc(
-                    embedding_dim=..., max_token_size=..., func=...,
-                ),
-                chunk_token_size=self.chunk_size,
-                chunk_overlap_token_size=self.chunk_overlap,
-            )
-            await rag.ainsert(text)
-
-        This hook is intentionally not executed in the current
-        environment because it requires real models. Complete it on the
-        GPU server. See README for integration guidance.
+        Native mode:     uses HF binding (hf_model_complete + hf_embed).
+        Controlled mode: wraps injected Embedder + LLM into LightRAG's
+                         EmbeddingFunc / llm_model_func contracts.
         """
-        raise NotImplementedError(
-            "Full vendored LightRAG integration is provisioned for GPU "
-            "execution. Enable it by: (1) providing embedder+llm "
-            "(controlled) or hf_llm+hf_embed in config.extra (native); "
-            "(2) implementing _build_index_full and _retrieve_full "
-            "against the vendored code at external/baselines/lightrag."
-        )
+        if self._vendored_path is None:
+            raise RuntimeError(
+                "Vendored LightRAG not found at external/baselines/lightrag/."
+            )
+        if self.config.mode == RunMode.CONTROLLED:
+            if self.embedder is None or self.llm is None:
+                raise RuntimeError("Controlled mode requires embedder + llm.")
+        else:
+            if not self._native_components_loaded:
+                raise RuntimeError(
+                    "Native mode requires hf_llm + hf_embed in config.extra."
+                )
+        self._run_async(self._build_index_full_async(documents))
 
-    # ------------------------------------------------------------------
-    # retrieve
-    # ------------------------------------------------------------------
+    async def _build_index_full_async(
+        self, documents: list[CanonicalDocument]
+    ) -> None:
+        import numpy as np
+        if str(self._vendored_path) not in sys.path:
+            sys.path.insert(0, str(self._vendored_path))
+        from lightrag import LightRAG
+        from lightrag.utils import EmbeddingFunc
+
+        if self.config.mode == RunMode.CONTROLLED:
+            sample = self.embedder.encode_documents(["x"])
+            embed_dim = len(sample[0]) if sample else 1024
+            embedder_ref = self.embedder
+            llm_ref = self.llm
+
+            async def _embed(texts):
+                return np.array(
+                    embedder_ref.encode_documents(texts), dtype=np.float32
+                )
+
+            async def _llm(prompt, **kwargs):
+                return llm_ref.generate(prompt, **kwargs)
+
+            embedding_func = EmbeddingFunc(
+                embedding_dim=embed_dim, max_token_size=8192, func=_embed,
+            )
+            llm_model_func = _llm
+        else:
+            hf_embed_dim = int(self.config.extra.get("hf_embed_dim", 1024))
+            embedding_func = EmbeddingFunc(
+                embedding_dim=hf_embed_dim, max_token_size=8192,
+                func=self._native_embed_func,
+            )
+            llm_model_func = self._native_llm_func
+
+        lightrag_dir = self.work_dir / "lightrag"
+        lightrag_dir.mkdir(parents=True, exist_ok=True)
+        rag = LightRAG(
+            working_dir=str(lightrag_dir),
+            llm_model_func=llm_model_func,
+            embedding_func=embedding_func,
+            chunk_token_size=self.chunk_size,
+            chunk_overlap_token_size=self.chunk_overlap,
+        )
+        await rag.initialize_storages()
+        for doc in documents:
+            text = doc.text_normalized or doc.text_raw
+            if text:
+                await rag.ainsert(text, ids=doc.doc_id)
+        await rag.finalize_storages()
+        self._full_rag = rag
+
     def retrieve(
         self,
         query: str,
@@ -341,17 +375,113 @@ class LightRAGBaseline(BaseBaseline):
     def _retrieve_full(
         self, query: str, k: int
     ) -> list[RetrievedChunk]:
-        """Full vendored LightRAG retrieval (provisioned for GPU server)."""
-        raise NotImplementedError(
-            "Full vendored LightRAG retrieval is provisioned for GPU "
-            "execution. Implement against the vendored code at "
-            "external/baselines/lightrag. See _build_index_full for "
-            "integration notes."
-        )
+        """Full vendored LightRAG retrieval (real execution)."""
+        if self._full_rag is None:
+            raise RuntimeError(
+                "Full LightRAG not built. Call build_index() first."
+            )
+        return self._run_async(self._retrieve_full_async(query, k))
 
-    # ------------------------------------------------------------------
-    # Persistence
-    # ------------------------------------------------------------------
+    async def _retrieve_full_async(
+        self, query: str, k: int
+    ) -> list[RetrievedChunk]:
+        if self._full_rag is None:
+            raise RuntimeError("Full LightRAG not built")
+        result_str = await self._full_rag.aquery(
+            query,
+            param={
+                "mode": "hybrid",
+                "top_k": k,
+                "only_need_context": True,
+            },
+        )
+        return self._parse_context_to_chunks(result_str, k)
+
+    def _parse_context_to_chunks(self, context_str, k):
+        """Parse LightRAG formatted context into RetrievedChunks.
+
+        Ordering is native (LightRAG's own hybrid ranking). Scores are
+        synthetic position-based proxies for IR metric compatibility.
+        """
+        if not isinstance(context_str, str) or not context_str.strip():
+            return []
+        stored = self._load_stored_chunks()
+        pieces = []
+        for delimiter in ("--New Chunk--", "-----"):
+            if delimiter in context_str:
+                pieces = [
+                    p.strip()
+                    for p in context_str.split(delimiter)
+                    if p.strip()
+                ]
+                break
+        if not pieces:
+            pieces = [context_str.strip()]
+        results = []
+        for rank, piece in enumerate(pieces[:k], start=1):
+            content_hash = hashlib.md5(piece.encode("utf-8")).hexdigest()
+            info = stored.get(content_hash)
+            if info:
+                doc_id = info["doc_id"]
+                chunk_id = info["chunk_id"]
+                text = info["text"] or piece
+            else:
+                doc_id = "unknown::" + str(rank)
+                chunk_id = "retrieved::" + str(rank)
+                text = piece
+            results.append(
+                RetrievedChunk(
+                    doc_id=doc_id,
+                    chunk_id=chunk_id,
+                    text=text,
+                    score=float(k - rank + 1),
+                    rank=rank,
+                    parent_doc_id=doc_id,
+                    metadata={
+                        "source": "full_pipeline",
+                        "matched": bool(info),
+                    },
+                )
+            )
+        return results
+
+    def _load_stored_chunks(self):
+        """Load content_hash -> chunk info map from LightRAG KV store."""
+        kv_path = self.work_dir / "lightrag" / "kv_store_text_chunks.json"
+        if not kv_path.exists():
+            return {}
+        try:
+            with kv_path.open(encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Failed to load stored chunks: %s", exc)
+            return {}
+        mapping = {}
+        for chunk_id, info in data.items():
+            if not isinstance(info, dict):
+                continue
+            chunk_content = info.get("content", "")
+            if not chunk_content:
+                continue
+            h = hashlib.md5(chunk_content.encode("utf-8")).hexdigest()
+            mapping[h] = {
+                "doc_id": info.get("full_doc_id", "unknown"),
+                "chunk_id": chunk_id,
+                "text": chunk_content,
+            }
+        return mapping
+
+    def _run_async(self, coro):
+        """Run an async coroutine from sync code."""
+        import asyncio
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coro)
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+            return ex.submit(asyncio.run, coro).result()
+
     def _write_artifacts(self) -> None:
         with self._chunks_path.open("w", encoding="utf-8") as fh:
             for chunk in self._chunks:
