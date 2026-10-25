@@ -152,6 +152,8 @@ class LightRAGBaseline(BaseBaseline):
             logger.warning("Native HF binding unavailable: %s", exc)
 
     def _should_use_full(self) -> bool:
+        if self.config.extra.get("disable_full_pipeline", False):
+            return False
         if self._vendored_path is None:
             return False
         if self.config.mode == RunMode.CONTROLLED:

@@ -23,7 +23,7 @@ def _test_config(mode=RunMode.NATIVE, top_k: int = 3) -> BaselineConfig:
     """Test config: strict_full_path=False explicit opt-in (offline fallback)."""
     return BaselineConfig(
         name="lightrag", mode=mode, top_k=top_k,
-        extra={"strict_full_path": False},
+        extra={"strict_full_path": False, "disable_full_pipeline": True},
     )
 
 
@@ -131,7 +131,7 @@ def test_full_pipeline_raises_without_components(tmp_path):
     """Full pipeline raises if components missing (never silent fallback)."""
     cfg = BaselineConfig(
         name="lightrag", mode=RunMode.NATIVE, top_k=3,
-        extra={"strict_full_path": False},
+        extra={"strict_full_path": False, "disable_full_pipeline": True},
     )
     baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
     docs = [_make_doc("d1", "test doc")]
@@ -143,7 +143,7 @@ def test_retrieve_full_raises_without_build(tmp_path):
     """_retrieve_full raises if not built."""
     cfg = BaselineConfig(
         name="lightrag", mode=RunMode.NATIVE, top_k=3,
-        extra={"strict_full_path": False},
+        extra={"strict_full_path": False, "disable_full_pipeline": True},
     )
     baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
     with pytest.raises(RuntimeError, match="not built"):
