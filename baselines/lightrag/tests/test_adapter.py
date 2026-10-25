@@ -160,3 +160,46 @@ def test_strict_full_path_raises_at_build(tmp_path):
     docs = [_make_doc("d1", "test doc")]
     with pytest.raises(RuntimeError, match="strict_full_path"):
         baseline.build_index(docs)
+
+
+def test_parse_context_substring_match(tmp_path):
+    """Substring matching recovers doc_ids from native LightRAG context."""
+    import json as _json
+
+    cfg = _test_config(RunMode.NATIVE, top_k=3)
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    # Manually populate kv_store_text_chunks.json (what LightRAG writes)
+    kv_dir = tmp_path / "idx" / "lightrag"
+    kv_dir.mkdir(parents=True, exist_ok=True)
+    kv_store = {
+        "chunk_a1": {
+            "content": "The quick brown fox jumps over the dog.",
+            "full_doc_id": "doc_a",
+        },
+        "chunk_b1": {
+            "content": "Albert Einstein developed relativity theory.",
+            "full_doc_id": "doc_b",
+        },
+    }
+    (kv_dir / "kv_store_text_chunks.json").write_text(_json.dumps(kv_store))
+
+    # Simulate LightRAG context (headers + chunks, LightRAG-style)
+    context_str = (
+        "-----Entities-----\n"
+        "Einstein: physicist\n"
+        "-----Sources-----\n"
+        "The quick brown fox jumps over the dog.\n"
+        "--New Chunk--\n"
+        "Albert Einstein developed relativity theory."
+    )
+
+    results = baseline._parse_context_to_chunks(context_str, k=3)
+
+    assert len(results) == 2
+    assert results[0].rank == 1
+    assert results[0].doc_id == "doc_a"
+    assert results[0].metadata["matched"] is True
+    assert results[1].rank == 2
+    assert results[1].doc_id == "doc_b"
+    assert results[1].metadata["matched"] is True

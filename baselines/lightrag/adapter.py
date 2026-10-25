@@ -540,12 +540,58 @@ class LightRAGBaseline(BaseBaseline):
     def _parse_context_to_chunks(self, context_str, k):
         """Parse LightRAG formatted context into RetrievedChunks.
 
-        Ordering is native (LightRAG's own hybrid ranking). Scores are
-        synthetic position-based proxies for IR metric compatibility.
+        Strategy: substring match first (most robust — chunk text appears
+        verbatim inside context when LightRAG builds it from stored chunks).
+        Falls back to delimiter-based split with unmatched results if no
+        chunk text can be located (e.g. context truncated or reshaped).
+
+        Retrieval ordering is native (position in context = LightRAG's own
+        ranking). Scores are synthetic position-based proxies for IR metric
+        compatibility; doc_id resolution is content-based, not guessed.
         """
         if not isinstance(context_str, str) or not context_str.strip():
             return []
         stored = self._load_stored_chunks()
+
+        # Strategy 1: substring match
+        if stored:
+            matches = []
+            for content_hash, info in stored.items():
+                text = info.get("text", "")
+                if not text or len(text) < 10:
+                    continue
+                pos = context_str.find(text)
+                if pos >= 0:
+                    matches.append((pos, info))
+            if matches:
+                seen = set()
+                unique = []
+                for pos, info in sorted(matches, key=lambda x: x[0]):
+                    cid = info["chunk_id"]
+                    if cid in seen:
+                        continue
+                    seen.add(cid)
+                    unique.append((pos, info))
+                results = []
+                for rank, (pos, info) in enumerate(unique[:k], start=1):
+                    results.append(
+                        RetrievedChunk(
+                            doc_id=info["doc_id"],
+                            chunk_id=info["chunk_id"],
+                            text=info["text"],
+                            score=float(k - rank + 1),
+                            rank=rank,
+                            parent_doc_id=info["doc_id"],
+                            metadata={
+                                "source": "full_pipeline",
+                                "matched": True,
+                                "context_pos": pos,
+                            },
+                        )
+                    )
+                return results
+
+        # Strategy 2 (fallback): delimiter split
         pieces = []
         for delimiter in ("--New Chunk--", "-----"):
             if delimiter in context_str:
@@ -557,32 +603,35 @@ class LightRAGBaseline(BaseBaseline):
                 break
         if not pieces:
             pieces = [context_str.strip()]
+
         results = []
         for rank, piece in enumerate(pieces[:k], start=1):
             content_hash = hashlib.md5(piece.encode("utf-8")).hexdigest()
-            info = stored.get(content_hash)
+            info = stored.get(content_hash) if stored else None
             if info:
-                doc_id = info["doc_id"]
-                chunk_id = info["chunk_id"]
-                text = info["text"] or piece
-            else:
-                doc_id = "unknown::" + str(rank)
-                chunk_id = "retrieved::" + str(rank)
-                text = piece
-            results.append(
-                RetrievedChunk(
-                    doc_id=doc_id,
-                    chunk_id=chunk_id,
-                    text=text,
-                    score=float(k - rank + 1),
-                    rank=rank,
-                    parent_doc_id=doc_id,
-                    metadata={
-                        "source": "full_pipeline",
-                        "matched": bool(info),
-                    },
+                results.append(
+                    RetrievedChunk(
+                        doc_id=info["doc_id"],
+                        chunk_id=info["chunk_id"],
+                        text=info["text"] or piece,
+                        score=float(k - rank + 1),
+                        rank=rank,
+                        parent_doc_id=info["doc_id"],
+                        metadata={"source": "full_pipeline", "matched": True},
+                    )
                 )
-            )
+            else:
+                results.append(
+                    RetrievedChunk(
+                        doc_id="unknown::" + str(rank),
+                        chunk_id="retrieved::" + str(rank),
+                        text=piece,
+                        score=float(k - rank + 1),
+                        rank=rank,
+                        parent_doc_id=None,
+                        metadata={"source": "full_pipeline", "matched": False},
+                    )
+                )
         return results
 
     def _load_stored_chunks(self):
