@@ -20,7 +20,7 @@
 |---|---|
 | `sah_rag/` | The SAH-RAG architecture (research contribution) |
 | `baselines/base.py` | BaseBaseline contract — **FROZEN** |
-| `baselines/longrag/`, `baselines/metadata_rag/` | Reference executable baselines |
+| `baselines/<name>/` | All graduated baselines (source of truth: `configs/baselines_registry.yaml`) |
 | `evaluation/` | Retrieval metrics + runner |
 | `orchestration/` | Scheduler + manifest + index |
 | `datasets/unified.py` | Unified dataset loader |
