@@ -74,7 +74,7 @@ def _resolve_root(root: Path | None = None) -> Path:
         return get_canonical_root()
     except RuntimeError:
         # Last-resort fallback: project_root / processed / canonical
-        return _PROJECT_ROOT / "processed" / "canonical"
+        return _PROJECT_ROOT / "data" / "processed" / "canonical"
 
 
 def load_dataset(

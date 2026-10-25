@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 def _set_test_env_defaults() -> None:
     """Ensure critical env vars are set so tests don't crash on missing config."""
     defaults: dict[str, str] = {
-        "RAG_CANONICAL_ROOT": str(PROJECT_ROOT / "processed" / "canonical"),
+        "RAG_CANONICAL_ROOT": str(PROJECT_ROOT / "data" / "processed" / "canonical"),
     }
     for key, value in defaults.items():
         if not os.getenv(key):
