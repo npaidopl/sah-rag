@@ -139,3 +139,7 @@ outputs/
 
 # ===== LLM tool worktrees (auto-generated) =====
 *.worktrees/
+
+# Vendored third-party baselines (obtained from pinned upstream commits)
+# See baselines/lightrag/README.md for reproduction instructions.
+external/

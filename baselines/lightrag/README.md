@@ -179,3 +179,31 @@ EXTRA DEPENDENCIES: networkx, nano-vectordb, tiktoken (full pipeline only)
 KNOWN LIMITATIONS: Full pipeline returns NotImplementedError; complete on GPU
 ASKING FOR GRADUATION: yes (pending test pass)
 ```
+
+
+
+## Vendored dependency setup
+
+The full vendored LightRAG pipeline requires the official source at
+`external/baselines/lightrag/` (gitignored — not committed). To
+reproduce:
+
+
+
+Then install runtime deps (already in `requirements.txt` of this
+adapter): `pip install -r baselines/lightrag/requirements.txt`.
+
+Without the vendored source, the adapter uses the fallback path
+(co-occurrence graph + hash-based embeddings). With `strict_full_path:
+true` in production configs, execution fails-fast if the vendored
+source is missing — guaranteeing no silent fallback in production.
+
+
+
+Then install runtime deps (already in `requirements.txt` of this
+adapter): `pip install -r baselines/lightrag/requirements.txt`.
+
+Without the vendored source, the adapter uses the fallback path
+(co-occurrence graph + hash-based embeddings). With `strict_full_path:
+true` in production configs, execution fails-fast if the vendored
+source is missing — guaranteeing no silent fallback in production.
