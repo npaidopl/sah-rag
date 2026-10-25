@@ -1,0 +1,10 @@
+# LightRAG — controlled mode (CONTROLLED_ADAPTATION)
+# strict_full_path=true MANDATORY: fallback ignores injected LLM and is
+# NOT a controlled adaptation. Fail-fast.
+name: lightrag
+mode: controlled
+top_k: 10
+extra:
+  chunk_size: 1200
+  chunk_overlap: 100
+  strict_full_path: true

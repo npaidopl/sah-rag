@@ -1,0 +1,487 @@
+﻿"""LightRAG baseline adapter for SAH-RAG v2.
+
+Implements ``BaseBaseline`` for the LightRAG architecture
+(arXiv:2410.05779, MIT, HKUDS/LightRAG).
+
+Two execution paths
+-------------------
+Full vendored path (GPU server)
+    When the vendored LightRAG is importable AND components are
+    available, run the official pipeline: native chunking (1200/100),
+    LLM-based entity/relation extraction, native prompts, dual-level
+    retrieval. Native mode uses HuggingFace binding; controlled mode
+    uses injected Embedder + LLM. Generation is disabled (IR-only).
+
+Fallback path (offline / CI)
+    When components are unavailable, run a lightweight pipeline that
+    preserves LightRAG architectural ideas (fixed chunking,
+    co-occurrence graph, dual-level retrieval fusion) without
+    requiring models. This keeps the contract test offline and
+    CPU-only.
+
+Tags
+----
+native       ``AUTHOR_SUPPORTED_NATIVE``
+controlled   ``CONTROLLED_ADAPTATION``
+
+Never mislabel the controlled or fallback path as paper-exact native.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+import math
+import re
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any
+
+from baselines.base import (
+    BaseBaseline,
+    BaselineConfig,
+    BaselineStatus,
+    Embedder,
+    LLM,
+    RetrievedChunk,
+    RunMode,
+)
+from sah_rag.canonical.models import CanonicalDocument
+
+logger = logging.getLogger(__name__)
+
+
+# LightRAG native defaults (author-supported native).
+NATIVE_CHUNK_SIZE = 1200
+NATIVE_CHUNK_OVERLAP = 100
+
+
+class LightRAGBaseline(BaseBaseline):
+    """LightRAG baseline adapter (native + controlled)."""
+
+    name = "lightrag"
+    version = "0.1.0"
+    status = BaselineStatus.EXECUTABLE
+    supports_native = True
+    supports_controlled = True
+    is_llm_based = True
+
+    def __init__(
+        self,
+        *,
+        config: BaselineConfig,
+        work_dir: Path,
+        embedder: Embedder | None = None,
+        llm: LLM | None = None,
+    ) -> None:
+        super().__init__(
+            config=config,
+            work_dir=work_dir,
+            embedder=embedder,
+            llm=llm,
+        )
+        self.chunk_size = int(
+            config.extra.get("chunk_size", NATIVE_CHUNK_SIZE)
+        )
+        self.chunk_overlap = int(
+            config.extra.get("chunk_overlap", NATIVE_CHUNK_OVERLAP)
+        )
+        self._chunks_path = self.work_dir / "chunks.jsonl"
+        self._graph_path = self.work_dir / "graph.json"
+        self._index_path = self.work_dir / "index.json"
+
+        self._chunks: list[dict[str, Any]] = []
+        self._graph: dict[str, dict[str, float]] = {}
+        self._chunk_terms: list[Counter] = []
+        self._chunk_embeddings: list[list[float]] | None = None
+
+        self._vendored_path = self._find_vendored_path()
+        self._native_components_loaded = False
+        self._full_rag: Any | None = None
+        if config.mode == RunMode.NATIVE:
+            self._try_load_native_components()
+
+    # ------------------------------------------------------------------
+    # Vendored / native component discovery
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _find_vendored_path() -> Path | None:
+        here = Path(__file__).resolve()
+        for parent in here.parents:
+            for sub in (
+                ("external", "baselines", "lightrag"),
+                ("external", "lightrag"),
+                ("vendor", "lightrag"),
+                ("third_party", "lightrag"),
+            ):
+                candidate = parent.joinpath(*sub)
+                if (
+                    candidate.is_dir()
+                    and (candidate / "lightrag").is_dir()
+                    and (candidate / "lightrag" / "__init__.py").is_file()
+                ):
+                    return candidate
+        return None
+
+    def _try_load_native_components(self) -> None:
+        """Load HF binding for native mode (no-op if not configured)."""
+        if self._vendored_path is None:
+            return
+        hf_llm = self.config.extra.get("hf_llm")
+        hf_embed = self.config.extra.get("hf_embed")
+        if not hf_llm or not hf_embed:
+            return
+        try:
+            if str(self._vendored_path) not in sys.path:
+                sys.path.insert(0, str(self._vendored_path))
+            from lightrag.llm.hf import hf_embed, hf_model_complete
+            from functools import partial
+
+            self._native_llm_func = partial(
+                hf_model_complete, hf_llm, max_context_size=8192
+            )
+            self._native_embed_func = partial(hf_embed, hf_embed)
+            self._native_components_loaded = True
+            logger.info(
+                "LightRAG native HF binding loaded (llm=%s, embed=%s)",
+                hf_llm,
+                hf_embed,
+            )
+        except Exception as exc:
+            logger.warning("Native HF binding unavailable: %s", exc)
+
+    def _should_use_full(self) -> bool:
+        if self._vendored_path is None:
+            return False
+        if self.config.mode == RunMode.CONTROLLED:
+            return self.embedder is not None and self.llm is not None
+        return self._native_components_loaded
+
+    # ------------------------------------------------------------------
+    # build_index
+    # ------------------------------------------------------------------
+    def build_index(self, documents: list[CanonicalDocument]) -> None:
+        strict = bool(self.config.extra.get("strict_full_path", False))
+        if strict and not self._should_use_full():
+            raise RuntimeError(
+                f"{self.name}: strict_full_path=true but full pipeline is "
+                f"not available (vendored={self._vendored_path}, "
+                f"components={self._native_components_loaded or (self.embedder is not None and self.llm is not None)}). "
+                f"Either provide components or set strict_full_path: false."
+            )
+        if self._should_use_full():
+            try:
+                self._build_index_full(documents)
+                return
+            except NotImplementedError:
+                raise
+            except Exception as exc:
+                logger.warning(
+                    "Full LightRAG pipeline failed, using fallback: %s",
+                    exc,
+                )
+        self._build_index_fallback(documents)
+
+    def _build_index_fallback(
+        self, documents: list[CanonicalDocument]
+    ) -> None:
+        chunks: list[dict[str, Any]] = []
+        for doc in documents:
+            text = doc.text_normalized or doc.text_raw
+            if not text:
+                continue
+            for cidx, chunk_text in enumerate(
+                _fixed_chunk(text, self.chunk_size, self.chunk_overlap)
+            ):
+                chunks.append(
+                    {
+                        "doc_id": doc.doc_id,
+                        "chunk_id": f"{doc.doc_id}::chunk::{cidx}",
+                        "text": chunk_text,
+                        "position": cidx,
+                    }
+                )
+        if not chunks:
+            self._write_empty()
+            return
+        graph = _build_cooccurrence_graph(chunks)
+        chunk_terms = [Counter(_tokenize(c["text"])) for c in chunks]
+        texts = [c["text"] for c in chunks]
+        if self.embedder is not None:
+            chunk_embeddings = self.embedder.encode_documents(texts)
+        else:
+            chunk_embeddings = [_fallback_embed(t) for t in texts]
+        self._chunks = chunks
+        self._graph = graph
+        self._chunk_terms = chunk_terms
+        self._chunk_embeddings = chunk_embeddings
+        self._write_artifacts()
+
+    def _build_index_full(
+        self, documents: list[CanonicalDocument]
+    ) -> None:
+        """Full vendored LightRAG pipeline (provisioned for GPU server).
+
+        Requirements:
+          controlled mode: injected Embedder + LLM.
+          native mode:     config.extra['hf_llm'] and ['hf_embed'] set,
+                           and HF binding imported successfully
+                           (see _try_load_native_components).
+
+        The implementation calls the official LightRAG entry points:
+
+            from lightrag import LightRAG
+            from lightrag.utils import EmbeddingFunc
+            rag = LightRAG(
+                working_dir=...,
+                llm_model_func=...,
+                embedding_func=EmbeddingFunc(
+                    embedding_dim=..., max_token_size=..., func=...,
+                ),
+                chunk_token_size=self.chunk_size,
+                chunk_overlap_token_size=self.chunk_overlap,
+            )
+            await rag.ainsert(text)
+
+        This hook is intentionally not executed in the current
+        environment because it requires real models. Complete it on the
+        GPU server. See README for integration guidance.
+        """
+        raise NotImplementedError(
+            "Full vendored LightRAG integration is provisioned for GPU "
+            "execution. Enable it by: (1) providing embedder+llm "
+            "(controlled) or hf_llm+hf_embed in config.extra (native); "
+            "(2) implementing _build_index_full and _retrieve_full "
+            "against the vendored code at external/baselines/lightrag."
+        )
+
+    # ------------------------------------------------------------------
+    # retrieve
+    # ------------------------------------------------------------------
+    def retrieve(
+        self,
+        query: str,
+        top_k: int | None = None,
+    ) -> list[RetrievedChunk]:
+        k = top_k if top_k is not None else self.config.top_k
+        strict = bool(self.config.extra.get("strict_full_path", False))
+        if strict and not self._should_use_full():
+            raise RuntimeError(
+                f"{self.name}: strict_full_path=true but full pipeline is "
+                f"not available (vendored={self._vendored_path}, "
+                f"components={self._native_components_loaded or (self.embedder is not None and self.llm is not None)}). "
+                f"Either provide components or set strict_full_path: false."
+            )
+        if k <= 0 or not self._chunks:
+            return []
+        if self._should_use_full():
+            try:
+                return self._retrieve_full(query, k)
+            except NotImplementedError:
+                raise
+            except Exception as exc:
+                logger.warning(
+                    "Full retrieval failed, using fallback: %s", exc
+                )
+        return self._retrieve_fallback(query, k)
+
+    def _retrieve_fallback(
+        self, query: str, k: int
+    ) -> list[RetrievedChunk]:
+        if (
+            self._chunk_embeddings is not None
+            and self.embedder is not None
+        ):
+            q_emb = self.embedder.encode_query(query)
+            sims = [_cosine(q_emb, e) for e in self._chunk_embeddings]
+        else:
+            q_terms = Counter(_tokenize(query))
+            sims = [
+                _term_overlap_score(q_terms, terms)
+                for terms in self._chunk_terms
+            ]
+        keywords = _extract_keywords(query)
+        graph_boost = [0.0] * len(self._chunks)
+        for kw in keywords:
+            neighbors = self._graph.get(kw)
+            if not neighbors:
+                continue
+            for idx, terms in enumerate(self._chunk_terms):
+                if kw in terms:
+                    graph_boost[idx] += 0.5
+                    for neigh, weight in neighbors.items():
+                        if neigh in terms:
+                            graph_boost[idx] += weight
+        fused = [
+            sims[i] + 0.3 * graph_boost[i]
+            for i in range(len(self._chunks))
+        ]
+        ranked = sorted(
+            range(len(fused)),
+            key=lambda i: fused[i],
+            reverse=True,
+        )[:k]
+        results: list[RetrievedChunk] = []
+        for rank, idx in enumerate(ranked, start=1):
+            chunk = self._chunks[idx]
+            results.append(
+                RetrievedChunk(
+                    doc_id=chunk["doc_id"],
+                    chunk_id=chunk["chunk_id"],
+                    text=chunk["text"],
+                    score=float(fused[idx]),
+                    rank=rank,
+                    parent_doc_id=chunk["doc_id"],
+                    metadata={"position": chunk.get("position", 0)},
+                )
+            )
+        return results
+
+    def _retrieve_full(
+        self, query: str, k: int
+    ) -> list[RetrievedChunk]:
+        """Full vendored LightRAG retrieval (provisioned for GPU server)."""
+        raise NotImplementedError(
+            "Full vendored LightRAG retrieval is provisioned for GPU "
+            "execution. Implement against the vendored code at "
+            "external/baselines/lightrag. See _build_index_full for "
+            "integration notes."
+        )
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
+    def _write_artifacts(self) -> None:
+        with self._chunks_path.open("w", encoding="utf-8") as fh:
+            for chunk in self._chunks:
+                fh.write(json.dumps(chunk, ensure_ascii=False) + "\n")
+        with self._graph_path.open("w", encoding="utf-8") as fh:
+            json.dump(self._graph, fh, ensure_ascii=False)
+        meta = {
+            "n_chunks": len(self._chunks),
+            "n_docs": len({c["doc_id"] for c in self._chunks}),
+            "chunk_size": self.chunk_size,
+            "chunk_overlap": self.chunk_overlap,
+        }
+        with self._index_path.open("w", encoding="utf-8") as fh:
+            json.dump(meta, fh, ensure_ascii=False)
+
+    def _write_empty(self) -> None:
+        self._chunks = []
+        self._graph = {}
+        self._chunk_terms = []
+        self._chunk_embeddings = None
+        self._chunks_path.write_text("", encoding="utf-8")
+        self._graph_path.write_text("{}", encoding="utf-8")
+        self._index_path.write_text('{"n_chunks": 0}', encoding="utf-8")
+
+
+# ----------------------------------------------------------------------
+# Chunking (fixed-token approximation of LightRAG's chunker)
+# ----------------------------------------------------------------------
+def _fixed_chunk(text: str, chunk_size: int, overlap: int) -> list[str]:
+    tokens = text.split()
+    if not tokens:
+        return []
+    if chunk_size <= 0:
+        return [text]
+    if overlap >= chunk_size:
+        overlap = max(0, chunk_size - 1)
+    step = max(1, chunk_size - overlap)
+    chunks: list[str] = []
+    i = 0
+    while i < len(tokens):
+        piece = tokens[i : i + chunk_size]
+        if piece:
+            chunks.append(" ".join(piece))
+        if i + chunk_size >= len(tokens):
+            break
+        i += step
+    return chunks
+
+
+# ----------------------------------------------------------------------
+# Tokenization
+# ----------------------------------------------------------------------
+_WORD_RE = re.compile(r"[A-Za-z\u0370-\u03FF0-9]+", re.UNICODE)
+_STOPWORDS = {
+    "the", "a", "an", "and", "or", "of", "to", "in", "on", "for",
+    "is", "are", "was", "were", "be", "been", "being", "with",
+    "as", "by", "at", "from", "that", "this", "these", "those",
+    "it", "its", "και", "να", "το", "τη", "την", "ο", "η", "οι",
+    "τα", "των", "της", "του", "σε", "με", "για", "από", "που",
+    "είναι", "στο", "στη",
+}
+
+
+def _tokenize(text: str) -> list[str]:
+    tokens = _WORD_RE.findall(text.lower())
+    return [t for t in tokens if len(t) > 2 and t not in _STOPWORDS]
+
+
+# ----------------------------------------------------------------------
+# Co-occurrence graph (fallback for LLM-based entity/relation graph)
+# ----------------------------------------------------------------------
+def _build_cooccurrence_graph(
+    chunks: list[dict[str, Any]], window: int = 3
+) -> dict[str, dict[str, float]]:
+    graph: dict[str, dict[str, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+    for chunk in chunks:
+        tokens = _tokenize(chunk["text"])
+        for i, tok in enumerate(tokens):
+            for j in range(i + 1, min(i + 1 + window, len(tokens))):
+                other = tokens[j]
+                if other == tok:
+                    continue
+                graph[tok][other] += 1.0
+                graph[other][tok] += 1.0
+    return {k: dict(v) for k, v in graph.items()}
+
+
+# ----------------------------------------------------------------------
+# Keyword extraction (fallback for LLM-based keyword extraction)
+# ----------------------------------------------------------------------
+def _extract_keywords(query: str, max_kw: int = 8) -> list[str]:
+    tokens = _tokenize(query)
+    if not tokens:
+        return []
+    return [tok for tok, _ in Counter(tokens).most_common(max_kw)]
+
+
+# ----------------------------------------------------------------------
+# Math helpers
+# ----------------------------------------------------------------------
+def _cosine(a: list[float], b: list[float]) -> float:
+    if not a or not b:
+        return 0.0
+    if len(a) != len(b):
+        n = min(len(a), len(b))
+        a, b = a[:n], b[:n]
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    if na == 0 or nb == 0:
+        return 0.0
+    return dot / (na * nb)
+
+
+def _term_overlap_score(q: Counter, d: Counter) -> float:
+    if not q or not d:
+        return 0.0
+    common = set(q) & set(d)
+    if not common:
+        return 0.0
+    num = sum(q[t] * d[t] for t in common)
+    den = (sum(q.values()) * sum(d.values())) ** 0.5
+    return num / den if den else 0.0
+
+
+def _fallback_embed(text: str, dim: int = 256) -> list[float]:
+    vec = [0.0] * dim
+    for tok in _tokenize(text):
+        h = int(hashlib.md5(tok.encode("utf-8")).hexdigest(), 16)
+        vec[h % dim] += 1.0
+    return vec

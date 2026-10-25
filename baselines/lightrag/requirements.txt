@@ -1,0 +1,16 @@
+﻿# LightRAG adapter — extra pip dependencies (beyond sah-rag[all]).
+#
+# The vendored LightRAG source is loaded via sys.path insertion from
+# external/baselines/lightrag, NOT pip-installed. These are the
+# transitive deps needed when the full vendored pipeline is activated
+# on the GPU server.
+#
+# Fallback pipeline (tests, CI) uses stdlib only — nothing required.
+#
+# --- Required for full vendored LightRAG pipeline ---
+# networkx>=3.3
+# nano-vectordb>=0.0.4
+# tiktoken>=0.7
+# torch>=2.0
+# transformers>=4.40
+# FlagEmbedding>=1.2

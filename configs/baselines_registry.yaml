@@ -39,7 +39,7 @@ baselines:
 - name: longrag
   display_name: LongRAG
   paper: LongRAG — Long-Context Retrieval-Augmented Generation
-  path: baselines/longrag
+  path: baselines/longrag_v2
   status: executable
   modes:
   - native
@@ -48,14 +48,27 @@ baselines:
   notes: Existing adapter from v1, migrated to v2. Reference implementation.
 - name: lightrag
   display_name: LightRAG
-  paper: LightRAG — Simple and Fast Retrieval-Augmented Generation
-  path: baselines/lightrag
-  status: reported
+  version: 0.1.0
+  status: executable
+  supports_native: true
+  supports_controlled: true
+  is_llm_based: true
   modes:
   - native
   - controlled
-  is_llm_based: true
-  notes: Graph + dual-level; needs graph index persistence.
+  license: MIT
+  paper: arXiv:2410.05779
+  path: baselines/lightrag
+  adapter: baselines/lightrag/adapter.py
+  config_native: baselines/lightrag/config_native.yaml
+  config_controlled: baselines/lightrag/config_controlled.yaml
+  repo: https://github.com/HKUDS/LightRAG
+  commit: 453dce83d6d0354a06e46c8d4029a0895c4e054b
+  native_tag: AUTHOR_SUPPORTED_NATIVE
+  controlled_tag: CONTROLLED_ADAPTATION
+  notes: Fallback path tested offline (contract-compliant). Full vendored pipeline
+    provisioned for GPU server (returns NotImplementedError until implemented). strict_full_path=true
+    in production configs prevents silent fallback.
 - name: hipporag2
   display_name: HippoRAG2
   paper: HippoRAG2 — Hippocampal-inspired RAG
@@ -130,7 +143,6 @@ baselines:
   config_native: baselines/splade/config_native.yaml
   config_controlled: baselines/splade/config_controlled.yaml
   native_model: naver/splade-v3
-
 - name: colbertv2
   version: 0.1.0
   display_name: ColBERTv2
@@ -146,20 +158,18 @@ baselines:
   config_native: baselines/colbertv2/config_native.yaml
   config_controlled: baselines/colbertv2/config_controlled.yaml
   native_model: colbert-ir/colbertv2.0
-  notes: >-
-    Retrieval-only late-interaction architecture. Native E2E terminates at IR
-    (no generation stage in paper/repo). Controlled mode architecturally
-    impossible: BGE-M3 dense vectors are incompatible with ColBERTv2 token-level
-    late interaction. See baselines/colbertv2/README.md.
-
-  # ---------------------------------------------------------------
-  # multi_meta_rag — multi-metadata RAG
-  # ---------------------------------------------------------------
-  - name: multi_meta_rag
-    display_name: Multi-Metadata RAG
-    paper: "Companion B (REPORT_v2.tex)"
-    path: baselines/multi_meta_rag
-    status: executable
-    modes: [native, controlled]
-    is_llm_based: false
-    notes: "Dual-mode. Native requires OPENAI_API_KEY + bge-large-en-v1.5 (deferred). Controlled ready with injected BGE-M3."
+  notes: 'Retrieval-only late-interaction architecture. Native E2E terminates at IR
+    (no generation stage in paper/repo). Controlled mode architecturally impossible:
+    BGE-M3 dense vectors are incompatible with ColBERTv2 token-level late interaction.
+    See baselines/colbertv2/README.md.'
+- name: multi_meta_rag
+  display_name: Multi-Metadata RAG
+  paper: Companion B (REPORT_v2.tex)
+  path: baselines/multi_meta_rag
+  status: executable
+  modes:
+  - native
+  - controlled
+  is_llm_based: false
+  notes: Dual-mode. Native requires OPENAI_API_KEY + bge-large-en-v1.5 (deferred).
+    Controlled ready with injected BGE-M3.

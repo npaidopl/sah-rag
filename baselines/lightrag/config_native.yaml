@@ -1,0 +1,13 @@
+# LightRAG — native mode (AUTHOR_SUPPORTED_NATIVE)
+# strict_full_path=true: fail-fast if full pipeline unavailable.
+# Uncomment hf_llm/hf_embed for GPU execution.
+name: lightrag
+mode: native
+top_k: 10
+extra:
+  chunk_size: 1200
+  chunk_overlap: 100
+  strict_full_path: true
+  # hf_llm: Qwen/Qwen2.5-7B-Instruct
+  # hf_embed: BAAI/bge-m3
+  # hf_embed_dim: 1024
