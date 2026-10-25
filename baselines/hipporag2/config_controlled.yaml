@@ -1,0 +1,13 @@
+name: hipporag2
+mode: controlled
+top_k: 10
+extra:
+  # NOTE: embedder and llm are INJECTED by the orchestrator; do NOT list them here.
+  chunk_size: 1024
+  chunk_overlap: 0
+  synonymy_edge_topk: 2047
+  synonymy_edge_sim_threshold: 0.8
+  ppr_damping: 0.5
+  passage_node_weight: 0.05
+  max_entities_per_passage: 50
+  enable_dense_fallback: true

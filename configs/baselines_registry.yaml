@@ -73,7 +73,7 @@ baselines:
   display_name: HippoRAG2
   paper: HippoRAG2 — Hippocampal-inspired RAG
   path: baselines/hipporag2
-  status: reported
+  status: executable
   modes:
   - native
   - controlled

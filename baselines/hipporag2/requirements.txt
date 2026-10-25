@@ -1,0 +1,10 @@
+# HippoRAG2 baseline — extra dependencies beyond sah-rag[all]
+#
+# Controlled mode: no extra dependencies (uses injected embedder + llm).
+#
+# Native mode: requires the official `hipporag` package, which pulls in:
+#   torch, transformers, vllm, openai, litellm, networkx, python-igraph, pydantic
+# Install with:
+#   pip install git+https://github.com/OSU-NLP-Group/HippoRAG.git
+#
+# If native mode is not required, leave this file as-is.

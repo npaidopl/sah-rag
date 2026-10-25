@@ -1,0 +1,19 @@
+name: hipporag2
+mode: native
+top_k: 10
+extra:
+  # Author-supported native configuration:
+  # - Official `hipporag` package (MIT license), unmodified
+  # - BGE-M3 embedder via TransformersEmbeddingModel (MIT, replaces NV-Embed-v2 CC-BY-NC-4.0)
+  # - gpt-4o-mini OpenIE/LLM (paper default). Change to a local model if no API key.
+  # - python-igraph backend, unidirectional entity->passage edges
+  embedder_model_name: "Transformers/BAAI/bge-m3"
+  llm_name: "gpt-4o-mini"
+  openie_mode: "online"
+  graph_type: "facts_and_sim_passage_node_unidirectional"
+  synonymy_edge_topk: 2047
+  synonymy_edge_sim_threshold: 0.8
+  ppr_damping: 0.5
+  passage_node_weight: 0.05
+  # chunk_size: 1024   # uncomment to chunk long docs; 0 = whole doc as one passage
+  # chunk_overlap: 0
