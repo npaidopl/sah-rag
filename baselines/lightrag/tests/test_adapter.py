@@ -203,3 +203,63 @@ def test_parse_context_substring_match(tmp_path):
     assert results[1].rank == 2
     assert results[1].doc_id == "doc_b"
     assert results[1].metadata["matched"] is True
+
+
+def test_parse_context_reference_id(tmp_path):
+    """Chunk_id substring match recovers doc_ids from LightRAG-style JSON."""
+    import json as _json
+    cfg = _test_config(RunMode.NATIVE, top_k=3)
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    kv_dir = tmp_path / "idx" / "lightrag"
+    kv_dir.mkdir(parents=True, exist_ok=True)
+    kv_store = {
+        "doc_a-chunk-000": {
+            "content": "Marie Curie was a Polish and French physicist.",
+            "full_doc_id": "doc_a",
+        },
+        "doc_b-chunk-000": {
+            "content": "Albert Einstein developed relativity theory.",
+            "full_doc_id": "doc_b",
+        },
+    }
+    (kv_dir / "kv_store_text_chunks.json").write_text(_json.dumps(kv_store))
+
+    # Simulate LightRAG hybrid context: KG block + Document Chunks JSON list
+    context_str = (
+        "Knowledge Graph Data (Entity):\n"
+        '{"entity": "Marie Curie", "type": "person"}\n'
+        "Document Chunks (Each entry has a reference_id):\n"
+        '[{"reference_id": "doc_a-chunk-000", "content": "Marie Curie..."},\n'
+        ' {"reference_id": "doc_b-chunk-000", "content": "Albert Einstein..."}]'
+    )
+
+    results = baseline._parse_context_to_chunks(context_str, k=3)
+    assert len(results) == 2
+    assert results[0].doc_id == "doc_a"
+    assert results[0].metadata["matched"] is True
+    assert results[1].doc_id == "doc_b"
+    assert results[1].metadata["matched"] is True
+
+
+def test_parse_context_partial_text(tmp_path):
+    """When reference_id absent, first 60 chars of chunk text are searched."""
+    import json as _json
+    cfg = _test_config(RunMode.NATIVE, top_k=3)
+    baseline = LightRAGBaseline(config=cfg, work_dir=tmp_path / "idx")
+
+    kv_dir = tmp_path / "idx" / "lightrag"
+    kv_dir.mkdir(parents=True, exist_ok=True)
+    long_text = "A" * 200 + " ends here."
+    kv_store = {
+        "c1": {"content": long_text, "full_doc_id": "doc_x"},
+    }
+    (kv_dir / "kv_store_text_chunks.json").write_text(_json.dumps(kv_store))
+
+    # Context contains only the first 100 chars (truncated in output)
+    context_str = "Document Chunks: " + long_text[:100] + "..."
+
+    results = baseline._parse_context_to_chunks(context_str, k=3)
+    assert len(results) == 1
+    assert results[0].doc_id == "doc_x"
+    assert results[0].metadata["matched"] is True

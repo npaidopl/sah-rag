@@ -422,12 +422,26 @@ class LightRAGBaseline(BaseBaseline):
                 chunk_token_size=self.chunk_size,
                 chunk_overlap_token_size=self.chunk_overlap,
             )
-        await rag.initialize_storages()
+        try:
+            await rag.initialize_storages()
+        except AttributeError:
+            logger.warning("LightRAG.initialize_storages not available")
+        except Exception as exc:
+            logger.warning("initialize_storages raised: %s", exc)
+
         for doc in documents:
             text = doc.text_normalized or doc.text_raw
             if text:
                 await rag.ainsert(text, ids=doc.doc_id)
-        await rag.finalize_storages()
+
+        try:
+            if hasattr(rag, "finalize_storages"):
+                await rag.finalize_storages()
+        except AttributeError:
+            logger.warning("LightRAG.finalize_storages not available")
+        except Exception as exc:
+            logger.warning("finalize_storages raised: %s", exc)
+
         self._full_rag = rag
 
     def retrieve(
@@ -540,58 +554,104 @@ class LightRAGBaseline(BaseBaseline):
     def _parse_context_to_chunks(self, context_str, k):
         """Parse LightRAG formatted context into RetrievedChunks.
 
-        Strategy: substring match first (most robust — chunk text appears
-        verbatim inside context when LightRAG builds it from stored chunks).
-        Falls back to delimiter-based split with unmatched results if no
-        chunk text can be located (e.g. context truncated or reshaped).
+        LightRAG's only_need_context=True output has multiple possible
+        formats depending on mode:
+          - naive:    "Document Chunks: {json-list-of-chunks-with-reference_id}"
+          - local/global/hybrid:
+                "Knowledge Graph Data (Entity): {json}\n...\nDocument Chunks: {...}"
 
-        Retrieval ordering is native (position in context = LightRAG's own
-        ranking). Scores are synthetic position-based proxies for IR metric
-        compatibility; doc_id resolution is content-based, not guessed.
+        Chunk text may be escaped (JSON), truncated, or re-formatted.
+        Full-text hash lookup is therefore unreliable.
+
+        Four strategies, best first:
+          1. chunk_id substring match — search "doc-x-chunk-N" tokens.
+             Most robust: chunk_id is a stable short identifier.
+          2. Partial text match — first 60 chars of each stored chunk.
+             Tolerates trailing truncation or escaping of long chunks.
+          3. Full text match — legacy exact-hash approach.
+          4. Delimiter split — old fallback, keeps unmatched pieces.
+
+        Ranking is native (order of first appearance in context). Scores
+        are synthetic proxies (k - rank + 1). No fabricated doc_ids:
+        unmatched chunks are marked matched=False with doc_id="unknown::N".
         """
         if not isinstance(context_str, str) or not context_str.strip():
             return []
         stored = self._load_stored_chunks()
+        if not stored:
+            return []
 
-        # Strategy 1: substring match
-        if stored:
-            matches = []
-            for content_hash, info in stored.items():
-                text = info.get("text", "")
-                if not text or len(text) < 10:
+        def _build_results(matched_infos):
+            results = []
+            seen = set()
+            unique = []
+            for pos, info in sorted(matched_infos, key=lambda x: x[0]):
+                cid = info["chunk_id"]
+                if cid in seen:
                     continue
-                pos = context_str.find(text)
-                if pos >= 0:
-                    matches.append((pos, info))
-            if matches:
-                seen = set()
-                unique = []
-                for pos, info in sorted(matches, key=lambda x: x[0]):
-                    cid = info["chunk_id"]
-                    if cid in seen:
-                        continue
-                    seen.add(cid)
-                    unique.append((pos, info))
-                results = []
-                for rank, (pos, info) in enumerate(unique[:k], start=1):
-                    results.append(
-                        RetrievedChunk(
-                            doc_id=info["doc_id"],
-                            chunk_id=info["chunk_id"],
-                            text=info["text"],
-                            score=float(k - rank + 1),
-                            rank=rank,
-                            parent_doc_id=info["doc_id"],
-                            metadata={
-                                "source": "full_pipeline",
-                                "matched": True,
-                                "context_pos": pos,
-                            },
-                        )
+                seen.add(cid)
+                unique.append((pos, info))
+            for rank, (pos, info) in enumerate(unique[:k], start=1):
+                results.append(
+                    RetrievedChunk(
+                        doc_id=info["doc_id"],
+                        chunk_id=info["chunk_id"],
+                        text=info["text"],
+                        score=float(k - rank + 1),
+                        rank=rank,
+                        parent_doc_id=info["doc_id"],
+                        metadata={
+                            "source": "full_pipeline",
+                            "matched": True,
+                            "context_pos": pos,
+                        },
                     )
-                return results
+                )
+            return results
 
-        # Strategy 2 (fallback): delimiter split
+        # Strategy 1: chunk_id substring
+        matched = []
+        for info in stored.values():
+            cid = info["chunk_id"]
+            if not cid:
+                continue
+            pos = context_str.find(cid)
+            if pos >= 0:
+                matched.append((pos, info))
+        if matched:
+            return _build_results(matched)
+
+        # Strategy 2: partial text (first 60 chars, after escape normalization)
+        matched = []
+        for info in stored.values():
+            text = info.get("text", "")
+            if len(text) < 20:
+                continue
+            needle = text[:60]
+            # unescape common JSON escapes in needle if context is JSON
+            pos = context_str.find(needle)
+            if pos < 0:
+                # try with JSON escapes on quotes/backslashes
+                alt = needle.replace('\\', '\\\\').replace('"', '\\"')
+                pos = context_str.find(alt)
+            if pos >= 0:
+                matched.append((pos, info))
+        if matched:
+            return _build_results(matched)
+
+        # Strategy 3: full text (legacy)
+        matched = []
+        for info in stored.values():
+            text = info.get("text", "")
+            if not text or len(text) < 10:
+                continue
+            pos = context_str.find(text)
+            if pos >= 0:
+                matched.append((pos, info))
+        if matched:
+            return _build_results(matched)
+
+        # Strategy 4: delimiter split with unmatched fallback
         pieces = []
         for delimiter in ("--New Chunk--", "-----"):
             if delimiter in context_str:
@@ -603,11 +663,10 @@ class LightRAGBaseline(BaseBaseline):
                 break
         if not pieces:
             pieces = [context_str.strip()]
-
         results = []
         for rank, piece in enumerate(pieces[:k], start=1):
             content_hash = hashlib.md5(piece.encode("utf-8")).hexdigest()
-            info = stored.get(content_hash) if stored else None
+            info = stored.get(content_hash)
             if info:
                 results.append(
                     RetrievedChunk(
