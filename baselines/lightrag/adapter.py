@@ -105,6 +105,7 @@ class LightRAGBaseline(BaseBaseline):
         self._native_embed_tokenizer: Any | None = None
         self._native_embed_model: Any | None = None
         self._full_rag: Any | None = None
+        self._storages_initialized: bool = False
         if config.mode == RunMode.NATIVE:
             self._try_load_native_components()
 
@@ -424,24 +425,21 @@ class LightRAGBaseline(BaseBaseline):
             )
         try:
             await rag.initialize_storages()
+            self._storages_initialized = True
         except AttributeError:
             logger.warning("LightRAG.initialize_storages not available")
+            self._storages_initialized = True
         except Exception as exc:
             logger.warning("initialize_storages raised: %s", exc)
+            self._storages_initialized = True
 
         for doc in documents:
             text = doc.text_normalized or doc.text_raw
             if text:
                 await rag.ainsert(text, ids=doc.doc_id)
 
-        try:
-            if hasattr(rag, "finalize_storages"):
-                await rag.finalize_storages()
-        except AttributeError:
-            logger.warning("LightRAG.finalize_storages not available")
-        except Exception as exc:
-            logger.warning("finalize_storages raised: %s", exc)
-
+        # Do NOT finalize_storages here — retrieval needs storages open.
+        # Caller may invoke cleanup() to close them explicitly.
         self._full_rag = rag
 
     def retrieve(
@@ -449,28 +447,35 @@ class LightRAGBaseline(BaseBaseline):
         query: str,
         top_k: int | None = None,
     ) -> list[RetrievedChunk]:
+        """Retrieve top-k chunks for a single query.
+
+        Full pipeline state lives on disk (not in self._chunks), so the
+        empty-_chunks early-return applies only to the fallback path.
+        """
         k = top_k if top_k is not None else self.config.top_k
         strict = bool(self.config.extra.get("strict_full_path", False))
-        if strict and not self._should_use_full():
+        use_full = self._should_use_full()
+        if strict and not use_full:
             raise RuntimeError(
                 f"{self.name}: strict_full_path=true but full pipeline is "
                 f"not available (vendored={self._vendored_path}, "
                 f"components={self._native_components_loaded or (self.embedder is not None and self.llm is not None)}). "
                 f"Either provide components or set strict_full_path: false."
             )
-        if k <= 0 or not self._chunks:
+        if k <= 0:
             return []
-        if self._should_use_full():
+        if use_full:
             try:
                 return self._retrieve_full(query, k)
-            except NotImplementedError:
-                raise
             except Exception as exc:
+                if strict:
+                    raise
                 logger.warning(
                     "Full retrieval failed, using fallback: %s", exc
                 )
+        if not self._chunks:
+            return []
         return self._retrieve_fallback(query, k)
-
     def _retrieve_fallback(
         self, query: str, k: int
     ) -> list[RetrievedChunk]:
@@ -538,6 +543,12 @@ class LightRAGBaseline(BaseBaseline):
     ) -> list[RetrievedChunk]:
         if self._full_rag is None:
             raise RuntimeError("Full LightRAG not built")
+        if not getattr(self, "_storages_initialized", False):
+            try:
+                await self._full_rag.initialize_storages()
+                self._storages_initialized = True
+            except Exception as exc:
+                logger.warning("initialize_storages during retrieve: %s", exc)
         try:
             from lightrag import QueryParam
         except ImportError:
@@ -718,6 +729,27 @@ class LightRAGBaseline(BaseBaseline):
                 "text": chunk_content,
             }
         return mapping
+
+    def cleanup(self) -> None:
+        """Close LightRAG storages if they were opened."""
+        if getattr(self, "_full_rag", None) is None:
+            return
+        if not getattr(self, "_storages_initialized", False):
+            return
+        try:
+            if hasattr(self._full_rag, "finalize_storages"):
+                import asyncio
+                try:
+                    asyncio.get_running_loop()
+                except RuntimeError:
+                    asyncio.run(self._full_rag.finalize_storages())
+                else:
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                        ex.submit(asyncio.run, self._full_rag.finalize_storages()).result()
+                self._storages_initialized = False
+        except Exception as exc:
+            logger.warning("cleanup finalize_storages: %s", exc)
 
     def _run_async(self, coro):
         """Run an async coroutine from sync code."""
