@@ -1,4 +1,4 @@
-﻿# LightRAG baseline (SAH-RAG v2)
+# LightRAG baseline (SAH-RAG v2)
 
 **Status:** `EXECUTABLE`
 **Native tag:** `AUTHOR_SUPPORTED_NATIVE` (NOT paper-exact)
@@ -188,7 +188,9 @@ The full vendored LightRAG pipeline requires the official source at
 `external/baselines/lightrag/` (gitignored — not committed). To
 reproduce:
 
-
+    git clone https://github.com/HKUDS/LightRAG.git external\baselines\lightrag
+    cd external\baselines\lightrag
+    git checkout 453dce83d6d0354a06e46c8d4029a0895c4e054b
 
 Then install runtime deps (already in `requirements.txt` of this
 adapter): `pip install -r baselines/lightrag/requirements.txt`.
