@@ -209,3 +209,16 @@ Without the vendored source, the adapter uses the fallback path
 (co-occurrence graph + hash-based embeddings). With `strict_full_path:
 true` in production configs, execution fails-fast if the vendored
 source is missing — guaranteeing no silent fallback in production.
+## Known limitations
+
+### Event-loop churn in retrieval (production overhead, not correctness)
+
+LightRAG's embedding worker pools are bound to the event loop they were
+created in. `_run_async` currently uses `asyncio.run()` which creates a
+fresh event loop per call, so workers reinitialize on every query
+transition (~15 "bound to a different event loop" errors per transition).
+
+Results remain correct; on full dataset runs (~400 queries across 4
+datasets) this adds ~30 minutes of overhead. A persistent event loop in
+`_run_async` would eliminate it. Deferred to production optimization —
+does not affect native status or correctness. See ACCEPTANCE.md.
