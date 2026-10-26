@@ -1,0 +1,6 @@
+name: memorag
+mode: native
+top_k: 10
+extra:
+  memory_model: TommyChien/memorag-qwen2-7b-inst
+  retriever_model: BAAI/bge-m3

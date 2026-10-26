@@ -1,0 +1,15 @@
+# MemoRAG-specific dependencies.
+# Needed for native/controlled EXECUTION with the official package.
+# NOT needed for the offline unit tests (tests/test_adapter.py mocks memorag).
+#
+# Install with: pip install -r workspace/memorag_dev/requirements.txt
+
+memorag>=0.1.5
+torch>=2.0
+transformers>=4.40
+huggingface-hub>=0.23
+accelerate>=0.30
+sentencepiece>=0.2
+faiss-cpu>=1.7
+numpy>=1.26
+tqdm>=4.66

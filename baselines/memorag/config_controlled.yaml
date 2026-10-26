@@ -1,0 +1,8 @@
+name: memorag
+mode: controlled
+top_k: 10
+extra:
+  # embedder and llm are injected by orchestrator; do NOT specify here
+  # Memory model is architecture-defining and stays native
+  memory_model: TommyChien/memorag-qwen2-7b-inst
+  retriever_model: BAAI/bge-m3

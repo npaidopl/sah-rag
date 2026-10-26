@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+pilot/artifacts/
+work_dir/

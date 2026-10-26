@@ -116,12 +116,12 @@ baselines:
   display_name: MemoRAG
   paper: MemoRAG — Memory-Augmented RAG
   path: baselines/memorag
-  status: reported
+  status: executable
   modes:
   - native
   - controlled
   is_llm_based: true
-  notes: Memory-based; controlled mode requires reviewing KV-cache injection.
+  notes: Author-supported native MemoRAG. Clue stage preserved (architecture-defining). Pilot scripts under baselines/memorag/pilot/.
 - name: kag
   display_name: KAG
   paper: KAG — Knowledge Augmented Generation

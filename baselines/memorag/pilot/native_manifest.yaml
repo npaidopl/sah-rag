@@ -1,0 +1,78 @@
+# MemoRAG native pilot manifest
+# Tier: AUTHOR_SUPPORTED_NATIVE
+# Purpose: prove the native end-to-end MemoRAG path runs on the GPU host.
+#
+# Fields marked <PIN_ME> must be filled in once the GPU host has been
+# provisioned and the pilot has produced its first real artifacts.
+# Fields marked <FILL_FROM_SMOKE> are emitted automatically by
+# smoke_test_native.py into pilot/artifacts/.
+
+pilot_id: memorag_native_pilot_v1
+baseline: memorag
+tier: author_supported_native
+frozen_at_utc: <PIN_ME>
+
+source:
+  repo: https://github.com/qhjqhj00/MemoRAG
+  # The audit clone was pinned at this commit; re-pin on the GPU host
+  # to the commit actually used for the pilot run:
+  #   git -C <memorag_clone> rev-parse HEAD
+  commit: 7c23dfa855289a2a99fe72c98e024105196ce01e   # <PIN_ME on GPU host>
+  install: pip install git+https://github.com/qhjqhj00/MemoRAG@<PIN_ME>
+  # Or, if using the PyPI package:
+  # install: pip install memorag==0.1.5
+
+models:
+  memory:
+    id: TommyChien/memorag-qwen2-7b-inst
+    revision: <PIN_ME>          # hf_hub_download returns the exact revision
+  retriever:
+    id: BAAI/bge-m3
+    revision: <PIN_ME>          # local clone under D:/rag_work/hf_cache
+  # Native generation: the paper's expressive reader path.
+  # If the pilot uses generation, pin the generator here.
+  # If generation is disabled for the pilot, set enabled: false.
+  generator:
+    enabled: <PIN_ME>           # true for full e2e, false for IR-only
+    id: <PIN_ME>
+    revision: <PIN_ME>
+
+context:
+  # Pilot context budget; NOT the paper's 1M token claim.
+  # Choose the largest length that fits comfortably in GPU VRAM.
+  max_tokens: 400000             # <PIN_ME after VRAM measurement>
+  clue_count: <PIN_ME>           # native default from package, if exposed
+
+execution:
+  host: university_gpu
+  cuda_required: true
+  min_vram_gb: <PIN_ME>
+  python: ">=3.12,<3.13"
+  packages:
+    - torch
+    - transformers
+    - faiss-gpu
+    - accelerate
+    - sentencepiece
+
+seeds:
+  global: 42
+  torch: 42
+  numpy: 42
+
+artifacts:
+  dir: pilot/artifacts/native_<timestamp>/
+  expected:
+    - env.txt
+    - probe.json
+    - load.log
+    - retrieve_probe.json
+    - generate_probe.json    # only if generation.enabled
+
+# Anti-drift: refuse to call this native if any of these change
+# without a new pilot_id.
+frozen_invariants:
+  - memory model id
+  - retriever id
+  - clue stage presence
+  - context construction from memory to retrieval
