@@ -132,3 +132,18 @@ def test_controlled_requires_llm_when_llm_based(tmp_path: Path) -> None:
 def test_native_end_to_end(tmp_path: Path) -> None:
     """Placeholder: enable on the GPU server with real embedder_path / llm_path."""
     pass
+
+def test_paper_exact_requires_openai_key(tmp_path: Path) -> None:
+    """PAPER_EXACT_NATIVE must refuse to run without OPENAI_API_KEY."""
+    import os
+    old = os.environ.pop("OPENAI_API_KEY", None)
+    try:
+        cfg = BaselineConfig(
+            name="raptor", mode=RunMode.NATIVE, top_k=3,
+            extra={"native_fidelity": "PAPER_EXACT_NATIVE"},
+        )
+        with pytest.raises((ValueError, RuntimeError)):
+            RaptorBaseline(config=cfg, work_dir=tmp_path / "idx_pe")
+    finally:
+        if old is not None:
+            os.environ["OPENAI_API_KEY"] = old
