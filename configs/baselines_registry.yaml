@@ -81,15 +81,27 @@ baselines:
   notes: PPR-based; graph index persistence needed.
 - name: raptor
   display_name: RAPTOR
-  paper: RAPTOR — Recursive Abstractive Processing for Tree-Organized Retrieval
-  path: baselines/raptor
-  status: reported
+  version: 0.1.0
+  status: executable
+  supports_native: true
+  supports_controlled: true
+  is_llm_based: true
   modes:
   - native
   - controlled
-  is_llm_based: true
-  notes: Recursive tree; controlled mode needs cluster-summary generation via injected
-    LLM.
+  license: MIT
+  paper: 'RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval'
+  path: baselines/raptor
+  adapter: baselines/raptor/adapter.py
+  config_native: baselines/raptor/config_native.yaml
+  config_controlled: baselines/raptor/config_controlled.yaml
+  native_tag: AUTHOR_SUPPORTED_NATIVE
+  controlled_tag: CONTROLLED_ADAPTATION
+  notes: 'Graduated from workspace. Recursive GMM+UMAP tree with LLM summarization
+    at every level; collapsed-tree retrieval (paper-preferred variant; Sec 4.2 reports
+    +2-4.5pp over tree-traversal). Native mode uses local Qwen2.5-1.5B-Instruct +
+    BGE-M3 via official author-supported interfaces; paper-exact not claimed. IR-only
+    per v2 scope.'
 - name: metadata_rag
   display_name: Metadata-RAG
   paper: Metadata-Enriched RAG with Windowing

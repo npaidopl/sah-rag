@@ -1,0 +1,19 @@
+name: raptor
+mode: native
+top_k: 10
+extra:
+  # Native (AUTHOR_SUPPORTED_NATIVE) component selection.
+  # Values may be HuggingFace hub ids OR local directories.
+  # Override these on the GPU server if using local paths, e.g.:
+  #   embedder_path: D:/rag_work/models/bge-m3
+  #   llm_path:      D:/rag_work/models/Qwen2.5-1.5B-Instruct
+  embedder_path: BAAI/bge-m3
+  llm_path: Qwen/Qwen2.5-1.5B-Instruct
+
+  # RAPTOR algorithm hyperparameters (paper defaults).
+  chunk_size: 100
+  chunk_overlap: 20
+  max_levels: 4
+  cluster_size: 8
+  umap_components: 32
+  random_seed: 42

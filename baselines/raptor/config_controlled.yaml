@@ -1,0 +1,12 @@
+name: raptor
+mode: controlled
+top_k: 10
+extra:
+  # NOTE: embedder and llm are INJECTED by the orchestrator in controlled mode.
+  # Do NOT list embedder_path / llm_path here.
+  chunk_size: 100
+  chunk_overlap: 20
+  max_levels: 4
+  cluster_size: 8
+  umap_components: 32
+  random_seed: 42

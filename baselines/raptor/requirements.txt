@@ -1,0 +1,11 @@
+# --- Required for tests (controlled mode + clustering) ---
+numpy>=1.26.0
+scikit-learn>=1.4.0
+umap-learn>=0.5.5
+
+# --- Required only for native mode (real embedder + real LLM) ---
+# Uncomment on the GPU server before running `config_native.yaml`.
+# sentence-transformers>=2.7.0
+# transformers>=4.40.0
+# accelerate>=0.30.0
+# torch>=2.2.0
