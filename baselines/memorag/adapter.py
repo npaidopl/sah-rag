@@ -28,7 +28,7 @@ class MemoRAGBaseline(BaseBaseline):
     status = BaselineStatus.EXECUTABLE
     supports_native = True
     supports_controlled = True
-    is_llm_based = True
+    is_llm_based = False  # IR-only; injected LLM not used in v2 adapter
 
     def __init__(
         self,

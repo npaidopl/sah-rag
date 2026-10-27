@@ -197,3 +197,63 @@ None. The adapter:
 - [ ] Supervisor review
 - [ ] Graduation to `baselines/memorag/`
 - [ ] Entry in `configs/baselines_registry.yaml` (status: executable)
+
+## Addendum: native E2E and the injected-LLM question
+
+The v2 adapter is **IR-only**. It does not call `self.llm.generate()`,
+and its `is_llm_based` flag is therefore `False`. This is a deliberate
+decision, not an omission:
+
+- In `native` mode, MemoRAG uses its own memory model (Qwen2-7B) as
+  both the clue generator and the answer generator. There is no
+  injected LLM to call.
+- In `controlled` mode, the v2 contract disables final answer
+  generation (Section 9, Rule 6). The injected LLM is accepted for
+  signature compatibility but is not exercised.
+
+Native end-to-end generation — including the expressive reader path
+that the paper evaluates — lives in `pilot/run_native_e2e.py`. That
+script uses the official memory checkpoint as both clue generator and
+generator, which is the official MemoRAG default and requires **no
+external API key**. It is the artifact that justifies the
+`AUTHOR_SUPPORTED_NATIVE` label; the adapter alone cannot, because
+the v2 contract forbids generation inside adapters.
+
+An examiner should therefore look at:
+
+- `baselines/memorag/adapter.py` for the IR-only comparison track;
+- `baselines/memorag/pilot/run_native_e2e.py` and its artifacts for
+  the native generation track.
+
+## Native-readiness status (2026-10-27)
+
+The checkpoint, tokenizer, config, manifests, adapter, and dependency set
+are all verified on the CPU host. Native end-to-end execution is blocked
+only by RAM (15.37 GB total, 5.8 GB free; the 7B checkpoint needs ~28 GB
+to load in fp16). This is documented in `pilot/RESULTS_CPU_PROBE.md`.
+
+Two artefacts settle the status:
+
+- `pilot/native_manifest.yaml` — fully pinned (0 remaining `<PIN_ME>`),
+  with the memory checkpoint revision `a60e362e7922d9ac0014279dd0ae7a038ff7138e`
+  and the BGE-M3 revision `5617a9f61b028005a4858fdac845db406aefb181`.
+- `pilot/RESULTS_CPU_PROBE.md` — the verified evidence base: 4/4 safetensors
+  shards open cleanly (508 tensors, 8.08B params), tokenizer and config
+  load, adapter tests pass, five-point nativeness rubric satisfied at the
+  static level.
+
+When the university GPU is available, the native end-to-end evidence is
+produced by running, in order:
+
+    python baselines/memorag/pilot/smoke_test_native.py \
+        --manifest baselines/memorag/pilot/native_manifest.yaml \
+        --out baselines/memorag/pilot/artifacts/native_run1
+    python baselines/memorag/pilot/run_native_e2e.py \
+        --manifest baselines/memorag/pilot/native_manifest.yaml \
+        --out baselines/memorag/pilot/artifacts/native_e2e_run1
+    python baselines/memorag/pilot/smoke_test_controlled.py \
+        --manifest baselines/memorag/pilot/controlled_manifest.yaml \
+        --out baselines/memorag/pilot/artifacts/controlled_run1
+
+`run_native_e2e.py` uses the official memory model as the generator and
+does not require any external API key.

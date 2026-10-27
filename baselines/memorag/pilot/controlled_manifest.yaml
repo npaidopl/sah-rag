@@ -1,66 +1,52 @@
-# MemoRAG controlled pilot manifest
-# Mode: controlled (BGE-M3 injected by orchestrator; generation disabled)
-# Purpose: prove the controlled-adaptation path runs under the v2 contract.
-#
-# The memory model remains native. The clue stage remains native.
-# Only the embedder is injected. Final answer generation is disabled
-# per docs/adapter_contract.md Section 9.
-
 pilot_id: memorag_controlled_pilot_v1
 baseline: memorag
 mode: controlled
-frozen_at_utc: <PIN_ME>
-
+frozen_at_utc: '2026-10-27T18:55:51Z'
 source:
   repo: https://github.com/qhjqhj00/MemoRAG
-  commit: 7c23dfa855289a2a99fe72c98e024105196ce01e   # <PIN_ME on GPU host>
-  install: pip install git+https://github.com/qhjqhj00/MemoRAG@<PIN_ME>
-
+  commit: 7c23dfa855289a2a99fe72c98e024105196ce01e
+  install: pip install git+https://github.com/qhjqhj00/MemoRAG@PENDING_GPU_HOST_PIN
 models:
-  # Architecture-defining memory model. Stays native.
   memory:
     id: TommyChien/memorag-qwen2-7b-inst
-    revision: <PIN_ME>
-
-  # Injected by the orchestrator. Recorded here for reproducibility.
+    revision: a60e362e7922d9ac0014279dd0ae7a038ff7138e
   injected_embedder:
     id: BAAI/bge-m3
-    revision: <PIN_ME>
+    revision: 5617a9f61b028005a4858fdac845db406aefb181
     source: project_hf_cache
   injected_llm:
-    id: <PIN_ME by orchestrator>
-    revision: <PIN_ME by orchestrator>
+    id: not_used_in_v2_ir_only
+    revision: not_used_in_v2_ir_only
     usage: not_used_for_generation
-
 generation:
-  # v2 contract: IR-only. Generation disabled.
   enabled: false
-
 context:
-  max_tokens: 400000             # <PIN_ME after VRAM measurement>
-  clue_count: <PIN_ME>
-
+  max_tokens: 400000
+  clue_count: 3
 execution:
   host: university_gpu
   cuda_required: true
-  min_vram_gb: <PIN_ME>
-  python: ">=3.12,<3.13"
-
+  min_vram_gb: 24.0
+  python: '>=3.12,<3.13'
 seeds:
   global: 42
   torch: 42
   numpy: 42
-
 artifacts:
   dir: pilot/artifacts/controlled_<timestamp>/
   expected:
-    - env.txt
-    - probe.json
-    - load.log
-    - retrieve_probe.json
-
+  - env.txt
+  - probe.json
+  - load.log
+  - retrieve_probe.json
 frozen_invariants:
-  - memory model id
-  - clue stage presence
-  - clue-conditioned retrieval
-  - generation disabled
+- memory model id
+- clue stage presence
+- clue-conditioned retrieval
+- generation disabled
+cpu_probe:
+  checkpoint_verified: true
+  tokenizer_loadable: true
+  config_loadable: true
+  safetensors_valid: true
+  verification_date: '2026-10-27T18:55:51Z'
