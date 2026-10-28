@@ -225,13 +225,40 @@ def _build_summarizer():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dataset", required=True, choices=list(DATASET_SOURCES.keys()))
+    ap.add_argument("--dataset", default=None,
+                    help="Dataset name (one of the built-in list) or use --data-dir")
+    ap.add_argument("--data-dir", default=None,
+                    help="Explicit path to a doc_data directory containing subtree.json + subtree_sentmap.json")
+    ap.add_argument("--mode", choices=["native", "controlled"], default="controlled",
+                    help="Component mode (default: controlled)")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--skip-summarization", action="store_true")
     ap.add_argument("--skip-embeddings", action="store_true")
     args = ap.parse_args()
 
-    src = DATASET_SOURCES[args.dataset]
+    if args.data_dir:
+        src = Path(args.data_dir)
+        if not src.exists():
+            print(f"ERROR: --data-dir not found: {src}", file=sys.stderr)
+            return 1
+        dataset_name = src.parent.name if src.name == "doc_data" else src.name
+    elif args.dataset:
+        if args.dataset not in DATASET_SOURCES:
+            print(f"ERROR: --dataset {args.dataset!r} not in built-in list. "
+                  f"Use --data-dir for custom paths.", file=sys.stderr)
+            return 1
+        src = DATASET_SOURCES[args.dataset]
+        dataset_name = args.dataset
+    else:
+        print("ERROR: must specify --dataset or --data-dir", file=sys.stderr)
+        return 1
+
+    # Native mode requires paper's backbone
+    if args.mode == "native":
+        if not NATIVE_BACKBONE.exists():
+            print(f"ERROR: native mode requires paper backbone at {NATIVE_BACKBONE}\n"
+                  f"       Missing. Use --mode controlled instead.", file=sys.stderr)
+            return 1
     subtree_file = src / "subtree.json"
     sentmap_file = src / "subtree_sentmap.json"
     if not subtree_file.exists() or not sentmap_file.exists():
@@ -241,9 +268,9 @@ def main():
     all_docs = json.loads(subtree_file.read_text(encoding="utf-8"))
     if args.limit:
         all_docs = dict(list(all_docs.items())[: args.limit])
-    print(f"Dataset: {args.dataset}, documents: {len(all_docs)}")
+    print(f"Dataset: {dataset_name} (mode={args.mode}), documents: {len(all_docs)}")
 
-    out_dir = OUTPUT_ROOT / args.dataset
+    out_dir = OUTPUT_ROOT / dataset_name
     out_dir.mkdir(parents=True, exist_ok=True)
     tmp_dir = out_dir / "_tmp"
     import shutil as _shutil
@@ -317,7 +344,7 @@ def main():
         print(f"[{i}/{len(all_docs)}] {doc_id}: {leaf_count} leaves, {len(embeddings)} embeddings")
 
     manifest = {
-        "dataset": args.dataset,
+        "dataset": dataset_name,
         "document_count": len(all_docs),
         "parser": "E-NNRSTParser upstream (Apache-2.0)",
         "processor": "RSTProcesser (official DISRetrieval)",

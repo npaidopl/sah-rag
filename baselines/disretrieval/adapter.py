@@ -42,6 +42,7 @@ import hashlib
 import json
 import logging
 import math
+import os
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -256,6 +257,70 @@ class DisRetrievalBaseline(BaseBaseline):
         self._summarizer: SummarizerProtocol | None = None
         self._embedder_backend: Any | None = None
 
+    def _ensure_native_components(self) -> dict[str, Any]:
+        """Verify paper-exact native components are present.
+
+        Raises RuntimeError with an actionable message if any paper-exact
+        component is missing. Called from build_index() in native mode.
+        """
+        if getattr(self, "_native_checked", False):
+            return getattr(self, "_native_cache", {})
+        self._native_checked = True
+
+        backbone_root = Path(os.environ.get(
+            "RAG_NATIVE_BACKBONE_ROOT",
+            r"D:\rag_work\models\DISRetrieval_native\xlm_rst_tuned",
+        ))
+        if not backbone_root.exists():
+            raise RuntimeError(
+                "NATIVE_BACKBONE_MISSING: paper-exact XLNet backbone not found at "
+                f"{backbone_root}\n"
+                "The official DISRetrieval repo ships parser HEAD weights "
+                "(saved_model/100/model) but omits the fine-tuned XLNet backbone "
+                "(xlm_rst_tuned/). Native mode cannot proceed without it.\n"
+                "Actions:\n"
+                "  1. Contact the paper authors to obtain xlm_rst_tuned/\n"
+                "  2. Or switch to controlled mode, which uses the upstream "
+                "E-NNRSTParser backbone (Apache-2.0) at "
+                "D:/rag_work/models/upstream_enNrstparser/.\n"
+                "  3. Or train from scratch (requires RST-DT, LDC license).\n"
+                "Override path via env var RAG_NATIVE_BACKBONE_ROOT."
+            )
+
+        paper_embedder = Path(os.environ.get(
+            "RAG_NATIVE_EMBEDDER_ROOT",
+            r"D:\rag_work\hf_cache\models--sentence-transformers--multi-qa-mpnet-base-cos-v1",
+        ))
+        if not paper_embedder.exists():
+            raise RuntimeError(
+                "NATIVE_EMBEDDER_MISSING: paper embedder not found at "
+                f"{paper_embedder}\n"
+                "Download via:\n"
+                "  from huggingface_hub import snapshot_download\n"
+                "  snapshot_download('sentence-transformers/multi-qa-mpnet-base-cos-v1')\n"
+                "Override path via env var RAG_NATIVE_EMBEDDER_ROOT."
+            )
+
+        llama_api_key = os.environ.get("LLAMA_API_KEY")
+        vllm_model = self.config.extra.get("native_vllm_model")
+        if not llama_api_key and not vllm_model:
+            raise RuntimeError(
+                "NATIVE_LLM_MISSING: no summarizer configured.\n"
+                "Options (both match the paper):\n"
+                "  A. Set env var LLAMA_API_KEY (paid; the paper's API-based config)\n"
+                "  B. Set extra.native_vllm_model in config_native.yaml "
+                "(local vLLM; the paper's main config, free)\n"
+            )
+
+        self._native_cache = {
+            "backbone_root": backbone_root,
+            "paper_embedder_root": paper_embedder,
+            "summarizer": "llama_api" if llama_api_key else "vllm",
+            "vllm_model": vllm_model,
+        }
+        log.info("Native components verified: %s", self._native_cache)
+        return self._native_cache
+
     # ---- component resolution ----
 
     def _resolve_embedder(self) -> Any:
@@ -393,7 +458,9 @@ class DisRetrievalBaseline(BaseBaseline):
 
             # If stored embeddings were produced with a different embedder,
             # re-embed lazily on demand (correctness over speed).
-            if embedder_meta.get("name") == embedder_name and embeddings:
+            _meta_name = (embedder_meta.get("name") or "").replace("_", "-")
+            _injected_name = (embedder_name or "").replace("_", "-")
+            if _meta_name == _injected_name and embeddings:
                 self._trees[doc.doc_id] = tree
                 for node_id, vec in embeddings.items():
                     self._embedding_cache[node_id] = [float(x) for x in vec]
@@ -413,6 +480,10 @@ class DisRetrievalBaseline(BaseBaseline):
     def build_index(self, documents: list[CanonicalDocument]) -> None:
         self._trees = {}
         self._embedding_cache = {}
+
+        # Native mode: verify paper components first
+        if self.config.mode == RunMode.NATIVE:
+            self._ensure_native_components()
 
         # Path A: precomputed trees (fast, production)
         if self.config.extra.get("build_from_precomputed", True):

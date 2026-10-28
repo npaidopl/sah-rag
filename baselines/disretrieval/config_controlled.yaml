@@ -5,16 +5,18 @@ extra:
   # -------- Controlled status: ACTIVE --------
   native_fidelity: CONTROLLED_ADAPTATION
   controlled_parser: E-NNRSTParser (Apache-2.0 upstream)
-  controlled_parser_checkpoint: D:/rag_work/models/upstream_enNrstparser/extracted_2/rst_model
+  controlled_parser_checkpoint: ${RAG_UPSTREAM_MODEL}
   controlled_parser_source: https://github.com/yunan4nlp/E-NNRSTParser
   controlled_parser_license: Apache-2.0
+
   # -------- Precomputed trees (production path) --------
-  precomputed_trees_root: D:/rag_work/disretrieval_trees
+  precomputed_trees_root: ${RAG_TREES_ROOT}
   dataset_id_map:
     qasper: qasper
     quality: quality
     narrativeqa: narrative
     multifieldqa_zh: multiFieldQA-zh
+
   # -------- Retrieval hyperparameters (paper defaults) --------
   retrieval:
     method: rest_topk
@@ -22,15 +24,24 @@ extra:
     max_len: 400
     max_node_depth: 10000
     rank_order: false
+
   # -------- Summarization (used only for on-the-fly builds) --------
   summarization:
     temperature: 0.95
     top_p: 0.7
     top_k: 50
     max_new_tokens: 1024
+
   # -------- Build policy --------
   build_from_precomputed: true
   allow_on_the_fly_build: false
   allow_download: false
-  # NOTE: embedder and llm are INJECTED by the orchestrator in controlled
-  # mode. Do NOT list them here.
+
+  # Env vars used (with defaults):
+  #   RAG_UPSTREAM_MODEL     (default: D:\rag_work\models\upstream_enNrstparser\extracted_2\rst_model)
+  #   RAG_TREES_ROOT         (default: D:\rag_work\disretrieval_trees)
+  #   HF_HOME                (default: D:\rag_work\hf_cache)
+  #   RAG_EMBEDDER_ROOT      (default: D:\rag_work\hf_cache\models--BAAI--bge-m3)
+  #   RAG_LLM_ROOT           (default: D:\rag_work\hf_cache\models--Qwen--Qwen2.5-1.5B-Instruct)
+  #
+  # Embedder and LLM are INJECTED by the orchestrator in controlled mode.

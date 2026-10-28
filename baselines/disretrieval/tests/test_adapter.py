@@ -305,3 +305,33 @@ def test_manifest_written(tmp_path: Path) -> None:
     assert set(payload["documents"]) == {d.doc_id for d in docs}
     assert payload["mode"] == "controlled"
     assert payload["native_fidelity"] == "CONTROLLED_ADAPTATION"
+
+
+def test_native_raises_clear_error(tmp_path: Path) -> None:
+    """Native mode raises an actionable error when backbone is missing."""
+    import os
+    # Ensure env doesn't accidentally point to a real backbone
+    old = os.environ.get("RAG_NATIVE_BACKBONE_ROOT")
+    os.environ["RAG_NATIVE_BACKBONE_ROOT"] = str(tmp_path / "nonexistent_backbone")
+    try:
+        cfg = BaselineConfig(name="disretrieval", mode=RunMode.NATIVE, top_k=3)
+        # Skip _validate (which rejects native since supports_native=False)
+        # by constructing with the executable contract temporarily bypassed
+        baseline = object.__new__(DisRetrievalBaseline)
+        baseline.config = cfg
+        baseline.work_dir = tmp_path / "idx"
+        baseline.work_dir.mkdir(parents=True, exist_ok=True)
+        baseline.embedder = None
+        baseline.llm = None
+        baseline._trees = {}
+        baseline._embedding_cache = {}
+        baseline._parser = None
+        baseline._summarizer = None
+        baseline._embedder_backend = None
+        with pytest.raises(RuntimeError, match="NATIVE_BACKBONE_MISSING"):
+            baseline._ensure_native_components()
+    finally:
+        if old is None:
+            os.environ.pop("RAG_NATIVE_BACKBONE_ROOT", None)
+        else:
+            os.environ["RAG_NATIVE_BACKBONE_ROOT"] = old
