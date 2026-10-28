@@ -61,6 +61,19 @@ def _find_adapter_class(entry: dict, mode: str):
     raise ImportError(f"No BaseBaseline subclass in module for '{name}'")
 
 
+def _build_controlled_components(entry: dict) -> tuple[Any, Any]:
+    """Instantiate the shared embedder/LLM for controlled mode.
+
+    Lazy: only imports the component module when controlled mode is used.
+    Returns (embedder, llm). ``llm`` is None if the baseline is not LLM-based.
+    """
+    from sah_rag.components.embedders import BGEM3Embedder
+    from sah_rag.components.llms import QwenLLM
+
+    embedder = BGEM3Embedder()
+    llm = QwenLLM() if bool(entry.get("is_llm_based", False)) else None
+    return embedder, llm
+
 def _extract_query_and_gt(example: Any) -> tuple[str, list[str]]:
     query = getattr(example, "query", None)
     if query is not None:
@@ -85,8 +98,13 @@ def run_cell(cell, output_root: Path) -> dict:
     if entry.get("status") == BaselineStatus.REPORTED.value:
         return _run_reported(cell, entry, run_dir, project_root)
 
-    if cell.mode != "native":
-        raise NotImplementedError(f"v2 supports native mode only for now; got {cell.mode!r}")
+    if cell.mode == "native":
+        embedder = None
+        llm = None
+    elif cell.mode == "controlled":
+        embedder, llm = _build_controlled_components(entry)
+    else:
+        raise ValueError(f"Unknown mode: {cell.mode!r}")
 
     baseline_dir = project_root / entry["path"]
     if not baseline_dir.exists():
@@ -97,7 +115,7 @@ def run_cell(cell, output_root: Path) -> dict:
     work_dir = run_dir / "work"
     work_dir.mkdir(parents=True, exist_ok=True)
     adapter_cls = _find_adapter_class(entry, cell.mode)
-    baseline = adapter_cls(config=cfg, work_dir=work_dir, embedder=None, llm=None)
+    baseline = adapter_cls(config=cfg, work_dir=work_dir, embedder=embedder, llm=llm)
 
     ds = load_dataset(cell.dataset)
     started = datetime.now(timezone.utc).isoformat()
