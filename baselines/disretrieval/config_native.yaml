@@ -1,0 +1,36 @@
+name: disretrieval
+mode: native
+top_k: 10
+extra:
+  # -------- Native status: BLOCKED --------
+  native_fidelity: PAPER_EXACT_NATIVE
+  native_status: BLOCKED_MISSING_BACKBONE
+  legal_risk: true
+  native_clearance_required: true
+  native_blocker_reasons:
+    - "DISRetrieval bundled checkpoint head weights exist but the fine-tuned XLNet backbone (xlm_rst_tuned) is missing from the official repository."
+    - "The official repository carries no LICENSE file (default copyright)."
+    - "Paper-exact reproduction requires training the XLNet backbone on the original training data; the bundled training data has different characteristics than the released head weights suggest."
+    - "No author-supported alternative backbone has been published."
+  # -------- Reference configuration (for documentation) --------
+  embedder_name: sentence-transformers/multi-qa-mpnet-base-cos-v1
+  llm_name: allenai/unifiedqa-t5-3b
+  rst_parser:
+    type: E-NNRSTParser
+    checkpoint: rst_parser/saved_model/100/model
+    backbone: xlm_rst_tuned
+    backbone_status: MISSING
+  retrieval:
+    method: rest_topk
+    leaf_topk: 5
+    max_len: 400
+    max_node_depth: 10000
+    rank_order: false
+  summarization:
+    temperature: 0.95
+    top_p: 0.7
+    top_k: 50
+    max_new_tokens: 1024
+  # NOTE: this configuration is documented but NOT executable.
+  # DO NOT route any native-mode execution through this baseline until
+  # the backbone is obtained, licensed, and trained.

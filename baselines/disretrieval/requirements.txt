@@ -1,0 +1,14 @@
+# Runtime dependencies for the DISRetrieval adapter (controlled mode).
+#
+# Controlled mode requires NO extra pip packages: embedder (BGE-M3) and
+# LLM are injected by the orchestrator.
+#
+# Native mode needs the following, loaded from D:/rag_work and NOT
+# installed by this module:
+#   sentence-transformers>=2.7.0   # multi-qa-mpnet-base-cos-v1
+#   transformers>=4.40.0           # UnifiedQA-3B / paper LLM
+#   torch>=2.2.0                   # model runtime
+#   faiss-cpu>=1.7.4               # native retrieval backend
+#
+# The E-NNRSTParser wrapper and RST-DT checkpoint are NOT listed here
+# on purpose: their legal status must be resolved before installation.

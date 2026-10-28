@@ -7,15 +7,44 @@ defaults:
   work_dir_template: baselines/{name}
 baselines:
 - name: disretrieval
-  display_name: DisRetrieval
-  paper: Liu et al., Disentangled Retrieval for Long-Context QA
+  display_name: DISRetrieval
+  paper: >
+    Chen et al., "Beyond Chunking: Discourse-Aware Hierarchical
+    Retrieval for Long Document Question Answering",
+    arXiv:2506.06313 (ACL 2026)
+  paper_url: https://arxiv.org/abs/2506.06313
+  code_url: https://github.com/DreamH1gh/ACL2026-DISRetrieval
+  commit: 4f3144042c6eb1e514a0a89ec704d892a66e700c
   path: baselines/disretrieval
-  status: reported
+  status: executable
   modes:
-  - native
   - controlled
   is_llm_based: true
-  notes: Update status to executable once adapter is merged.
+  supports_native: false
+  supports_controlled: true
+  native_tag: PAPER_EXACT_NATIVE_BLOCKED
+  controlled_tag: CONTROLLED_ADAPTATION
+  native_status: BLOCKED_MISSING_BACKBONE
+  legal_risk_native: true
+  controlled_parser: E-NNRSTParser (upstream, Apache-2.0)
+  controlled_summarizer: Qwen2.5-1.5B-Instruct
+  controlled_embedder: BGE-M3 (injected)
+  precomputed_trees_root: D:/rag_work/disretrieval_trees
+  license:
+    upstream_parser: Apache-2.0
+    official_repo: None (default copyright)
+    parser_head_weights: unlicensed
+    xlnet_backbone: missing from repo
+  notes: >
+    Native mode is BLOCKED, not deferred. The official repo ships parser
+    head weights (saved_model/100/model) but omits the fine-tuned XLNet
+    backbone (xlm_rst_tuned/), which is required to load the head. The
+    bundled training data is CJK-tokenized, not RST-DT. Controlled mode
+    uses the upstream E-NNRSTParser (Apache-2.0) as the neural RST
+    parser, combined with the DISRetrieval architecture-defining logic
+    (rest_topk traversal, leaf expansion, evidence assembly). Precomputed
+    trees are produced by scripts/precompute_trees.py in the dedicated
+    venv (torch 2.2.2, transformers 4.42.3, Python 3.11).
 - name: hikey
   display_name: HiKEY
   paper: HiKEY — Hierarchical Key Information Extraction
