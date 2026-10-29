@@ -259,3 +259,50 @@ full multimodal pipeline runs (M3DocVQA, FRAMES-PDF, or equivalent).
 - [ ] D:\rag_work\models\ has bge-m3 and Qwen (already present)
 - [ ] Env vars set: $env:HF_HOME, $env:TRANSFORMERS_CACHE, $env:TORCH_HOME
 - [ ] Read docs/hikey_ablation_proposal.md if continuing SAH-RAG work
+
+---
+
+## Position in SAH-RAG v2 architecture
+
+The native pipeline (workspace/hikey_native_dev/) is NOT a BaseBaseline.
+It runs standalone, not through the orchestrator. Its outputs are treated as
+"author-supported native reimplementation" - parallel evidence to paper-reported
+numbers, not a substitute.
+
+When the orchestrator runs `hikey` in the manifest, it reads reported_metrics.yaml
+(paper numbers). To compare against native reimplementation, run manually:
+
+    python -m workspace.hikey_native_dev.run --corpus <pdf_dir> --queries <queries.json>
+
+and integrate results manually into the ablation section of the paper.
+
+---
+
+## D: paths - known inconsistency (for next session)
+
+Current state (audited 2026-10-29):
+
+- D:\rag_work\           ACTIVE (26GB hf_cache, 2.5GB models, 5GB venvs, parsers)
+- D:\sah-rag\            EMPTY (data/, experiments/, models/ all empty skeletons)
+- SAH-RAG/.env points to D:\sah-rag\* (stale paths)
+- HF_HOME env var points to D:\rag_work\hf_cache (correct, matches actual data)
+
+The .env file is FROZEN per organizer manual rule 3 - do NOT modify it in this session.
+Next session decision: consolidate D:\rag_work\* -> D:\sah-rag\ OR update .env to
+point to D:\rag_work\. Recommendation: update .env (D:\rag_work is where everything lives).
+
+Verification needed by next session:
+- Confirm exact path of bge-m3 (may be nested deeper than depth-4 search)
+- Confirm Qwen model location
+- Decide consolidation strategy before GPU sync
+
+---
+
+## Decisions (locked in this session)
+
+1. Reported baseline: graduated, no further action.
+2. Controlled adapter: graduated to baselines/hikey_controlled/ as separate entry.
+   Paper positioning: FOOTNOTE (not separate row in comparison table).
+3. Native pipeline: standalone, position documented above.
+4. D: paths: keep separate for now, .env untouched (frozen). Decision for next session.
+5. Ablation proposal: documentation only, not part of v2 IR comparison. Future work.

@@ -8,7 +8,7 @@ import pytest
 
 from baselines.base import BaselineConfig, RunMode
 from sah_rag.canonical.models import CanonicalDocument
-from workspace.hikey_controlled_dev.adapter import HiKEYBaseline
+from baselines.hikey_controlled.adapter import HiKEYBaseline
 
 
 class MockEmbedder:

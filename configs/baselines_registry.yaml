@@ -214,3 +214,13 @@ baselines:
   disposition: No official code exists. Paper-reported metrics only (M3DocVQA, FRAMES-PDF).
   paper: arXiv:2605.29606v1 (HiKEY, Shin et al., ACL 2026)
   metrics_source: baselines/hikey/reported_metrics.yaml
+- name: hikey_controlled
+  version: 0.2.0
+  status: executable
+  supports_native: false
+  supports_controlled: true
+  is_llm_based: false
+  disposition: 'Text-only approximation. NOT HiKEY. Paper positioning: footnote, not
+    separate row.'
+  paper: arXiv:2605.29606v1 (HiKEY-inspired approximation)
+  approximation_marker: hiKEY_text_only_approximation
