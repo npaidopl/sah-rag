@@ -38,6 +38,8 @@ class HiKEYNativePipeline:
         token_budget: int = 16000,
         doc_route_top_n: int = 30,
         mock: bool = False,
+        mock_parser: bool | None = None,
+        mock_encoders: bool | None = None,
         encoder: MultiModalEncoder | None = None,
         reader: LVLMReader | None = None,
     ) -> None:
@@ -49,8 +51,10 @@ class HiKEYNativePipeline:
         self.token_budget = token_budget
         self.doc_route_top_n = doc_route_top_n
         self.mock = mock
+        self.mock_parser = mock if mock_parser is None else mock_parser
+        self.mock_encoders = mock if mock_encoders is None else mock_encoders
 
-        self.encoder = encoder or MultiModalEncoder(mock=mock)
+        self.encoder = encoder or MultiModalEncoder(mock=self.mock_encoders)
         self.reader = reader or LVLMReader(mock=mock)
 
         self.docs: list[DocCard] = []
@@ -65,7 +69,7 @@ class HiKEYNativePipeline:
     def index(self, pdf_dir: Path | str) -> None:
         pdf_dir = Path(pdf_dir)
         pdfs = sorted(pdf_dir.glob("*.pdf"))
-        if not pdfs and not self.mock:
+        if not pdfs and not self.mock_parser:
             raise FileNotFoundError(f"No PDFs found in {pdf_dir}")
 
         self.docs = []
@@ -78,7 +82,7 @@ class HiKEYNativePipeline:
         for pdf_path in pdfs:
             doc_id = pdf_path.stem
             logger.info("Parsing %s", pdf_path)
-            blocks = parse_pdf(pdf_path, mock=self.mock)
+            blocks = parse_pdf(pdf_path, mock=self.mock_parser)
             doc_card = build_section_tree(blocks, doc_id=doc_id)
             self.docs.append(doc_card)
             self._build_doc_embeddings(doc_card, blocks)
@@ -215,11 +219,9 @@ class HiKEYNativePipeline:
                 # Type-specific + MaxSim
                 unit_scores = []
                 for u, ue in zip(self.sec_units[sec.section_id], unit_embs):
-                    if u.unit_type == "text":
-                        unit_scores.append(cosine(q_emb, ue))
-                    else:
-                        # For visual units, use text context as fallback
-                        unit_scores.append(cosine(q_emb, ue))
+                    sc = cosine(q_emb, ue)
+                    u.score = sc  # persist score for downstream assembly
+                    unit_scores.append(sc)
                 sec_score = max(unit_scores) if unit_scores else 0.0
                 final = final_section_score(doc_scores[di], sec_score, lam=self.lam)
                 sec_candidates.append((final, doc.doc_id, sec.section_id))

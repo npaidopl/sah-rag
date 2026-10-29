@@ -111,11 +111,14 @@ def _mock_parse(pdf_path: Path) -> list[Block]:
 def _pymupdf_parse(pdf_path: Path) -> list[Block]:
     """Heuristic parse via PyMuPDF (fonts + bbox)."""
     try:
-        import fitz  # type: ignore
-    except ImportError as e:
-        raise RuntimeError(
-            "PyMuPDF not installed. Install with: pip install PyMuPDF"
-        ) from e
+        import pymupdf as fitz  # type: ignore  # PyMuPDF>=2.0
+    except ImportError:
+        try:
+            import fitz  # type: ignore  # legacy <2.0
+        except ImportError as e:
+            raise RuntimeError(
+                "PyMuPDF not installed. Install with: pip install PyMuPDF"
+            ) from e
 
     doc = fitz.open(str(pdf_path))
     raw: list[dict[str, Any]] = []
