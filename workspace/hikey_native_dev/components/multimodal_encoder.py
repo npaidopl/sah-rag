@@ -54,10 +54,14 @@ class MultiModalEncoder:
                 "FlagEmbedding not installed. Install with: pip install FlagEmbedding"
             ) from e
         logger.info("Loading text encoder %s", self.text_model_name)
+        kwargs = {}
+        if self.cache_dir:
+            kwargs["cache_dir"] = self.cache_dir
         self._text_model = FlagModel(
             self.text_model_name,
             query_instruction_for_retrieval="Represent this sentence for searching relevant passages:",
             use_fp16=True,
+            **kwargs,
         )
         return self._text_model
 
@@ -72,8 +76,11 @@ class MultiModalEncoder:
                 "transformers not installed. Install with: pip install transformers torch"
             ) from e
         logger.info("Loading visual encoder %s", self.visual_model_name)
-        self._visual_processor = AutoProcessor.from_pretrained(self.visual_model_name)
-        self._visual_model = AutoModel.from_pretrained(self.visual_model_name)
+        kwargs = {}
+        if self.cache_dir:
+            kwargs["cache_dir"] = self.cache_dir
+        self._visual_processor = AutoProcessor.from_pretrained(self.visual_model_name, **kwargs)
+        self._visual_model = AutoModel.from_pretrained(self.visual_model_name, **kwargs)
         self._visual_model.eval()
         return self._visual_model, self._visual_processor
 
