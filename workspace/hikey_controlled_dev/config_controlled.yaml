@@ -1,0 +1,9 @@
+﻿name: hikey_controlled
+mode: controlled
+top_k: 10
+extra:
+  doc_route_top_n: 30
+  section_size: 2000
+  unit_size: 500
+  dense_weight: 0.7
+  lexical_weight: 0.3

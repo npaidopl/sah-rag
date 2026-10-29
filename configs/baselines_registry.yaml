@@ -8,10 +8,10 @@ defaults:
 baselines:
 - name: disretrieval
   display_name: DISRetrieval
-  paper: >
-    Chen et al., "Beyond Chunking: Discourse-Aware Hierarchical
-    Retrieval for Long Document Question Answering",
-    arXiv:2506.06313 (ACL 2026)
+  paper: 'Chen et al., "Beyond Chunking: Discourse-Aware Hierarchical Retrieval for
+    Long Document Question Answering", arXiv:2506.06313 (ACL 2026)
+
+    '
   paper_url: https://arxiv.org/abs/2506.06313
   code_url: https://github.com/DreamH1gh/ACL2026-DISRetrieval
   commit: 4f3144042c6eb1e514a0a89ec704d892a66e700c
@@ -35,26 +35,16 @@ baselines:
     official_repo: None (default copyright)
     parser_head_weights: unlicensed
     xlnet_backbone: missing from repo
-  notes: >
-    Native mode is BLOCKED, not deferred. The official repo ships parser
-    head weights (saved_model/100/model) but omits the fine-tuned XLNet
-    backbone (xlm_rst_tuned/), which is required to load the head. The
-    bundled training data is CJK-tokenized, not RST-DT. Controlled mode
-    uses the upstream E-NNRSTParser (Apache-2.0) as the neural RST
-    parser, combined with the DISRetrieval architecture-defining logic
-    (rest_topk traversal, leaf expansion, evidence assembly). Precomputed
-    trees are produced by scripts/precompute_trees.py in the dedicated
-    venv (torch 2.2.2, transformers 4.42.3, Python 3.11).
-- name: hikey
-  display_name: HiKEY
-  paper: HiKEY — Hierarchical Key Information Extraction
-  path: baselines/hikey
-  status: reported
-  modes:
-  - native
-  - controlled
-  is_llm_based: true
-  notes: Update status to executable once adapter is merged.
+  notes: 'Native mode is BLOCKED, not deferred. The official repo ships parser head
+    weights (saved_model/100/model) but omits the fine-tuned XLNet backbone (xlm_rst_tuned/),
+    which is required to load the head. The bundled training data is CJK-tokenized,
+    not RST-DT. Controlled mode uses the upstream E-NNRSTParser (Apache-2.0) as the
+    neural RST parser, combined with the DISRetrieval architecture-defining logic
+    (rest_topk traversal, leaf expansion, evidence assembly). Precomputed trees are
+    produced by scripts/precompute_trees.py in the dedicated venv (torch 2.2.2, transformers
+    4.42.3, Python 3.11).
+
+    '
 - name: pathrag
   display_name: PathRAG
   paper: PathRAG — Path-based Reasoning RAG
@@ -126,11 +116,11 @@ baselines:
   config_controlled: baselines/raptor/config_controlled.yaml
   native_tag: AUTHOR_SUPPORTED_NATIVE
   controlled_tag: CONTROLLED_ADAPTATION
-  notes: 'Graduated from workspace. Recursive GMM+UMAP tree with LLM summarization
+  notes: Graduated from workspace. Recursive GMM+UMAP tree with LLM summarization
     at every level; collapsed-tree retrieval (paper-preferred variant; Sec 4.2 reports
     +2-4.5pp over tree-traversal). Native mode uses local Qwen2.5-1.5B-Instruct +
     BGE-M3 via official author-supported interfaces; paper-exact not claimed. IR-only
-    per v2 scope.'
+    per v2 scope.
 - name: metadata_rag
   display_name: Metadata-RAG
   paper: Metadata-Enriched RAG with Windowing
@@ -150,7 +140,8 @@ baselines:
   - native
   - controlled
   is_llm_based: true
-  notes: Author-supported native MemoRAG. Clue stage preserved (architecture-defining). Pilot scripts under baselines/memorag/pilot/.
+  notes: Author-supported native MemoRAG. Clue stage preserved (architecture-defining).
+    Pilot scripts under baselines/memorag/pilot/.
 - name: kag
   display_name: KAG
   paper: KAG — Knowledge Augmented Generation
@@ -214,3 +205,12 @@ baselines:
   is_llm_based: false
   notes: Dual-mode. Native requires OPENAI_API_KEY + bge-large-en-v1.5 (deferred).
     Controlled ready with injected BGE-M3.
+- name: hikey
+  version: 0.2.0
+  status: reported
+  supports_native: false
+  supports_controlled: false
+  is_llm_based: false
+  disposition: No official code exists. Paper-reported metrics only (M3DocVQA, FRAMES-PDF).
+  paper: arXiv:2605.29606v1 (HiKEY, Shin et al., ACL 2026)
+  metrics_source: baselines/hikey/reported_metrics.yaml

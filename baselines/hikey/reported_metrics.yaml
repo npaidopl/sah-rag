@@ -1,0 +1,38 @@
+# Values transcribed verbatim from the HiKEY paper
+# (Shin et al., arXiv:2605.29606v1, ACL 2026).
+# Tables 1 (retrieval) and 2 (QA).
+# NOTE: HiKEY was ONLY evaluated on M3DocVQA and FRAMES-PDF.
+# Do NOT compare these to SAH-RAG runs on other datasets.
+paper: "arXiv:2605.29606v1"
+paper_title: "HiKEY: Hierarchical Multimodal Retrieval for Open-Domain Document Question Answering"
+venue: "ACL 2026 (Main)"
+comparison_scope: "M3DocVQA and FRAMES-PDF only"
+
+datasets:
+  M3DocVQA:
+    Recall@1-10: 84.9
+    MRR@1-10: 91.8
+    Hit@1-10: 96.1
+    All@1-10: 73.6
+    EM: 27.5
+    ANLS: 30.7
+    ROUGE-L: 32.2
+    METEOR: 23.9
+  FRAMES-PDF:
+    Recall@1-10: 73.3
+    MRR@1-10: 94.2
+    Hit@1-10: 97.9
+    All@1-10: 46.2
+    EM: 10.5
+    ANLS: 14.6
+    ROUGE-L: 17.7
+    METEOR: 15.4
+  AVG:
+    Recall@1-10: 79.1
+    MRR@1-10: 93.0
+    Hit@1-10: 97.0
+    All@1-10: 59.9
+    EM: 19.0
+    ANLS: 22.7
+    ROUGE-L: 25.0
+    METEOR: 19.7

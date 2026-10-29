@@ -1,0 +1,4 @@
+# No additional pip dependencies beyond the project's pyproject.toml.
+# The HiKEY controlled adapter uses only stdlib + project packages.
+# Heavy dependencies (PDF layout parsing, LVLM reader) are OUT OF SCOPE
+# for v2 (IR-only) and are NOT imported by this adapter.

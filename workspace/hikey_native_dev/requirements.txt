@@ -1,0 +1,16 @@
+# Core
+PyYAML>=6.0
+pydantic>=2.0
+
+# PDF parsing (DHP fallback)
+PyMuPDF>=1.24
+
+# Models (install only when running with real models)
+# torch>=2.0
+# transformers>=4.45
+# FlagEmbedding>=1.3
+# Pillow>=10.0
+# openai>=1.0  # only if using API mode for LVLM
+
+# Layout detection (optional, better DHP)
+# doclayout-yolo>=0.0.4  # install manually from https://github.com/opendatalab/DocLayout-YOLO

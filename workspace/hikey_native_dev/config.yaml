@@ -1,0 +1,20 @@
+# HiKEY native pipeline configuration
+pipeline:
+  alpha: 0.5              # Stage-1: weight for lexical vs dense
+  gamma: 0.7              # Stage-2: weight for visual vs upper-context
+  lam: 0.5                # final: doc score vs section score
+  token_budget: 16000     # Reader context limit (paper: 16K)
+  doc_route_top_n: 30     # how many docs to keep after Stage-1
+
+encoders:
+  text_model: Alibaba-NLP/gte-Qwen2-7B-instruct
+  visual_model: google/siglip-large-patch16-384
+  cache_dir: d:/rag_work/models
+  device: auto
+
+lvlm:
+  model: Qwen/Qwen2.5-VL-7B-Instruct
+  api_mode: false               # set true to use API instead of local
+  api_key_env: HIKEY_LVLM_API_KEY
+  api_base_env: HIKEY_LVLM_API_BASE
+  max_new_tokens: 256

@@ -1,0 +1,10 @@
+﻿# HiKEY native mode is NOT supported.
+# Reason: no official repository, no author-released artefacts.
+# This file exists for adapter-contract conformance only.
+# Paper-reported metrics are exposed via HiKEYBaseline.REPORTED_METRICS.
+name: hikey_controlled
+mode: native
+top_k: 10
+extra:
+  native_status: reported_only
+  reason: "No public repository; native track is reported-only."
