@@ -18,12 +18,18 @@ def main() -> int:
     ap.add_argument("--work-dir", default="./hikey_native_work")
     ap.add_argument("--top-k", type=int, default=10)
     ap.add_argument("--mock", action="store_true", help="Use mock components (no model downloads)")
+    ap.add_argument("--mock-encoders", action="store_true", help="Real PDF parser, mock encoders")
     ap.add_argument("--answer", action="store_true", help="Also generate answers with the LVLM reader")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
-    pipeline = HiKEYNativePipeline(work_dir=args.work_dir, mock=args.mock)
+    if args.mock_encoders and not args.mock:
+        pipeline = HiKEYNativePipeline(
+            work_dir=args.work_dir, mock=True, mock_parser=False,
+        )
+    else:
+        pipeline = HiKEYNativePipeline(work_dir=args.work_dir, mock=args.mock)
     pipeline.index(Path(args.corpus))
 
     queries = json.loads(Path(args.queries).read_text(encoding="utf-8"))
