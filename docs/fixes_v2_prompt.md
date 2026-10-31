@@ -1,3 +1,21 @@
+## STEP 0 - Baseline verification (DO THIS FIRST)
+
+Before touching any code, run:
+
+    .\.venv\Scripts\Activate.ps1
+    python -m pytest tests/ -q --no-header --tb=no 2>&1 | Select-Object -Last 1
+
+Expected: `219 failed, 921 passed, 3 skipped, 10 errors`.
+
+If pass_count is NOT 921: STOP, report the actual line, wait for approval.
+If pass_count IS 921: proceed to Issue 2.
+
+Also confirm baseline list matches:
+    python -c "import yaml; r=yaml.safe_load(open('configs/baselines_registry.yaml', encoding='utf-8')); [print(b['name'], b.get('status'), b.get('is_llm_based','?')) for b in r['baselines']]"
+
+Expected: 15 baselines (12 executable + 3 reported). If different: STOP, report.
+
+---
 # SAH-RAG v2 - Fixes Session v2 (final, self-contained)
 
 ## Role
