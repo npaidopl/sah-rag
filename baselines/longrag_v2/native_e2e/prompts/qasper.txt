@@ -1,0 +1,7 @@
+Answer the following question about the provided scientific paper content using only the context below.
+
+{context}
+
+Question: {question}
+
+Answer:

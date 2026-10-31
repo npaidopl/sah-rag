@@ -1,0 +1,43 @@
+﻿# Reported metrics from PathRAG (arXiv 2502.14902, AAAI-26).
+#
+# STATUS: AWAITING_EXTRACTION
+#
+# Fill values from the paper results tables. DO NOT GUESS.
+#
+# Protocol: LLM-based win-rate (GPT-4o-mini judge) over 5 dimensions:
+#   comprehensiveness, diversity, logicality, relevance, coherence.
+# These are NOT document-level retrieval metrics. They are NOT
+# comparable to Hit@k / Recall@k / MRR / nDCG used by SAH-RAG.
+
+paper:
+  arxiv_id: "2502.14902"
+  title: "PathRAG: Pruning Graph-based Retrieval Augmented Generation with Relational Paths"
+  conference: "AAAI-26"
+  url: "https://arxiv.org/abs/2502.14902"
+
+evaluation_protocol:
+  type: "llm_win_rate"
+  judge_model: "gpt-4o-mini"
+  dimensions:
+    - comprehensiveness
+    - diversity
+    - logicality
+    - relevance
+    - coherence
+  note: |
+    Win-rates are relative to specific comparison baselines (NaiveRAG,
+    HyDE, Faiss, RAPTOR, GraphRAG, LightRAG, etc.). Do NOT report a
+    win-rate without naming the opponents. Do NOT place these in the
+    same leaderboard row as executable baselines.
+
+# Fill this section from the paper tables. Example shape:
+#
+# datasets:
+#   2wikimultihopqa:
+#     comprehensiveness: 0.72
+#     diversity: 0.68
+#     logicality: 0.71
+#     relevance: 0.75
+#     coherence: 0.73
+
+datasets: {}

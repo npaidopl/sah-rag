@@ -10,7 +10,7 @@ from typing import Any
 import yaml
 
 from baselines.base import BaseBaseline, BaselineConfig, BaselineStatus, RunMode
-from datasets.unified import load_dataset
+from sah_datasets.unified import load_dataset
 from evaluation.retrieval_metrics import mrr_at_k, ndcg_at_k, recall_at_k
 
 CUTOFFS = [1, 3, 5, 10]

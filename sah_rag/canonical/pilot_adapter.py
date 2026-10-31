@@ -22,13 +22,13 @@ from sah_rag.canonical.models import (
     CanonicalQuery,
     GroundTruthType,
 )
-from datasets.pilot_synthetic import (
+from sah_datasets.pilot_synthetic import (
     PilotCanonicalChunk,
     PilotCanonicalDocument,
     PilotCanonicalJudgment,
     PilotCanonicalQuery,
 )
-from datasets.pilot_persistence import (
+from sah_datasets.pilot_persistence import (
     read_infrastructure_pilot_dataset,
 )
 

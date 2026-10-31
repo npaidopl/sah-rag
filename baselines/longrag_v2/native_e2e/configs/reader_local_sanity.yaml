@@ -1,0 +1,6 @@
+# Local sanity reader. NOT for native claims. Only validates the pipeline.
+reader:
+  type: local
+  model: Qwen/Qwen2.5-0.5B-Instruct
+  max_new_tokens: 256
+  device: auto

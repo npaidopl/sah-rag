@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "C:\Users\USER1\Documents\SAH-RAG\.venv\Lib\site-packages\memorag\__init__.py", line 2, in <module>
+    from .memorag_lite import MemoRAGLite
+  File "C:\Users\USER1\Documents\SAH-RAG\.venv\Lib\site-packages\memorag\memorag_lite.py", line 19, in <module>
+    import pynvml
+ModuleNotFoundError: No module named 'pynvml'

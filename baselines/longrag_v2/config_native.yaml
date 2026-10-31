@@ -1,0 +1,14 @@
+name: longrag
+mode: native
+top_k: 10
+extra:
+  # Paper-faithful grouping for non-Wikipedia tasks:
+  # each CanonicalDocument becomes one long retrieval unit.
+  # For Wikipedia tasks with hyperlinks in metadata, use "hyperlink_based".
+  grouping_policy: one_document_per_unit
+  target_unit_tokens: 4096
+  k1: 100
+  # Set to a local path to avoid HuggingFace downloads. Can also be set via
+  # the LONGRAG_EMBEDDER_PATH environment variable. If both are null,
+  # the adapter uses "BAAI/bge-large-en-v1.5" from HuggingFace.
+  embedder_local_path: null

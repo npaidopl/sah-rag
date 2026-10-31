@@ -66,7 +66,7 @@ package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["sah_rag*", "baselines*", "evaluation*", "orchestration*", "datasets*"]
+include = ["sah_rag*", "baselines*", "evaluation*", "orchestration*", "sah_datasets*"]
 exclude = ["tests*", "scripts*", "_archive*", "_review*", "workspace*", "experiments*"]
 
 [tool.pytest.ini_options]
@@ -105,11 +105,11 @@ python_version = "3.12"
 strict = true
 warn_unused_configs = true
 mypy_path = "."
-packages = ["sah_rag", "baselines", "evaluation", "orchestration", "datasets"]
+packages = ["sah_rag", "baselines", "evaluation", "orchestration", "sah_datasets"]
 
 [tool.coverage.run]
 branch = true
-source = ["sah_rag", "baselines", "evaluation", "orchestration", "datasets"]
+source = ["sah_rag", "baselines", "evaluation", "orchestration", "sah_datasets"]
 
 [tool.coverage.report]
 show_missing = true

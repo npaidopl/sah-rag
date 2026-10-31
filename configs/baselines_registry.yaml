@@ -46,15 +46,16 @@ baselines:
 
     '
 - name: pathrag
-  display_name: PathRAG
-  paper: PathRAG — Path-based Reasoning RAG
-  path: baselines/pathrag
+  version: 1.0.0
   status: reported
-  modes:
-  - native
-  - controlled
+  supports_native: false
+  supports_controlled: false
   is_llm_based: true
-  notes: Graph-based; controlled mode may need extra component injection review.
+  disposition: 'Reported-only. Original wrapper at workspace/pathrag_wrapper_future/
+    blocked on: (1) no LICENSE in official repo, (2) 0 edges with available local
+    LLMs, (3) mock LLM violated controlled contract.'
+  paper: arXiv:2502.14902 (AAAI-26)
+  metrics_source: baselines/pathrag/reported_metrics.yaml
 - name: longrag
   display_name: LongRAG
   paper: LongRAG — Long-Context Retrieval-Augmented Generation

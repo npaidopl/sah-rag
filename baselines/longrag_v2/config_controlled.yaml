@@ -1,0 +1,10 @@
+name: longrag
+mode: controlled
+top_k: 10
+extra:
+  # Matches the existing controlled LongRAG baseline (L1b..L7 pipeline):
+  # adjacent documents packed into units up to 4096 tokens.
+  grouping_policy: adjacent_document_segments
+  target_unit_tokens: 4096
+  k1: 100
+  # NOTE: embedder is injected by the orchestrator. Do NOT list it here.

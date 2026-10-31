@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from datasets.pilot_synthetic import (
+from sah_datasets.pilot_synthetic import (
     DATASET_ID,
     DATASET_REVISION,
     PilotCanonicalChunk,

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+  File "C:\Users\USER1\Documents\SAH-RAG\.venv\Lib\site-packages\memorag\__init__.py", line 1, in <module>
+    from .memorag import Memory, MemoRAG, Model
+  File "C:\Users\USER1\Documents\SAH-RAG\.venv\Lib\site-packages\memorag\memorag.py", line 7, in <module>
+    from semantic_text_splitter import TextSplitter
+ModuleNotFoundError: No module named 'semantic_text_splitter'

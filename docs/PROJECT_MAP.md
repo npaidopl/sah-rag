@@ -86,5 +86,5 @@
 | Activate venv | `.\.venv\Scripts\Activate.ps1` |
 | Run all tests | `python -m pytest tests/ -q` |
 | Run one baseline's tests | `python -m pytest workspace/<name>_dev/tests/ -v` |
-| List datasets | `python -c "from datasets.unified import list_available_datasets; print(list_available_datasets())"` |
+| List datasets | `python -c "from sah_datasets.unified import list_available_datasets; print(list_available_datasets())"` |
 | List baselines | `python -c "import yaml; print([b['name'] for b in yaml.safe_load(open('configs/baselines_registry.yaml'))['baselines']])"` |
