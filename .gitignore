@@ -154,3 +154,5 @@ _tokenizer_*.txt
 *.bak
 _*.log
 _*.probe.txt
+_baseline_tests_*.txt
+_fixes_v2_*.txt
