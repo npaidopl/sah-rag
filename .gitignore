@@ -146,3 +146,11 @@ external/
 
 # registry backups
 configs/*.bak.*
+
+# ===== Debug/probe/backup artifacts =====
+_memorag_*.txt
+_tokenizer_*.txt
+*.backup_*
+*.bak
+_*.log
+_*.probe.txt
