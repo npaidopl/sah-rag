@@ -1,4 +1,7 @@
-"""Evaluation runner for one (baseline, dataset, mode) cell."""
+"""Evaluation runner for one (baseline, dataset, mode) cell.
+
+Metric version: v2 (CUTOFFS=[1,5,10], hit@k included).
+"""
 from __future__ import annotations
 
 import importlib
@@ -11,9 +14,10 @@ import yaml
 
 from baselines.base import BaseBaseline, BaselineConfig, BaselineStatus, RunMode
 from sah_datasets.unified import load_dataset
-from evaluation.retrieval_metrics import mrr_at_k, ndcg_at_k, recall_at_k
+from evaluation.retrieval_metrics import hit_at_k, mrr_at_k, ndcg_at_k, recall_at_k
 
-CUTOFFS = [1, 3, 5, 10]
+CUTOFFS = [1, 5, 10]
+METRIC_VERSION = "v2"
 
 
 def _project_root() -> Path:
@@ -126,6 +130,7 @@ def run_cell(cell, output_root: Path) -> dict:
         buckets[f"recall@{k}"] = []
         buckets[f"mrr@{k}"] = []
         buckets[f"ndcg@{k}"] = []
+        buckets[f"hit@{k}"] = []
 
     predictions_path = run_dir / "predictions.jsonl"
     n_evaluated = 0
@@ -140,6 +145,7 @@ def run_cell(cell, output_root: Path) -> dict:
                 buckets[f"recall@{k}"].append(recall_at_k(retrieved_ids, gt_ids, k))
                 buckets[f"mrr@{k}"].append(mrr_at_k(retrieved_ids, gt_ids, k))
                 buckets[f"ndcg@{k}"].append(ndcg_at_k(retrieved_ids, gt_ids, k))
+                buckets[f"hit@{k}"].append(hit_at_k(retrieved_ids, gt_ids, k))
             record = {
                 "query": qtext,
                 "gt_doc_ids": gt_ids,
@@ -151,6 +157,7 @@ def run_cell(cell, output_root: Path) -> dict:
     aggregated = {name: (sum(v) / len(v) if v else 0.0) for name, v in buckets.items()}
     metrics = {
         "run_id": cell.run_id, "baseline": cell.baseline, "dataset": cell.dataset, "mode": cell.mode,
+        "metric_version": METRIC_VERSION, "cutoffs": list(CUTOFFS),
         "top_k": cell.top_k, "n_documents": len(ds.documents), "n_examples": len(ds.examples),
         "n_evaluated": n_evaluated, "started_at": started,
         "finished_at": datetime.now(timezone.utc).isoformat(), "metrics": aggregated,
@@ -165,9 +172,13 @@ def _run_reported(cell, entry: dict, run_dir: Path, project_root: Path) -> dict:
         raise FileNotFoundError(f"reported_metrics.yaml missing for {cell.baseline}: {reported_path}")
     with reported_path.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
-    out = {"run_id": cell.run_id, "baseline": cell.baseline, "dataset": cell.dataset, "mode": cell.mode, "reported": True, "metrics": data.get(cell.dataset, {})}
+    out = {
+        "run_id": cell.run_id, "baseline": cell.baseline, "dataset": cell.dataset,
+        "mode": cell.mode, "metric_version": METRIC_VERSION,
+        "reported": True, "metrics": data.get(cell.dataset, {}),
+    }
     (run_dir / "metrics.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
     return out
 
 
-__all__ = ["run_cell", "CUTOFFS"]
+__all__ = ["run_cell", "CUTOFFS", "METRIC_VERSION"]

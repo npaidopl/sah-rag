@@ -1,4 +1,8 @@
-"""Self-contained retrieval metrics for SAH-RAG v2."""
+"""Self-contained retrieval metrics for SAH-RAG v2.
+
+Metric version: v2 (CUTOFFS=[1,5,10], hit@k added).
+See docs/evaluation_boundary.md for full protocol.
+"""
 from __future__ import annotations
 
 import math
@@ -36,4 +40,12 @@ def ndcg_at_k(retrieved_doc_ids: list[str], gt_doc_ids: list[str], k: int) -> fl
     return dcg / idcg if idcg > 0 else 0.0
 
 
-__all__ = ["recall_at_k", "precision_at_k", "mrr_at_k", "ndcg_at_k"]
+def hit_at_k(retrieved_doc_ids: list[str], gt_doc_ids: list[str], k: int) -> float:
+    """Binary hit: 1.0 if any gt doc appears in top-k retrieved, else 0.0."""
+    if not gt_doc_ids or k <= 0:
+        return 0.0
+    gt = set(gt_doc_ids)
+    return 1.0 if any(d in gt for d in retrieved_doc_ids[:k]) else 0.0
+
+
+__all__ = ["recall_at_k", "precision_at_k", "mrr_at_k", "ndcg_at_k", "hit_at_k"]
