@@ -75,7 +75,17 @@ def _build_controlled_components(entry: dict) -> tuple[Any, Any]:
     from sah_rag.components.llms import QwenLLM
 
     embedder = BGEM3Embedder()
-    llm = QwenLLM() if bool(entry.get("is_llm_based", False)) else None
+    llm = None
+    if bool(entry.get("is_llm_based", False)):
+        from pathlib import Path as _P
+        import os as _os
+        indoor_path = _os.environ.get("RAG_INDOOR_LLM_ROOT")
+        if not indoor_path:
+            raise RuntimeError(
+                "RAG_INDOOR_LLM_ROOT is not set. Controlled mode requires "
+                "Qwen2.5-14B-Instruct. Set it in .env or environment."
+            )
+        llm = QwenLLM(model_path=_P(indoor_path), strict_fairness=True)
     return embedder, llm
 
 def _extract_query_and_gt(example: Any) -> tuple[str, list[str]]:

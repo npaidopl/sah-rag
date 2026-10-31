@@ -13,6 +13,7 @@ def _set_test_env_defaults() -> None:
     """Ensure critical env vars are set so tests don't crash on missing config."""
     defaults: dict[str, str] = {
         "RAG_CANONICAL_ROOT": str(PROJECT_ROOT / "data" / "processed" / "canonical"),
+        "RAG_INDOOR_LLM_ROOT": "D:/rag_work/models/Qwen2.5-14B-Instruct",
     }
     for key, value in defaults.items():
         if not os.getenv(key):

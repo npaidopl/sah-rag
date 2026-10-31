@@ -2,6 +2,10 @@
 
 Implements the ``baselines.base.LLM`` Protocol. Model is lazily loaded
 and cached as a module-level singleton.
+
+Fairness policy (v2): controlled-mode indoor LLM MUST be Qwen2.5-14B-Instruct.
+Passing a smaller model violates the fairness protocol unless strict_fairness=False
+is explicit (e.g. tests, debugging).
 """
 from __future__ import annotations
 
@@ -12,17 +16,12 @@ from typing import Any
 
 log = logging.getLogger(__name__)
 
-_DEFAULT_ROOT = r"D:\rag_work\hf_cache\models--Qwen--Qwen2.5-1.5B-Instruct"
+_DEFAULT_ROOT = r"D:\rag_work\models\Qwen2.5-14B-Instruct"
+_ENV_VAR = "RAG_INDOOR_LLM_ROOT"
 
 
-def _resolve_model_path() -> Path:
-    root_str = os.environ.get("RAG_LLM_ROOT", _DEFAULT_ROOT)
-    root = Path(root_str)
-    if not root.exists():
-        raise RuntimeError(
-            f"Qwen model directory not found: {root}. "
-            f"Set RAG_LLM_ROOT or place the model at {_DEFAULT_ROOT}."
-        )
+def _resolve_snapshot(root: Path) -> Path:
+    """If root has a `snapshots/<rev>` layout, return the first snapshot dir."""
     snap = root / "snapshots"
     if snap.exists():
         candidates = [p for p in snap.iterdir() if p.is_dir()]
@@ -32,9 +31,11 @@ def _resolve_model_path() -> Path:
 
 
 class QwenLLM:
-    """Qwen2.5-1.5B-Instruct wrapper for controlled-mode injection.
+    """Qwen2.5-14B-Instruct wrapper for controlled-mode injection.
 
-    CPU-friendly. Uses ``torch.cuda`` when available.
+    Controlled protocol mandates Qwen2.5-14B-Instruct (see
+    docs/llm_fairness_policy.md). Passing a smaller model with
+    strict_fairness=True raises ValueError.
     """
 
     _DEFAULT_MAX_TOKENS = 256
@@ -44,15 +45,31 @@ class QwenLLM:
         self,
         model_path: str | Path | None = None,
         *,
+        strict_fairness: bool = True,
         allow_download: bool = False,
     ) -> None:
-        self._model_path = Path(model_path) if model_path else _resolve_model_path()
+        if model_path is None:
+            env_path = os.environ.get(_ENV_VAR) or os.environ.get(_DEFAULT_ROOT)
+            if not env_path:
+                raise ValueError(
+                    "QwenLLM requires explicit model_path. "
+                    "Controlled protocol mandates Qwen2.5-14B-Instruct. "
+                    f"Pass model_path=... or set env {_ENV_VAR}."
+                )
+            model_path = env_path
+        path = Path(model_path)
+        if strict_fairness and "14B" not in str(path):
+            raise ValueError(
+                f"Controlled protocol mandates Qwen2.5-14B-Instruct. "
+                f"Got: {path}. Pass strict_fairness=False for tests/debugging."
+            )
+        self._model_path = _resolve_snapshot(path)
+        self._strict_fairness = strict_fairness
         self._allow_download = allow_download
         self._tokenizer: Any = None
         self._model: Any = None
         self._torch: Any = None
         self._device: str = "cpu"
-
     def _ensure_loaded(self) -> None:
         if self._model is not None:
             return
@@ -76,7 +93,7 @@ class QwenLLM:
         except Exception as exc:
             raise RuntimeError(
                 f"Could not load Qwen from {self._model_path}. "
-                f"Set RAG_LLM_ROOT or allow_download=True. Cause: {exc}"
+                f"Pass allow_download=True or check the path. Cause: {exc}"
             ) from exc
 
         self._model.eval()
@@ -87,7 +104,7 @@ class QwenLLM:
 
     @property
     def name(self) -> str:
-        return "Qwen/Qwen2.5-1.5B-Instruct"
+        return f"Qwen/{self._model_path.name}"
 
     def generate(self, prompt: str, **kwargs: Any) -> str:
         self._ensure_loaded()

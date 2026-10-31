@@ -90,7 +90,7 @@ def test_build_controlled_components_returns_embedder_and_llm():
     orig_emb = emb_mod.BGEM3Embedder
     orig_llm = llm_mod.QwenLLM
     emb_mod.BGEM3Embedder = lambda: _StubEmbedder()  # type: ignore[assignment]
-    llm_mod.QwenLLM = lambda: _StubLLM()  # type: ignore[assignment]
+    llm_mod.QwenLLM = lambda **kwargs: _StubLLM()  # type: ignore[assignment]
     try:
         embedder, llm = _build_controlled_components({"is_llm_based": True})
         assert embedder is not None
@@ -135,7 +135,7 @@ def test_controlled_mode_injects_embedder_and_llm(tmp_path: Path):
          patch("evaluation.runner._find_adapter_class", return_value=_RecordingAdapter), \
          patch("evaluation.runner.load_dataset", return_value=_FakeDataset()), \
          patch("sah_rag.components.embedders.BGEM3Embedder", lambda: _StubEmbedder()), \
-         patch("sah_rag.components.llms.QwenLLM", lambda: _StubLLM()):
+         patch("sah_rag.components.llms.QwenLLM", lambda **kwargs: _StubLLM()):
 
         result = run_cell(FakeCell(), output_root=tmp_path / "out")
         assert result["baseline"] == "recording_adapter"
