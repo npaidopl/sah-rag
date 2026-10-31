@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 PATH = Path("baseline_audit/external_canonical_suite_registry.yaml")
-DATASETS = ("ruler","loong","long_bench_v2","lara","greek_bar_bench","cuad","clerk")
+DATASETS = ('2wiki', 'clerk', 'cuad', 'frames', 'greek_bar_bench', 'hotpotqa', 'lara', 'long_bench_v2', 'loong', 'm3docvqa', 'multifieldqa_en', 'multihop_rag', 'musique', 'narrativeqa', 'qasper', 'quality', 'ruler')
 
 
 def _require(condition: bool, message: str) -> None:
@@ -24,12 +24,12 @@ def main() -> int:
 
     suite = data["suite"]
     _require(suite["registration_status"] == "REGISTERED", "registration_status must be REGISTERED")
-    _require(suite["dataset_count"] == 7, "dataset_count must be 7")
-    _require(suite["total_documents"] == 8879, "total_documents must be 8879")
-    _require(suite["total_examples"] == 29718, "total_examples must be 29718")
+    _require(suite["dataset_count"] == 17, "dataset_count must be 7")
+    _require(suite["total_documents"] == 156649, "total_documents must be 8879")
+    _require(suite["total_examples"] == 78436, "total_examples must be 29718")
     _require(
         suite["collection_fingerprint"]
-        == "5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4",
+        == "d99b460d292f2f5517b4c60ff66ce5fe9d14211308f994819d7c66c71ee82579",
         "collection_fingerprint must match",
     )
 

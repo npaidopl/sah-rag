@@ -24,20 +24,30 @@ suite:
   local_adapter_pipeline_root: "${SAH_RAG_PROJECT_ROOT}/pipeline"
   canonical_manifest_path: "${SAH_RAG_PROJECT_ROOT}/reports/reproducibility/canonical_manifest.json"
   sha256sums_path: "${SAH_RAG_PROJECT_ROOT}/reports/reproducibility/SHA256SUMS.txt"
-  expected_collection_fingerprint: 5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4
-  expected_document_count: 8879
-  expected_example_count: 29718
+  expected_collection_fingerprint: d99b460d292f2f5517b4c60ff66ce5fe9d14211308f994819d7c66c71ee82579
+  expected_document_count: 156649
+  expected_example_count: 78436
 
 datasets:
   expected:
-    - ruler
-    - loong
-    - long_bench_v2
-    - lara
-    - greek_bar_bench
-    - cuad
+    - 2wiki
     - clerk
-  expected_count: 7
+    - cuad
+    - frames
+    - greek_bar_bench
+    - hotpotqa
+    - lara
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+  expected_count: 17
   exact_set_required: true
 
 required_canonical_files:

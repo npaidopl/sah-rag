@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PATH = REPO_ROOT / "baseline_audit" / "external_canonical_suite_registry.yaml"
 VALIDATOR = REPO_ROOT / "scripts" / "validate_external_canonical_suite_registry.py"
 
-EXPECTED = ("ruler","loong","long_bench_v2","lara","greek_bar_bench","cuad","clerk")
+EXPECTED = ('2wiki', 'clerk', 'cuad', 'frames', 'greek_bar_bench', 'hotpotqa', 'lara', 'long_bench_v2', 'loong', 'm3docvqa', 'multifieldqa_en', 'multihop_rag', 'musique', 'narrativeqa', 'qasper', 'quality', 'ruler')
 
 
 def _load() -> dict:
@@ -37,8 +37,8 @@ def test_seven_records():
 
 def test_total_documents_and_examples():
     s = _load()["suite"]
-    assert s["total_documents"] == 8879
-    assert s["total_examples"] == 29718
+    assert s["total_documents"] == 156649
+    assert s["total_examples"] == 78436
 
 
 def test_file_checksums_present():

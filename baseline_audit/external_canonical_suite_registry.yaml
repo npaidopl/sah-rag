@@ -3,365 +3,93 @@ artifact_version: '1.0'
 suite:
   suite_id: canonical-rag-dataset-suite
   repository_url: https://github.com/npaidopl/canonical-rag-dataset-suite
-  repository_commit: 8c3cdc6a2030235de2955b4f832c7a3937d6483a
+  repository_commit: a50e2f42c58d4523dad9cf5b31c4a88c7f5dc6bb
   canonical_root: ${SAH_RAG_CANONICAL_ROOT}
   raw_source_root: ${SAH_RAG_PROJECT_ROOT}/datasets
   adapter_pipeline_root: ${SAH_RAG_PROJECT_ROOT}/pipeline
-  collection_fingerprint: 5f577978b6ab7a4ee3fef29b68db29f95b37261f103bb6cfd5fd7094c70a2aa4
+  collection_fingerprint: d99b460d292f2f5517b4c60ff66ce5fe9d14211308f994819d7c66c71ee82579
   registration_status: REGISTERED
-  dataset_count: 7
-  total_documents: 8879
-  total_examples: 29718
+  dataset_count: 17
+  total_documents: 156649
+  total_examples: 78436
 datasets:
-  ruler:
+  2wiki:
     status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\ruler
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/2wiki
     files:
       documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\ruler\documents.jsonl
-        bytes: 180002751
-        sha256: d10c7c394648aac9b983091ab0d4bb5fbaeeb5b4911236593551f73e4e700345
+        path: ${SAH_RAG_CANONICAL_ROOT}/2wiki/documents.jsonl
+        bytes: 61247264
+        sha256: c5d6130d5c77cdd0d1f60c56dd4a79232cb3b4a8fb066dde6bc15d8fc6e21626
       examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\ruler\examples.jsonl
-        bytes: 181703213
-        sha256: a33cfc0fa6a9d1bebdb7babfcec362d36e5e57912ed9c1733274b23ec4a1af3b
+        path: ${SAH_RAG_CANONICAL_ROOT}/2wiki/examples.jsonl
+        bytes: 11824950
+        sha256: 750ff491c214cab76adbbd7236a79fd43ca7c1d3964dd7b8cf3f59c5e9b313a8
       validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\ruler\validation.json
-        bytes: 24924
-        sha256: cc02a513deb6b83f91e9cd463e1eb65d4136ba0aeadf4c320948f8d188ca3b17
+        path: ${SAH_RAG_CANONICAL_ROOT}/2wiki/validation.json
+        bytes: 533
+        sha256: 690738d29115cf44809befdd04e1ab24ca5cd3a7a3aa36ca573aeee483d2e623
       manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\ruler\manifest.json
-        bytes: 1075
-        sha256: 79acd8133b5d0f6f10bc3f48a716f2d7738e43fb8ccfb44ee2b531c600b91b9a
+        path: ${SAH_RAG_CANONICAL_ROOT}/2wiki/manifest.json
+        bytes: 1120
+        sha256: 10ffc8df3ad5a3a398d4c802bce978a35775b004aab113fb6f71a386e7b398b7
     sha256_matches_published:
       documents.jsonl: true
       examples.jsonl: true
       validation.json: true
       manifest.json: true
     manifest:
-      dataset: ruler
+      dataset: 2wiki
       schema_version: canonical-v1
       raw_source_modified: false
-      documents: 4000
-      examples: 4000
+      documents: 54957
+      examples: 12576
       splits:
-        test: 4000
+        test: 12576
     validation:
       source_valid: true
       output_valid: true
       error_count: 0
       warning_count: 0
-    document_count_observed: 4000
-    document_unique_ids: 4000
+    document_count_observed: 54957
+    document_unique_ids: 54957
     document_duplicate_ids: 0
-    example_count_observed: 4000
-    query_unique_ids: 4000
+    example_count_observed: 12576
+    query_unique_ids: 12576
     query_duplicate_ids: 0
     unresolved_query_doc_refs: 0
     unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 4000
+    gt_answer_field_present: 12576
     gt_choice_field_present: 0
     gt_spans_field_present: 0
-    gt_relevant_id_count_total: 4000
+    gt_relevant_id_count_total: 30654
     gt_zero_relevance_examples: 0
     query_doc_ids_cardinality:
-      1: 4000
+      '7': 4
+      '8': 52
+      '9': 407
+      '10': 12113
     gt_relevant_ids_cardinality:
-      1: 4000
-  loong:
-    status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\loong
-    files:
-      documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\loong\documents.jsonl
-        bytes: 645563647
-        sha256: e6084568364bce8f39e9d45ec74546dece9270d464ab5ab3169d919bcc80afb8
-      examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\loong\examples.jsonl
-        bytes: 353029890
-        sha256: ab65a9b9d82b94d7f27626daf7c2f69d767e6aba2c4377bf905a4439792d3f86
-      validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\loong\validation.json
-        bytes: 3058
-        sha256: b86f36b2d69bd2512b1f8efc212ee87760b8489eb1c95d3d070211b6223f04f3
-      manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\loong\manifest.json
-        bytes: 1066
-        sha256: b8ac37486e6b7f01da102c0217daeb7440cf08ad0ecfe26a88066da14cc80712
-    sha256_matches_published:
-      documents.jsonl: true
-      examples.jsonl: true
-      validation.json: true
-      manifest.json: true
-    manifest:
-      dataset: loong
-      schema_version: canonical-v1
-      raw_source_modified: false
-      documents: 695
-      examples: 695
-      splits:
-        test: 695
-    validation:
-      source_valid: true
-      output_valid: true
-      error_count: 0
-      warning_count: 2
-    document_count_observed: 695
-    document_unique_ids: 695
-    document_duplicate_ids: 0
-    example_count_observed: 695
-    query_unique_ids: 695
-    query_duplicate_ids: 0
-    unresolved_query_doc_refs: 0
-    unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 695
-    gt_choice_field_present: 0
-    gt_spans_field_present: 0
-    gt_relevant_id_count_total: 695
-    gt_zero_relevance_examples: 0
-    query_doc_ids_cardinality:
-      1: 695
-    gt_relevant_ids_cardinality:
-      1: 695
-  long_bench_v2:
-    status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2
-    files:
-      documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2\documents.jsonl
-        bytes: 892706503
-        sha256: 082ef4f256b57bbbb4bcc6d4a5e3fc22ecb151fdffdbab9bcf4cf45124621422
-      examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2\examples.jsonl
-        bytes: 465821199
-        sha256: 578aab9af35b692f9c650a4a437a5b95e8de0e881e6e51ba8b0dbe796f9a0dc2
-      validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2\validation.json
-        bytes: 789
-        sha256: 2b8589282da24ba8191300cf8a2c76015bdb0f4af3e1b316ce68280a341b0a07
-      manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\long_bench_v2\manifest.json
-        bytes: 1090
-        sha256: ccff626e92d1b2b752c26b5a2238ecb7a058c7de75837eb049ecf7d1fda5e20e
-    sha256_matches_published:
-      documents.jsonl: true
-      examples.jsonl: true
-      validation.json: true
-      manifest.json: true
-    manifest:
-      dataset: long_bench_v2
-      schema_version: canonical-v1
-      raw_source_modified: false
-      documents: 503
-      examples: 503
-      splits:
-        test: 503
-    validation:
-      source_valid: true
-      output_valid: true
-      error_count: 0
-      warning_count: 0
-    document_count_observed: 503
-    document_unique_ids: 503
-    document_duplicate_ids: 0
-    example_count_observed: 503
-    query_unique_ids: 503
-    query_duplicate_ids: 0
-    unresolved_query_doc_refs: 0
-    unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 503
-    gt_choice_field_present: 503
-    gt_spans_field_present: 0
-    gt_relevant_id_count_total: 503
-    gt_zero_relevance_examples: 0
-    query_doc_ids_cardinality:
-      1: 503
-    gt_relevant_ids_cardinality:
-      1: 503
-  lara:
-    status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\lara
-    files:
-      documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\lara\documents.jsonl
-        bytes: 69390194
-        sha256: a49892e982c9a07497fd281df0f351ed6fba5de41c6a58ef8ca9341508b8d658
-      examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\lara\examples.jsonl
-        bytes: 14996106
-        sha256: 93252b57e93daac4b7c4c73d2f06eeede67544863c5441de612f1dd66ef28d6d
-      validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\lara\validation.json
-        bytes: 969
-        sha256: 83aa2eec3d132b2f5534dad5021e1e93b98d283e3a435c398ad85e45fd7d285c
-      manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\lara\manifest.json
-        bytes: 1068
-        sha256: 49112395abf3191be0642d4230f093090909a4be31de9f66f5ebc19a97bdc65a
-    sha256_matches_published:
-      documents.jsonl: true
-      examples.jsonl: true
-      validation.json: true
-      manifest.json: true
-    manifest:
-      dataset: lara
-      schema_version: canonical-v1
-      raw_source_modified: false
-      documents: 131
-      examples: 2326
-      splits:
-        test: 2326
-    validation:
-      source_valid: true
-      output_valid: true
-      error_count: 0
-      warning_count: 0
-    document_count_observed: 131
-    document_unique_ids: 131
-    document_duplicate_ids: 0
-    example_count_observed: 2326
-    query_unique_ids: 2326
-    query_duplicate_ids: 0
-    unresolved_query_doc_refs: 0
-    unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 2326
-    gt_choice_field_present: 0
-    gt_spans_field_present: 0
-    gt_relevant_id_count_total: 2326
-    gt_zero_relevance_examples: 0
-    query_doc_ids_cardinality:
-      1: 2326
-    gt_relevant_ids_cardinality:
-      1: 2326
-  greek_bar_bench:
-    status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench
-    files:
-      documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench\documents.jsonl
-        bytes: 68949846
-        sha256: 4de97c0d5bd6e35b0707bcf0763c0ec943d199f8233e1bbf44a32b1e9f8efb98
-      examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench\examples.jsonl
-        bytes: 8744487
-        sha256: 2fbe5f3987cde57ffa3054f8780a0719ca6209355bb0713fb59774201b99e3b4
-      validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench\validation.json
-        bytes: 1688
-        sha256: 8ec22bacf7628e92ee0de7b73f039df187c8fb1680c7acc59cff8e0d8052a8f2
-      manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\greek_bar_bench\manifest.json
-        bytes: 1096
-        sha256: 6b90a9c98cc27095010f33d011592ccf4176d3d054278a93a6e5582c3befba81
-    sha256_matches_published:
-      documents.jsonl: true
-      examples.jsonl: true
-      validation.json: true
-      manifest.json: true
-    manifest:
-      dataset: greek_bar_bench
-      schema_version: canonical-v1
-      raw_source_modified: false
-      documents: 284
-      examples: 284
-      splits:
-        test: 284
-    validation:
-      source_valid: true
-      output_valid: true
-      error_count: 0
-      warning_count: 2
-    document_count_observed: 284
-    document_unique_ids: 284
-    document_duplicate_ids: 0
-    example_count_observed: 284
-    query_unique_ids: 284
-    query_duplicate_ids: 0
-    unresolved_query_doc_refs: 0
-    unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 284
-    gt_choice_field_present: 0
-    gt_spans_field_present: 284
-    gt_relevant_id_count_total: 284
-    gt_zero_relevance_examples: 0
-    query_doc_ids_cardinality:
-      1: 284
-    gt_relevant_ids_cardinality:
-      1: 284
-  cuad:
-    status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\cuad
-    files:
-      documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\cuad\documents.jsonl
-        bytes: 53378228
-        sha256: 8527fef403a24cbef73f931821220027aa1230e94ec366a18487ccf354bdbb30
-      examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\cuad\examples.jsonl
-        bytes: 36370354
-        sha256: 35a265e1b2c4f06573dc55bab6b33aada50c8a4de8a93631ebd7559d6f090280
-      validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\cuad\validation.json
-        bytes: 2620
-        sha256: a8acb8aff700be350028745b1c29dde0db1488d3780e78d8d412419e2772cd53
-      manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\cuad\manifest.json
-        bytes: 1073
-        sha256: 27dc6f8d8326af67cbab4eb553fe10fa09cc7e9be0498d2563789b540246d6b0
-    sha256_matches_published:
-      documents.jsonl: true
-      examples.jsonl: true
-      validation.json: true
-      manifest.json: true
-    manifest:
-      dataset: cuad
-      schema_version: canonical-v1
-      raw_source_modified: false
-      documents: 510
-      examples: 20910
-      splits:
-        test: 20910
-    validation:
-      source_valid: true
-      output_valid: true
-      error_count: 0
-      warning_count: 1
-    document_count_observed: 510
-    document_unique_ids: 510
-    document_duplicate_ids: 0
-    example_count_observed: 20910
-    query_unique_ids: 20910
-    query_duplicate_ids: 0
-    unresolved_query_doc_refs: 0
-    unresolved_gt_relevant_refs: 0
-    gt_answer_field_present: 6702
-    gt_choice_field_present: 0
-    gt_spans_field_present: 6702
-    gt_relevant_id_count_total: 6702
-    gt_zero_relevance_examples: 14208
-    query_doc_ids_cardinality:
-      1: 20910
-    gt_relevant_ids_cardinality:
-      0: 14208
-      1: 6702
+      '2': 9825
+      '4': 2751
   clerk:
     status: REGISTERED
-    canonical_root: ${SAH_RAG_CANONICAL_ROOT}\clerk
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/clerk
     files:
       documents.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\clerk\documents.jsonl
+        path: ${SAH_RAG_CANONICAL_ROOT}/clerk/documents.jsonl
         bytes: 8577683
         sha256: 595237536bfcabcb311556de4f9468adf1f070b690226ecd0cae83f9ad6584ed
       examples.jsonl:
-        path: ${SAH_RAG_CANONICAL_ROOT}\clerk\examples.jsonl
+        path: ${SAH_RAG_CANONICAL_ROOT}/clerk/examples.jsonl
         bytes: 18229557
         sha256: 7a45c0324a614dd3e6b34cf1ddce31c544be343d0b0a17d874c6bb4d6661b3f4
       validation.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\clerk\validation.json
+        path: ${SAH_RAG_CANONICAL_ROOT}/clerk/validation.json
         bytes: 702
         sha256: f07b9bcd0d4625fb1f6230c9976aac1c89c3cbbc1e2a8f2adf4bdc60e21ffaef
       manifest.json:
-        path: ${SAH_RAG_CANONICAL_ROOT}\clerk\manifest.json
+        path: ${SAH_RAG_CANONICAL_ROOT}/clerk/manifest.json
         bytes: 1114
         sha256: d249994fc57f5d9be969c0072ef24bf233868a189310c7d81407d401dcf06425
     sha256_matches_published:
@@ -398,31 +126,894 @@ datasets:
     gt_relevant_id_count_total: 2770
     gt_zero_relevance_examples: 0
     query_doc_ids_cardinality:
-      1: 1
-      2: 572
-      3: 240
-      4: 108
-      5: 37
-      6: 19
-      7: 13
-      8: 7
-      9: 3
+      '1': 1
+      '2': 572
+      '3': 240
+      '4': 108
+      '5': 37
+      '6': 19
+      '7': 13
+      '8': 7
+      '9': 3
     gt_relevant_ids_cardinality:
-      1: 1
-      2: 572
-      3: 240
-      4: 108
-      5: 37
-      6: 19
-      7: 13
-      8: 7
-      9: 3
+      '1': 1
+      '2': 572
+      '3': 240
+      '4': 108
+      '5': 37
+      '6': 19
+      '7': 13
+      '8': 7
+      '9': 3
+  cuad:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/cuad
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/cuad/documents.jsonl
+        bytes: 53378228
+        sha256: 8527fef403a24cbef73f931821220027aa1230e94ec366a18487ccf354bdbb30
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/cuad/examples.jsonl
+        bytes: 36370354
+        sha256: 35a265e1b2c4f06573dc55bab6b33aada50c8a4de8a93631ebd7559d6f090280
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/cuad/validation.json
+        bytes: 2620
+        sha256: a8acb8aff700be350028745b1c29dde0db1488d3780e78d8d412419e2772cd53
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/cuad/manifest.json
+        bytes: 1073
+        sha256: 27dc6f8d8326af67cbab4eb553fe10fa09cc7e9be0498d2563789b540246d6b0
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: cuad
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 510
+      examples: 20910
+      splits:
+        test: 20910
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 1
+    document_count_observed: 510
+    document_unique_ids: 510
+    document_duplicate_ids: 0
+    example_count_observed: 20910
+    query_unique_ids: 20910
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 6702
+    gt_choice_field_present: 0
+    gt_spans_field_present: 6702
+    gt_relevant_id_count_total: 6702
+    gt_zero_relevance_examples: 14208
+    query_doc_ids_cardinality:
+      '1': 20910
+    gt_relevant_ids_cardinality:
+      '0': 14208
+      '1': 6702
+  frames:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/frames
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/frames/documents.jsonl
+        bytes: 135367940
+        sha256: ed26298eaa184c6597c9db7318d8bfbaef16cd1c59cc7aeb748d2ad0e476607d
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/frames/examples.jsonl
+        bytes: 732977
+        sha256: be8ebbf9da108ae8f5a6818be772938a6d543fa5edd6e463cbaafd3ac3c15a3e
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/frames/validation.json
+        bytes: 1284
+        sha256: 0e254e386f14c0a4dbb8077c8a28e6d2891e968fe40029fe10ad948667722bc5
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/frames/manifest.json
+        bytes: 1109
+        sha256: bef26054c98ed03ab78cd816e88daf114c771ab356883164067971c6cbfbc930
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: frames
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 2476
+      examples: 824
+      splits:
+        test: 824
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 1
+    document_count_observed: 2476
+    document_unique_ids: 2476
+    document_duplicate_ids: 0
+    example_count_observed: 824
+    query_unique_ids: 824
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 824
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 2632
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '2': 312
+      '3': 288
+      '4': 132
+      '5': 37
+      '6': 19
+      '7': 13
+      '8': 6
+      '9': 3
+      '10': 3
+      '11': 11
+    gt_relevant_ids_cardinality:
+      '2': 312
+      '3': 288
+      '4': 132
+      '5': 37
+      '6': 19
+      '7': 13
+      '8': 6
+      '9': 3
+      '10': 3
+      '11': 11
+  greek_bar_bench:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/greek_bar_bench
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/greek_bar_bench/documents.jsonl
+        bytes: 68949846
+        sha256: 4de97c0d5bd6e35b0707bcf0763c0ec943d199f8233e1bbf44a32b1e9f8efb98
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/greek_bar_bench/examples.jsonl
+        bytes: 8744487
+        sha256: 2fbe5f3987cde57ffa3054f8780a0719ca6209355bb0713fb59774201b99e3b4
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/greek_bar_bench/validation.json
+        bytes: 1688
+        sha256: 8ec22bacf7628e92ee0de7b73f039df187c8fb1680c7acc59cff8e0d8052a8f2
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/greek_bar_bench/manifest.json
+        bytes: 1096
+        sha256: 6b90a9c98cc27095010f33d011592ccf4176d3d054278a93a6e5582c3befba81
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: greek_bar_bench
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 284
+      examples: 284
+      splits:
+        test: 284
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 2
+    document_count_observed: 284
+    document_unique_ids: 284
+    document_duplicate_ids: 0
+    example_count_observed: 284
+    query_unique_ids: 284
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 284
+    gt_choice_field_present: 0
+    gt_spans_field_present: 284
+    gt_relevant_id_count_total: 284
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 284
+    gt_relevant_ids_cardinality:
+      '1': 284
+  hotpotqa:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/hotpotqa
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/hotpotqa/documents.jsonl
+        bytes: 88675672
+        sha256: 43fefc7e0a8b04d2f0e3e6e495754164ea7de3b159df556fc6100660423a1a22
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/hotpotqa/examples.jsonl
+        bytes: 7230651
+        sha256: da2c256b60791171de90944c274bfa70db2af3fe43ecbc2971abe3e1c28cfc3c
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/hotpotqa/validation.json
+        bytes: 527
+        sha256: 7c58bb4d9b83674815f07d2403dd73ca7cae1c02a569edb497aba7bacc872414
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/hotpotqa/manifest.json
+        bytes: 1124
+        sha256: 2b5f5f4447e8588e01e62fcb1fa333f13f50ae51f30d8883fa831a78bc4a7ef8
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: hotpotqa
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 66581
+      examples: 7405
+      splits:
+        test: 7405
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 66581
+    document_unique_ids: 66581
+    document_duplicate_ids: 0
+    example_count_observed: 7405
+    query_unique_ids: 7405
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 7405
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 14810
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '2': 21
+      '3': 7
+      '4': 9
+      '5': 6
+      '6': 8
+      '7': 2
+      '8': 4
+      '9': 3
+      '10': 7345
+    gt_relevant_ids_cardinality:
+      '2': 7405
+  lara:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/lara
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/lara/documents.jsonl
+        bytes: 69390194
+        sha256: a49892e982c9a07497fd281df0f351ed6fba5de41c6a58ef8ca9341508b8d658
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/lara/examples.jsonl
+        bytes: 14996106
+        sha256: 93252b57e93daac4b7c4c73d2f06eeede67544863c5441de612f1dd66ef28d6d
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/lara/validation.json
+        bytes: 969
+        sha256: 83aa2eec3d132b2f5534dad5021e1e93b98d283e3a435c398ad85e45fd7d285c
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/lara/manifest.json
+        bytes: 1068
+        sha256: 49112395abf3191be0642d4230f093090909a4be31de9f66f5ebc19a97bdc65a
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: lara
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 131
+      examples: 2326
+      splits:
+        test: 2326
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 131
+    document_unique_ids: 131
+    document_duplicate_ids: 0
+    example_count_observed: 2326
+    query_unique_ids: 2326
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 2326
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 2326
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 2326
+    gt_relevant_ids_cardinality:
+      '1': 2326
+  long_bench_v2:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/long_bench_v2
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/long_bench_v2/documents.jsonl
+        bytes: 892706503
+        sha256: 082ef4f256b57bbbb4bcc6d4a5e3fc22ecb151fdffdbab9bcf4cf45124621422
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/long_bench_v2/examples.jsonl
+        bytes: 465821199
+        sha256: 578aab9af35b692f9c650a4a437a5b95e8de0e881e6e51ba8b0dbe796f9a0dc2
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/long_bench_v2/validation.json
+        bytes: 789
+        sha256: 2b8589282da24ba8191300cf8a2c76015bdb0f4af3e1b316ce68280a341b0a07
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/long_bench_v2/manifest.json
+        bytes: 1090
+        sha256: ccff626e92d1b2b752c26b5a2238ecb7a058c7de75837eb049ecf7d1fda5e20e
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: long_bench_v2
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 503
+      examples: 503
+      splits:
+        test: 503
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 503
+    document_unique_ids: 503
+    document_duplicate_ids: 0
+    example_count_observed: 503
+    query_unique_ids: 503
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 503
+    gt_choice_field_present: 503
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 503
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 503
+    gt_relevant_ids_cardinality:
+      '1': 503
+  loong:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/loong
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/loong/documents.jsonl
+        bytes: 645563647
+        sha256: e6084568364bce8f39e9d45ec74546dece9270d464ab5ab3169d919bcc80afb8
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/loong/examples.jsonl
+        bytes: 353029890
+        sha256: ab65a9b9d82b94d7f27626daf7c2f69d767e6aba2c4377bf905a4439792d3f86
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/loong/validation.json
+        bytes: 3058
+        sha256: b86f36b2d69bd2512b1f8efc212ee87760b8489eb1c95d3d070211b6223f04f3
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/loong/manifest.json
+        bytes: 1066
+        sha256: b8ac37486e6b7f01da102c0217daeb7440cf08ad0ecfe26a88066da14cc80712
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: loong
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 695
+      examples: 695
+      splits:
+        test: 695
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 2
+    document_count_observed: 695
+    document_unique_ids: 695
+    document_duplicate_ids: 0
+    example_count_observed: 695
+    query_unique_ids: 695
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 695
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 695
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 695
+    gt_relevant_ids_cardinality:
+      '1': 695
+  m3docvqa:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/m3docvqa
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/m3docvqa/documents.jsonl
+        bytes: 2404
+        sha256: 940d37dcf0ca9ce9af34a78b2359410a07efb4c02e72916c5744c5395dc0b0fe
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/m3docvqa/examples.jsonl
+        bytes: 1291438
+        sha256: ccf812907a620aa2af2877219f8a748ba2fcfdb6b3ae3f7e855b58352c53de6b
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/m3docvqa/validation.json
+        bytes: 826
+        sha256: 33e4c4561a9ef22003d33d21415059f99c1310be4087a8ee02bed16bb641e4a8
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/m3docvqa/manifest.json
+        bytes: 1103
+        sha256: 2792aae2b67fd024933f8c38b34dd637b4882ffccc7ca4d860754f9d1a340802
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: m3docvqa
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 2
+      examples: 858
+      splits:
+        test: 858
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 1
+    document_count_observed: 2
+    document_unique_ids: 2
+    document_duplicate_ids: 0
+    example_count_observed: 858
+    query_unique_ids: 858
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 858
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 858
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 858
+    gt_relevant_ids_cardinality:
+      '1': 858
+  multifieldqa_en:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/multifieldqa_en
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multifieldqa_en/documents.jsonl
+        bytes: 8906070
+        sha256: d22095497cd36c01080514bc6f47931cd2ae3e8d0a6a2bbca6e40961f7c3379e
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multifieldqa_en/examples.jsonl
+        bytes: 4552476
+        sha256: 731e64416d8dfd9314b2518f795f9cd82722f8c151e294487a0f5f87d620a866
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multifieldqa_en/validation.json
+        bytes: 513
+        sha256: 43a7342f157a596e2b59c303e800e52da9137451049b90d73dd7a1c4f06c3641
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multifieldqa_en/manifest.json
+        bytes: 1132
+        sha256: 5c5c35d5e4e2deb46d76ebe7f98d4a3decf9bae07ea45004dbffc0ad6bbe7d8b
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: multifieldqa_en
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 150
+      examples: 150
+      splits:
+        test: 150
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 150
+    document_unique_ids: 150
+    document_duplicate_ids: 0
+    example_count_observed: 150
+    query_unique_ids: 150
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 150
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 150
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 150
+    gt_relevant_ids_cardinality:
+      '1': 150
+  multihop_rag:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/multihop_rag
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multihop_rag/documents.jsonl
+        bytes: 13231957
+        sha256: 0d7cb8582928d46907570caf1bb45e1d569d2dd1f366818fad34a235688421c9
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multihop_rag/examples.jsonl
+        bytes: 2454584
+        sha256: 521495a89e2d638a6bedd2eaf9fa8949d9165fc33ce484e81e5d0d9a5f3355bd
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multihop_rag/validation.json
+        bytes: 519
+        sha256: f04df15250dc80a3f064a2c0ee6d48d281e84c0ecbbff857569dfec23fad465f
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/multihop_rag/manifest.json
+        bytes: 1128
+        sha256: ad8c87ba08d2b50b051430207b5fc1884a8440fd56368ac4001799faefda5b38
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: multihop_rag
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 609
+      examples: 2556
+      splits:
+        test: 2556
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 609
+    document_unique_ids: 609
+    document_duplicate_ids: 0
+    example_count_observed: 2556
+    query_unique_ids: 2556
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 2556
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 5908
+    gt_zero_relevance_examples: 301
+    query_doc_ids_cardinality:
+      '0': 301
+      '2': 1169
+      '3': 774
+      '4': 312
+    gt_relevant_ids_cardinality:
+      '0': 301
+      '2': 1169
+      '3': 774
+      '4': 312
+  musique:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/musique
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/musique/documents.jsonl
+        bytes: 25448910
+        sha256: cfbf49c46675e2abb05105d8086c81e75600b0c76be22c5e0ce9fded02fb62d1
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/musique/examples.jsonl
+        bytes: 3149928
+        sha256: 68fa010bc5f4ba6a950738a09fcd7acbf2476040bcf6dcb2fe1d20e60b41d27d
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/musique/validation.json
+        bytes: 526
+        sha256: 24016e0ebebba9bd4fb03d48f53aece0a261dabfc9aeaee38f864618ab0bba87
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/musique/manifest.json
+        bytes: 1120
+        sha256: 217980cc47e6cb7df1c7494597a7d86afe0eea2290aca3f5411cfb053e7c2900
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: musique
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 21100
+      examples: 2417
+      splits:
+        test: 2417
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 21100
+    document_unique_ids: 21100
+    document_duplicate_ids: 0
+    example_count_observed: 2417
+    query_unique_ids: 2417
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 2417
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 6404
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '17': 2
+      '18': 5
+      '19': 9
+      '20': 2401
+    gt_relevant_ids_cardinality:
+      '2': 1252
+      '3': 760
+      '4': 405
+  narrativeqa:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/narrativeqa
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/narrativeqa/documents.jsonl
+        bytes: 297102785
+        sha256: 3feff565fbf6b38660a0d0e45c6970954da9375b1be145cc4a5c5a83a3f7963a
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/narrativeqa/examples.jsonl
+        bytes: 9845212
+        sha256: e96ae3363ed241f11a2112e6d9938673cdf7e225e4f95ced25354bd6d1a6176c
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/narrativeqa/validation.json
+        bytes: 525
+        sha256: fb832dfa5421a31bc79c0c31d249603c5bc779557a6c0ced1626b3a8655a5a7e
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/narrativeqa/manifest.json
+        bytes: 1130
+        sha256: 5406f20c1adce3d7806a292f53a25d13157359fe268f2fd921d43ebf22c3ec2a
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: narrativeqa
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 461
+      examples: 13733
+      splits:
+        test: 13733
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 461
+    document_unique_ids: 461
+    document_duplicate_ids: 0
+    example_count_observed: 13733
+    query_unique_ids: 13733
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 13733
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 13733
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 13733
+    gt_relevant_ids_cardinality:
+      '1': 13733
+  qasper:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/qasper
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/qasper/documents.jsonl
+        bytes: 2790881
+        sha256: 9372b490f2c696a7105ff797c84fddba0212ade2fd1b5e8db03995692b020bd9
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/qasper/examples.jsonl
+        bytes: 2564545
+        sha256: 93d602917a98adb46b5a407a1e45b961e2ab70a2c2711481511d247ff389671a
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/qasper/validation.json
+        bytes: 602
+        sha256: 14bdaffe2df74ccccdfec2b95b70e8eedffe08d76cec6f2fc148a78c6ce55b2b
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/qasper/manifest.json
+        bytes: 1114
+        sha256: 61fa9b1251e3b3c39811bc729af60607bb3b69126456097a19226898fd7f0187
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: qasper
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 1169
+      examples: 3598
+      splits:
+        test: 3598
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 1169
+    document_unique_ids: 1169
+    document_duplicate_ids: 0
+    example_count_observed: 3598
+    query_unique_ids: 3598
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 1493
+    gt_choice_field_present: 0
+    gt_spans_field_present: 1968
+    gt_relevant_id_count_total: 3598
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 3598
+    gt_relevant_ids_cardinality:
+      '1': 3598
+  quality:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/quality
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/quality/documents.jsonl
+        bytes: 13410518
+        sha256: ff0800d52a1a2c7e12f63fe056bce4b4d0be8c903ff3a163179341e27e2d2aea
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/quality/examples.jsonl
+        bytes: 4002747
+        sha256: 3ce0c5d658d5843a40331e79eaa21e47ce93e7ed4735e742afaeccf52bb540f4
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/quality/validation.json
+        bytes: 519
+        sha256: 4dadc8bdd12149367f8e8fa1a110c0a2dcca620273982fb9010768151bb3c536
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/quality/manifest.json
+        bytes: 1113
+        sha256: 5ef3da87883230f91f5dc2b79044bde2e22d32c11a63122a190e439c654a5233
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: quality
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 265
+      examples: 4601
+      splits:
+        test: 4601
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 265
+    document_unique_ids: 265
+    document_duplicate_ids: 0
+    example_count_observed: 4601
+    query_unique_ids: 4601
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 4601
+    gt_choice_field_present: 4601
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 4601
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 4601
+    gt_relevant_ids_cardinality:
+      '1': 4601
+  ruler:
+    status: REGISTERED
+    canonical_root: ${SAH_RAG_CANONICAL_ROOT}/ruler
+    files:
+      documents.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/ruler/documents.jsonl
+        bytes: 180002751
+        sha256: d10c7c394648aac9b983091ab0d4bb5fbaeeb5b4911236593551f73e4e700345
+      examples.jsonl:
+        path: ${SAH_RAG_CANONICAL_ROOT}/ruler/examples.jsonl
+        bytes: 181703213
+        sha256: a33cfc0fa6a9d1bebdb7babfcec362d36e5e57912ed9c1733274b23ec4a1af3b
+      validation.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/ruler/validation.json
+        bytes: 24924
+        sha256: cc02a513deb6b83f91e9cd463e1eb65d4136ba0aeadf4c320948f8d188ca3b17
+      manifest.json:
+        path: ${SAH_RAG_CANONICAL_ROOT}/ruler/manifest.json
+        bytes: 1075
+        sha256: 79acd8133b5d0f6f10bc3f48a716f2d7738e43fb8ccfb44ee2b531c600b91b9a
+    sha256_matches_published:
+      documents.jsonl: true
+      examples.jsonl: true
+      validation.json: true
+      manifest.json: true
+    manifest:
+      dataset: ruler
+      schema_version: canonical-v1
+      raw_source_modified: false
+      documents: 4000
+      examples: 4000
+      splits:
+        test: 4000
+    validation:
+      source_valid: true
+      output_valid: true
+      error_count: 0
+      warning_count: 0
+    document_count_observed: 4000
+    document_unique_ids: 4000
+    document_duplicate_ids: 0
+    example_count_observed: 4000
+    query_unique_ids: 4000
+    query_duplicate_ids: 0
+    unresolved_query_doc_refs: 0
+    unresolved_gt_relevant_refs: 0
+    gt_answer_field_present: 4000
+    gt_choice_field_present: 0
+    gt_spans_field_present: 0
+    gt_relevant_id_count_total: 4000
+    gt_zero_relevance_examples: 0
+    query_doc_ids_cardinality:
+      '1': 4000
+    gt_relevant_ids_cardinality:
+      '1': 4000
 totals:
-  documents: 8879
-  examples: 29718
-  canonical_file_bytes: 2997505990
+  documents: 156649
+  examples: 78436
+  canonical_file_bytes: 3691357466
   source_files_hashed: 0
-  canonical_files_hashed: 28
+  canonical_files_hashed: 68
 integrity:
   dataset_set_exact: true
   collection_fingerprint_matches: true
