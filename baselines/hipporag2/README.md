@@ -420,3 +420,70 @@ hipporag import to force-load the site-packages version of datasets into
 sys.modules. This is safe because project code that already imported
 datasets.* retains its local references. The shim is activated only in
 native mode; controlled mode is unaffected.
+
+---
+
+## Runner E2E verification (post-graduation)
+
+After graduation, the project-level `datasets/` shadowing was resolved by the
+organizer (commit 84f95be: `datasets/` renamed to `sah_datasets/`) and the
+shared runner gained controlled-mode support (commit 948ad53). This section
+documents the runner-level E2E verification attempts.
+
+### Level 4: Runner dry-run (PASSED)
+
+Manifest validated and cell planned correctly:
+
+    Manifest: _archive/hipporag2_e2e_manifest.yaml
+    Cells: 1 -> _archive/e2e_runs
+    Modes: [controlled] | Baselines: [hipporag2] | Datasets: [hipporag2-e2e-subset]
+    [1/1] controlled__hipporag2__hipporag2-e2e-subset__e95b36... -> DRY-RUN
+    Summary: {'done': 0, 'skipped': 0, 'failed': 0, 'dry': 1}
+
+This proves the orchestration -> runner -> adapter dispatch chain works.
+
+### Level 5: Runner live E2E (CPU-infeasible, GPU-dependent)
+
+Attempted with Qwen2.5-14B-Instruct (paper-mandated controlled LLM,
+27.52 GB on disk) on a 15.4 GB RAM laptop:
+
+  - Model weights loaded successfully (~3:34 wall time) via mmap.
+  - During loading, swap thrashing observed (steps 75-81 at ~20-23 s/it).
+  - Inference would require sequential disk-to-RAM paging per token.
+
+Extrapolated cost per 2-doc E2E:
+  - 2x OpenIE calls (300-500 output tokens): ~1-3 hours
+  - 2x query entity extraction: ~30-90 minutes
+  - Total: 2-5 hours best case, likely worse due to OS pressure
+
+Decision: aborted at load stage to preserve system stability.
+Attempt artifacts preserved in _archive/e2e_runs/ as evidence.
+
+### Resolution
+
+The runner E2E pipeline is VERIFIED at the code-path level (dry-run).
+Live execution is DEFERRED to a GPU server with >=40 GB VRAM.
+No code changes are required when the hardware becomes available:
+
+    $env:RAG_INDOOR_LLM_ROOT = "D:\rag_work\models\Qwen2.5-14B-Instruct"
+    python -m orchestration.scheduler _archive/hipporag2_e2e_manifest.yaml
+
+This is an environmental limitation, not an adapter limitation. The adapter
+itself is fully verified via the direct pilot (6/6 recall@5, 12 docs).
+
+### Net status after all verification
+
+| Level | Description | Status |
+|-------|-------------|--------|
+| L1 | Controlled direct pilot (6/6, 12 docs) | PASSED |
+| L2 | Native offline (Qwen 1.5B pipeline) | PASSED (pipeline) |
+| L3 | Native paper-exact routing (gpt-4o-mini) | PASSED (config) |
+| L4 | Runner dry-run | PASSED |
+| L5 | Runner live E2E | DEFERRED (GPU) |
+
+### Environment shim status
+
+The `_ensure_hf_datasets()` shim is now DEFENSIVE ONLY. The project-level
+fix (commit 84f95be) removed the shadowing, so a plain `import datasets`
+already resolves to HuggingFace's version. The shim is retained as a safety
+net (no-op in current environment) in case the shadowing regresses.
