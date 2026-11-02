@@ -1,4 +1,4 @@
-﻿# Issue 7 - Qwen model downloads (14B + 32B)
+# Issue 7 - Qwen model downloads (14B + 32B)
 
 **Status:** DONE
 **Date closed:** 2026-11-02
@@ -95,7 +95,7 @@ If all complete: prints ALL FILES ALREADY COMPLETE.
 D:\rag_work\models\MANIFEST.md - authoritative record:
 - Qwen2.5-14B-Instruct: 27.52 GB, 8/8 shards, verified 2026-11-01
 - Qwen2.5-32B-Instruct: 61.04 GB, 17/17 shards, verified 2026-11-02
-- bge-large-en-v1.5: pending Issue 6
+- bge-large-en-v1.5: 2.56 GB (safetensors only), verified 2026-11-02
 - Deferred: multi-qa-mpnet (blocked on xlm_rst_tuned), NV-Embed-v2 (CC-BY-NC)
 
 ---
