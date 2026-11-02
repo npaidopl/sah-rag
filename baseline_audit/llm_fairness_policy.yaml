@@ -1,0 +1,160 @@
+﻿version: "1.0"
+created_at: "2026-11-02"
+scope: "IR-only (v2). E2E boundary = retrieved ranked list, not generated answer."
+frozen: true
+
+native_e2e:
+  rules:
+    - "each baseline runs with its own native components"
+    - "if paid LLM API required and no free/local alternative -> exempt"
+    - "if no official code or architecturally blocked -> reported only"
+    - "non-LLM baselines: native E2E = IR-only E2E"
+  baselines:
+    disretrieval:
+      status: executable
+      modes: [controlled]
+      is_llm_based: true
+      native_e2e: EXEMPT
+      reason: "architecturally blocked: xlnet backbone missing from repo"
+    pathrag:
+      status: reported
+      modes: []
+      is_llm_based: true
+      native_e2e: REPORTED
+      reason: "no LICENSE, 0 edges with local LLMs, mock LLM violated contract"
+    longrag:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: false
+      native_e2e: YES
+      reason: "IR-only adapter, embedder=bge-large-en-v1.5 (downloaded)"
+    lightrag:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: true
+      native_e2e: EXEMPT
+      reason: "paid API: GPT-4o-mini"
+    hipporag2:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: true
+      native_e2e: EXEMPT
+      reason: "paid API: GPT-4o-mini"
+    raptor:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: true
+      native_e2e: YES
+      reason: "author-supported: Qwen2.5-1.5B local"
+    metadata_rag:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: false
+      native_e2e: YES
+      reason: "IR-only adapter"
+    memorag:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: true
+      native_e2e: YES
+      reason: "author-supported: Qwen2.5-7B local"
+    kag:
+      status: reported
+      modes: []
+      is_llm_based: true
+      native_e2e: REPORTED
+      reason: "no public code for KAG-Thinker"
+    bm25:
+      status: executable
+      modes: [native]
+      is_llm_based: false
+      native_e2e: YES
+      reason: "lexical baseline, no model"
+    splade:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: false
+      native_e2e: YES
+      reason: "naver/splade-v3, deferred download"
+    colbertv2:
+      status: executable
+      modes: [native]
+      is_llm_based: false
+      native_e2e: YES
+      reason: "colbert-ir/colbertv2.0, deferred download"
+    multi_meta_rag:
+      status: executable
+      modes: [native, controlled]
+      is_llm_based: false
+      native_e2e: EXEMPT
+      reason: "paid API: OPENAI_API_KEY"
+    hikey:
+      status: reported
+      modes: []
+      is_llm_based: false
+      native_e2e: REPORTED
+      reason: "no official code"
+    hikey_controlled:
+      status: executable
+      modes: [controlled]
+      is_llm_based: false
+      native_e2e: CONTROLLED_ONLY
+      reason: "text-only approximation, NOT HiKEY; paper positioning = footnote"
+
+controlled:
+  indoor_llm: "Qwen/Qwen2.5-14B-Instruct"
+  indoor_llm_path_env: "RAG_INDOOR_LLM_ROOT"
+  generation_llm: "Qwen/Qwen2.5-32B-Instruct"
+  generation_llm_fallback: "Qwen/Qwen2.5-14B-Instruct"
+  embedder: "BAAI/bge-m3"
+  embedder_injected: true
+  llm_injected: true
+  applies_to_is_llm_based: true
+  fallback_policy: |
+    If Qwen2.5-32B-Instruct is unavailable at evaluation time, generation falls back
+    to Qwen2.5-14B-Instruct. This MUST be (a) recorded in each run's metrics.json
+    under generation_model field, (b) flagged in any comparison table, and (c)
+    disclosed in the paper as a limitation.
+  fairness_enforcement:
+    code: "sah_rag.components.llms.QwenLLM"
+    rule: "rejects non-14B model_path when strict_fairness=True"
+    bypass: "strict_fairness=False (tests/debugging only)"
+
+sah_rag_generation:
+  llm: "Qwen/Qwen2.5-14B-Instruct"
+  mode: "temporary (Project 2 will replace)"
+  scope: "not exercised in IR-only v2"
+
+exemptions:
+  - baseline: disretrieval
+    reason: "architecturally blocked: xlnet backbone missing"
+  - baseline: lightrag
+    reason: "paid API: GPT-4o-mini"
+  - baseline: hipporag2
+    reason: "paid API: GPT-4o-mini"
+  - baseline: multi_meta_rag
+    reason: "paid API: OPENAI_API_KEY"
+
+reported_only:
+  - baseline: pathrag
+    reason: "no LICENSE, no local LLM worked"
+  - baseline: kag
+    reason: "no public code for KAG-Thinker"
+  - baseline: hikey
+    reason: "no official code"
+
+controlled_only:
+  - baseline: hikey_controlled
+    reason: "text-only approximation, NOT HiKEY; paper positioning = footnote"
+
+deferred_native_components:
+  - baseline: splade
+    component: "naver/splade-v3"
+    reason: "CC BY-NC-SA 4.0, download when native E2E runs"
+  - baseline: colbertv2
+    component: "colbert-ir/colbertv2.0"
+    reason: "download when native E2E runs"
+  - baseline: multi_meta_rag
+    component: "bge-large-en-v1.5"
+    status: "downloaded 2026-11-02 (2.56 GB)"
+    remaining_blocker: "OPENAI_API_KEY (paid API)"
