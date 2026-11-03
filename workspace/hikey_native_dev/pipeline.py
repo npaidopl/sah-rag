@@ -100,9 +100,15 @@ class HiKEYNativePipeline:
         for sec in doc.sections:
             units: list[Unit] = []
             for u in sec.units:
-                # Skip noise units (empty or near-empty content)
+                # Skip noise units: empty, near-empty, or numeric-only
                 content = (u.content or "").strip()
+                if not content:
+                    continue
                 if len(content) < 3 and u.block.block_type == "text":
+                    continue
+                # Skip pure numbers/punctuation (table cell noise from infoboxes)
+                stripped = re.sub(r"[\d\s.,:;\-–—+/()%$€£#]", "", content)
+                if len(stripped) < 3:
                     continue
                 unit = Unit(
                     unit_id=u.unit_id,
