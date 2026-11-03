@@ -100,13 +100,17 @@ class HiKEYNativePipeline:
         for sec in doc.sections:
             units: list[Unit] = []
             for u in sec.units:
+                # Skip noise units (empty or near-empty content)
+                content = (u.content or "").strip()
+                if len(content) < 3 and u.block.block_type == "text":
+                    continue
                 unit = Unit(
                     unit_id=u.unit_id,
                     doc_id=doc.doc_id,
                     section_id=sec.section_id,
                     section_path=list(u.block.section_path),
                     unit_type=u.block.block_type,
-                    content=u.content or "",
+                    content=content,
                     image_bytes=u.block.image_bytes,
                 )
                 units.append(unit)

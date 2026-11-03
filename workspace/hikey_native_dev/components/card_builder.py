@@ -56,6 +56,10 @@ def build_section_tree(
     for b in blocks:
         if b.block_type != BLOCK_HEADER:
             continue
+        # Skip noise headers (bullets, single chars, empty)
+        title_clean = (b.content or "").strip()
+        if len(title_clean) < 3 or title_clean == "•":
+            continue
         sec = SecCard(
             section_id=b.block_id,
             doc_id=doc_id,

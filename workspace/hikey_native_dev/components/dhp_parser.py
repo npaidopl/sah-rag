@@ -23,6 +23,40 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def _normalize_text(text: str) -> str:
+    """Normalize PyMuPDF text: nbsp->space, collapse whitespace."""
+    if not text:
+        return ""
+    text = text.replace("\xa0", " ").replace("\u00a0", " ")
+    text = " ".join(text.split())
+    return text.strip()
+
+
+def _is_noise_header(text: str) -> bool:
+    """Skip bullet-only or ultra-short pseudo-headers.
+
+    Relaxed: only filter pure bullets/separators, NOT short legit headers
+    like "Exhibit 10.33" or "Section 4.1". Keep anything >= 3 chars unless
+    it is entirely punctuation/bullets.
+    """
+    t = _normalize_text(text)
+    if not t:
+        return True
+    # Pure bullet or separator only
+    if all(c in ".,;:•-—–*·|/()[]{}<>  " for c in t):
+        return True
+    # Single bullet char
+    if len(t) <= 2 and t in {"•", "-", "*"}:
+        return True
+    return False
+
+
+def _is_noise_text(text: str) -> bool:
+    """Skip blocks with < 3 non-whitespace chars after normalization."""
+    t = _normalize_text(text)
+    return len(t) < 3
+
+
 BLOCK_TEXT = "text"
 BLOCK_TABLE = "table"
 BLOCK_FIGURE = "figure"
@@ -131,9 +165,12 @@ def _pymupdf_parse(pdf_path: Path) -> list[Block]:
                         text = span.get("text", "").strip()
                         if not text:
                             continue
+                        normalized = _normalize_text(text)
+                        if len(normalized) < 2:
+                            continue
                         raw.append({
                             "type": "text",
-                            "content": text,
+                            "content": normalized,
                             "page": page_num,
                             "size": float(span.get("size", 10.0)),
                             "bold": bool(span.get("flags", 0) & 16),
@@ -172,6 +209,7 @@ def _pymupdf_parse(pdf_path: Path) -> list[Block]:
             r["type"] == "text"
             and (r["bold"] or r["size"] > median * 1.15)
             and len(r["content"]) < 200
+            and not _is_noise_header(r["content"])
         )
         if is_header:
             while path_stack and path_stack[-1][0] <= r["size"]:
