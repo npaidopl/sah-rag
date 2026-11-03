@@ -306,3 +306,137 @@ Verification needed by next session:
 3. Native pipeline: standalone, position documented above.
 4. D: paths: keep separate for now, .env untouched (frozen). Decision for next session.
 5. Ablation proposal: documentation only, not part of v2 IR comparison. Future work.
+
+---
+
+## FRAMES-PDF rendering (added 2026-11-04)
+
+The FRAMES dataset is text-only (2,521 Wikipedia articles in plain text
+form). The paper rendered each article to PDF via Playwright + Chromium.
+We reproduced this workflow.
+
+### What we did
+
+1. Fetched live Wikipedia HTML via Playwright (not the local wikitext,
+   which has no structure - 0 headers, 0 tables, 0 images)
+2. Rendered 2,521 articles to PDF in 36.8 min (3 parallel workers)
+3. Verified: 293 avg headers/PDF (from 1 in v1 attempt)
+
+### Location
+
+- Renderer: ``scripts/frames_render/render_from_wikipedia.py``
+- Prep script: ``scripts/frames_render/prepare_smoke.py``
+- Output PDFs: ``D:\rag_work\raw_datasets\frames\pdfs\``
+  (2,521 PDFs, 1.9 GB, avg 293 headers/PDF)
+- Old v1 (plaintext): ``D:\rag_work\raw_datasets\frames\pdfs_v1_plaintext\``
+  (deprecated, do not use for native evaluation)
+
+### Why v1 failed
+
+v1 rendered the ``articles.jsonl`` wikitext directly. The text has no
+HTML structure: 0 ``== headers ==``, 0 ``{| tables |}``, 0 images across
+all 100 sampled articles. The output PDFs had 1 header each (the title).
+
+v2 fetched live HTML which has 15-20 h2, 10-40 h3, 1-28 tables, 3-8
+figures per article. This is the correct approach.
+
+### Verification
+
+    python scripts\frames_render\prepare_smoke.py --limit 20
+    python -m workspace.hikey_native_dev.run `
+        --corpus workspace\hikey_smoke_test\frames_corpus `
+        --queries workspace\hikey_smoke_test\frames_queries.json `
+        --out workspace\hikey_smoke_test\frames_out.jsonl `
+        --mock-encoders
+
+Expected: 20/20 queries, 2-5 chunks each, 0 empty, 0 numeric-only,
+section_title present in metadata, gold_articles present in output.
+
+---
+
+## Known limitations (updated 2026-11-04 after FRAMES-PDF work)
+
+The following limitations are **known** and **documented** as honest
+disclosures for papers. They do NOT block execution.
+
+1. **DHP via PyMuPDF is font-heuristic, not learned.** May mis-classify
+   infobox table cells as text units (e.g., 'yttrium <-', 'BCNOFN').
+   Real M3DocDep parser will fix this. Hook exists in
+   ``components/dhp_parser.py::_try_m3docdep()``.
+
+2. **Mock embeddings produce random rankings.** The smoke tests confirm
+   plumbing, not retrieval quality. Real gte-Qwen2-7B is required for
+   meaningful metrics.
+
+3. **FRAMES-PDF is from live Wikipedia (2026-11-04 snapshot), not the
+   paper's 2024-09-19 snapshot.** Articles may have drifted. For
+   strict reproduction, use the ``revision_id`` field in
+   ``articles.jsonl`` to fetch historical revisions.
+
+4. **CUAD legal PDFs are flat** (1 section per PDF). This is expected:
+   contracts don't have Wikipedia-style hierarchy. Used for smoke test
+   only, not for native HiKEY evaluation.
+
+5. **LVLM reader not tested end-to-end.** IR-only was the focus.
+
+---
+
+## Verification checklist (updated 2026-11-04)
+
+Run these before touching anything:
+
+    # 1. Git state
+    cd C:\Users\USER1\Documents\SAH-RAG
+    git log --oneline -10
+    # Expected: aa64229 ... 61da4c3 (10+ commits)
+
+    # 2. Tests
+    .\.venv\Scripts\Activate.ps1
+    python -m pytest workspace\hikey_native_dev\tests\ -q
+    # Expected: 7 passed
+
+    # 3. Registry
+    python -c "import yaml; [print(b['name'], b['status']) for b in yaml.safe_load(open('configs/baselines_registry.yaml'))['baselines'] if 'hikey' in b['name']]"
+    # Expected:
+    #   hikey reported
+    #   hikey_controlled executable
+
+    # 4. FRAMES-PDF corpus
+    (Get-ChildItem D:\rag_work\raw_datasets\frames\pdfs\*.pdf).Count
+    # Expected: 2521
+
+    # 5. Env vars
+    Write-Host $env:HF_HOME
+    # Expected: D:\rag_work\hf_cache
+
+    # 6. FRAMES smoke test
+    python scripts\frames_render\prepare_smoke.py --limit 20
+    python -m workspace.hikey_native_dev.run `
+        --corpus workspace\hikey_smoke_test\frames_corpus `
+        --queries workspace\hikey_smoke_test\frames_queries.json `
+        --out workspace\hikey_smoke_test\frames_out.jsonl `
+        --mock-encoders
+    # Expected: 20 queries, 76/77 PDFs matched, 89 chunks, 0 empty
+
+## What to do when GPU arrives
+
+1. ``pip install torch transformers FlagEmbedding``
+2. Download models to ``D:\rag_work\models\``:
+   - ``Alibaba-NLP/gte-Qwen2-7B-instruct`` (~14 GB)
+   - ``google/siglip-large-patch16-384`` (~1 GB)
+3. Re-run native pipeline WITHOUT ``--mock-encoders``:
+       python -m workspace.hikey_native_dev.run `
+           --corpus D:\rag_work\raw_datasets\frames\pdfs `
+           --queries workspace\hikey_smoke_test\frames_queries_full.json `
+           --out experiments\hikey_frames_full.jsonl `
+           --top-k 10
+4. Compare against paper-reported FRAMES-PDF metrics:
+   - EM: 10.5, ANLS: 14.6, ROUGE-L: 17.7, METEOR: 15.4
+
+## What to do when Kaggle M3DocVQA arrives
+
+1. Download full M3DocVQA (~6 GB, 3,300 PDFs)
+2. Place at ``D:\rag_work\raw_datasets\m3docvqa\pdfs\``
+3. Re-run native pipeline on that directory
+4. Compare against paper-reported M3DocVQA metrics:
+   - EM: 27.5, ANLS: 30.7, ROUGE-L: 32.2, METEOR: 23.9
