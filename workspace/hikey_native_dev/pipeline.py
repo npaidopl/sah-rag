@@ -267,6 +267,9 @@ class HiKEYNativePipeline:
                 "parent_doc_id": None,
                 "metadata": {
                     "section_path": unit.section_path,
+                    "section_title": (
+                        unit.section_path[-1] if unit.section_path else ""
+                    ),
                     "unit_type": unit.unit_type,
                     "source": "hikey_native_paper_exact",
                 },

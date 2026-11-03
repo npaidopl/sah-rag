@@ -45,6 +45,10 @@ def main() -> int:
             else:
                 result = {"query_id": qid, "question": question, "chunks": pipeline.retrieve(question, top_k=args.top_k)}
             result["query_id"] = qid
+            # Preserve optional fields from the query JSON (gold_articles, answer, etc.)
+            for extra_key in ("gold_articles", "answer", "reference_answers"):
+                if extra_key in q:
+                    result[extra_key] = q[extra_key]
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
             print(f"[{qid}] {len(result.get('chunks', []))} chunks", file=sys.stderr)
 
