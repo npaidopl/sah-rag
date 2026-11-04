@@ -1,0 +1,9 @@
+version: "1.0"
+modes:
+  - controlled
+baselines:
+  - multi_meta_rag
+datasets:
+  - infrastructure-pilot-synthetic-v1
+top_k: 10
+output_root: outputs/_fix05_run
