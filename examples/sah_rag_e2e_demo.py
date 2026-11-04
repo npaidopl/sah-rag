@@ -5,7 +5,7 @@ Usage:
     python examples/sah_rag_e2e_demo.py
 
     # With real Qwen (requires weights + env var):
-    $env:RAG_INDOOR_LLM_ROOT = "D:\rag_work\models\Qwen2.5-14B-Instruct"
+    $env:RAG_INDOOR_LLM_ROOT = "D:/rag_work/models/Qwen2.5-14B-Instruct"
     python examples/sah_rag_e2e_demo.py --use-qwen
 """
 

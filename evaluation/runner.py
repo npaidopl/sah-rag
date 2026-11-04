@@ -89,16 +89,57 @@ def _build_controlled_components(entry: dict) -> tuple[Any, Any]:
     return embedder, llm
 
 def _extract_query_and_gt(example: Any) -> tuple[str, list[str]]:
+    """Extract query text and ground-truth doc IDs from a canonical example.
+
+    Canonical schema (sah_rag.canonical.models):
+        example.query.question         -- actual query text
+        example.query.query_id         -- query identity
+        example.ground_truth.relevant_ids -- ground-truth doc IDs
+
+    FIX-03 (F1): The prior implementation used `query.text` and
+    `gt.doc_ids`, which never match the canonical schema and silently
+    returned Pydantic repr strings for the query and empty GT lists.
+    This caused every baseline run through `runner.py` to produce
+    retrieval quality of 0 (empty GT -> all metrics 0). SAH-RAG
+    itself was unaffected because it uses its own v1 evaluation
+    script, which reads `ex.query.question` and
+    `ex.ground_truth.relevant_ids` directly.
+
+    The new implementation prefers the canonical field names, then
+    falls back to legacy aliases (for compatibility with any
+    third-party test fixture that hasn't migrated yet).
+    """
     query = getattr(example, "query", None)
     if query is not None:
-        qtext = getattr(query, "text", None) or getattr(query, "query", None) or str(query)
+        qtext = (
+            getattr(query, "question", None)      # canonical (FIX-03)
+            or getattr(query, "text", None)       # legacy alias
+            or getattr(query, "query", None)      # legacy alias
+            or str(query)
+        )
     else:
-        qtext = getattr(example, "query_text", None) or getattr(example, "text", "") or ""
+        qtext = (
+            getattr(example, "query_text", None)
+            or getattr(example, "text", "")
+            or ""
+        )
+
     gt = getattr(example, "ground_truth", None)
     if gt is not None:
-        gt_ids = getattr(gt, "doc_ids", None) or getattr(gt, "relevant_doc_ids", None) or getattr(gt, "ids", None) or []
+        gt_ids = (
+            getattr(gt, "relevant_ids", None)     # canonical (FIX-03)
+            or getattr(gt, "doc_ids", None)       # legacy alias
+            or getattr(gt, "relevant_doc_ids", None)  # legacy alias
+            or getattr(gt, "ids", None)           # legacy alias
+            or []
+        )
     else:
-        gt_ids = getattr(example, "gt_doc_ids", None) or getattr(example, "relevant_doc_ids", None) or []
+        gt_ids = (
+            getattr(example, "gt_doc_ids", None)
+            or getattr(example, "relevant_doc_ids", None)
+            or []
+        )
+
     return str(qtext), list(gt_ids)
 
 
