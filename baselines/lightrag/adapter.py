@@ -385,8 +385,82 @@ class LightRAGBaseline(BaseBaseline):
                     embedder_ref.encode_documents(texts), dtype=np.float32
                 )
 
-            async def _llm(prompt, **kwargs):
-                return llm_ref.generate(prompt, **kwargs)
+            async def _llm(prompt, system_prompt=None, **kwargs):
+                """Wrap injected LLM with Qwen chat template.
+
+                LightRAG's native hf_model_complete applies the tokenizer's
+                chat template (system + user + assistant prefix) and relies
+                on EOS token to stop. The controlled protocol's QwenLLM
+                component exposes only raw generate(prompt), so we must
+                apply the chat template and truncate the response here.
+
+                This is architecture-neutral wrapping: it makes the
+                injected LLM behave like the native HF binding for the
+                specific model family (Qwen2/2.5: <|im_start|>...<|im_end|>).
+                Does not touch LightRAG prompts or semantics.
+                """
+                # Qwen chat template
+                if system_prompt:
+                    full_prompt = (
+                        f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
+                        f"<|im_start|>user\n{prompt}<|im_end|>\n"
+                        f"<|im_start|>assistant\n"
+                    )
+                else:
+                    full_prompt = (
+                        f"<|im_start|>user\n{prompt}<|im_end|>\n"
+                        f"<|im_start|>assistant\n"
+                    )
+
+                # Increased max_tokens: extraction returns many entities
+                raw = llm_ref.generate(full_prompt, max_tokens=2048, temperature=0.0)
+
+                # Strip trailing special tokens / role markers
+                for marker in ("<|im_end|>", "<|im_start|>", "<|endoftext|>"):
+                    raw = raw.replace(marker, "")
+                raw = raw.strip()
+
+                # JSON mode: truncate after first complete JSON object/array
+                rf = kwargs.get("response_format")
+                if isinstance(rf, dict) and rf.get("type") == "json_object":
+                    raw = _truncate_json(raw)
+
+                return raw
+
+            def _truncate_json(text):
+                """Return first complete JSON object/array from text."""
+                text = text.strip()
+                if not text:
+                    return text
+                for open_ch, close_ch in (("{", "}"), ("[", "]")):
+                    try:
+                        start = text.index(open_ch)
+                    except ValueError:
+                        continue
+                    depth = 0
+                    in_str = False
+                    escape = False
+                    for i in range(start, len(text)):
+                        ch = text[i]
+                        if escape:
+                            escape = False
+                            continue
+                        if ch == "\\":
+                            escape = True
+                            continue
+                        if ch == '"':
+                            in_str = not in_str
+                            continue
+                        if in_str:
+                            continue
+                        if ch == open_ch:
+                            depth += 1
+                        elif ch == close_ch:
+                            depth -= 1
+                            if depth == 0:
+                                return text[start:i + 1]
+                return text
+
 
             embedding_func = EmbeddingFunc(
                 embedding_dim=embed_dim, max_token_size=8192, func=_embed,
