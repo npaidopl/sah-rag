@@ -1,0 +1,126 @@
+# =====================================================================
+# run_manifest_gpu_no_api.yaml
+# Runs when university GPU access arrives, WITHOUT any API keys.
+# 221 cells: 153 controlled + 68 native
+# Time estimate: 3-5 days on single GPU (40-80GB VRAM)
+#
+# NATIVE baselines here use LOCAL LLMs only:
+#   bm25, metadata_rag       -> no LLM
+#   raptor, lightrag         -> Qwen 1.5B (cached)
+#
+# EXCLUDED from native (need API or missing weights):
+#   longrag, hipporag2, multi_meta_rag  -> need OPENAI_API_KEY
+#   memorag                             -> needs Qwen 7B download (~14GB)
+#   splade                              -> needs weights download (~440MB)
+#   colbertv2                           -> needs Linux
+#   disretrieval                        -> needs xlm_rst_tuned backbone
+#
+# Use run_manifest_full.yaml instead if API keys become available.
+# =====================================================================
+version: "1.0"
+global:
+  output_root: "outputs/run_all_gpu_no_api"
+  stop_on_fatal: true
+  allow_partial: true
+  log_level: INFO
+
+preflight:
+  check_env:
+    - RAG_CANONICAL_ROOT
+    - RAG_INDOOR_LLM_ROOT
+    - RAG_EMBEDDER_ROOT
+  check_models:
+    - Qwen/Qwen2.5-14B-Instruct       # via RAG_INDOOR_LLM_ROOT
+    - BAAI/bge-m3                      # via RAG_EMBEDDER_ROOT
+  check_datasets:
+    required_ids:
+      - clerk
+      - cuad
+      - greek_bar_bench
+      - lara
+      - 2wiki
+      - frames
+      - hotpotqa
+      - long_bench_v2
+      - loong
+      - m3docvqa
+      - multifieldqa_en
+      - multihop_rag
+      - musique
+      - narrativeqa
+      - qasper
+      - quality
+      - ruler
+
+optimal_operation:
+  enabled: true
+  skip_gpu: false
+
+ablation:
+  enabled: true
+  tier: 1                              # Tier 1 (structural). Tier 2 CPU. Tier 3 = GPU.
+
+controlled_adaptation:
+  enabled: true
+  top_k: 10
+  baselines:
+    - disretrieval
+    - longrag
+    - lightrag
+    - hipporag2
+    - raptor
+    - metadata_rag
+    - memorag
+    - splade
+    - multi_meta_rag
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+native_e2e:
+  enabled: true
+  top_k: 10
+  baselines:
+    - bm25
+    - metadata_rag
+    - raptor                           # Qwen 1.5B local
+    - lightrag                         # Qwen 1.5B local
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+reporting:
+  enabled: true
+  aggregate_metrics: true
+  generate_summary: true
+  generate_closure_manifest: true

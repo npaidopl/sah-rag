@@ -1,0 +1,102 @@
+# =====================================================================
+# run_manifest_cpu_safe.yaml
+# Runs NOW on CPU (no GPU, no API keys, no missing weights).
+# 102 cells: 68 controlled + 34 native
+# Time estimate: 1-3 hours on CPU (native raptor/lightrag EXCLUDED
+# because they take 2+ min/doc on CPU = days for 17 datasets)
+# =====================================================================
+version: "1.0"
+global:
+  output_root: "outputs/run_all_cpu_safe"
+  stop_on_fatal: true
+  allow_partial: true
+  log_level: INFO
+
+preflight:
+  check_env:
+    - RAG_CANONICAL_ROOT
+    - RAG_EMBEDDER_ROOT
+  check_models: []                     # no LLM checks: CPU-safe baselines don't need Qwen
+  check_datasets:
+    required_ids:
+      - clerk
+      - cuad
+      - greek_bar_bench
+      - lara
+      - 2wiki
+      - frames
+      - hotpotqa
+      - long_bench_v2
+      - loong
+      - m3docvqa
+      - multifieldqa_en
+      - multihop_rag
+      - musique
+      - narrativeqa
+      - qasper
+      - quality
+      - ruler
+
+optimal_operation:
+  enabled: false                       # needs GPU
+
+ablation:
+  enabled: false                       # needs GPU for Tier 1/3
+
+controlled_adaptation:
+  enabled: true
+  top_k: 10
+  baselines:
+    - longrag                          # controlled = no LLM
+    - metadata_rag                     # no LLM
+    - splade                           # no LLM
+    - multi_meta_rag                   # substring matcher, no LLM
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+native_e2e:
+  enabled: true
+  top_k: 10
+  baselines:
+    - bm25                             # pure lexical
+    - metadata_rag                     # no model
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+reporting:
+  enabled: true
+  aggregate_metrics: true
+  generate_summary: true
+  generate_closure_manifest: true

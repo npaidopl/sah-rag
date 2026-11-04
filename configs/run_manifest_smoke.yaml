@@ -1,0 +1,28 @@
+version: "1.0"
+global:
+  output_root: "outputs/run_all_smoke"
+  stop_on_fatal: true
+  allow_partial: true
+  log_level: INFO
+preflight:
+  check_env:
+    - RAG_CANONICAL_ROOT
+  check_models: []
+  check_datasets:
+    required_ids:
+      - infrastructure-pilot-synthetic-v1
+optimal_operation:
+  enabled: false
+ablation:
+  enabled: false
+controlled_adaptation:
+  enabled: true
+  top_k: 10
+  baselines:
+    - multi_meta_rag
+  datasets:
+    - infrastructure-pilot-synthetic-v1
+native_e2e:
+  enabled: false
+reporting:
+  enabled: false
