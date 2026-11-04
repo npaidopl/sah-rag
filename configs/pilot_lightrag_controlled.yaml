@@ -1,0 +1,13 @@
+# Pilot manifest for LightRAG controlled mode.
+# Requires Qwen2.5-14B-Instruct (28GB) - GPU-deferred.
+# See docs/fix06_verification.md for details.
+
+version: "1.0"
+modes:
+  - controlled
+baselines:
+  - lightrag
+datasets:
+  - infrastructure-pilot-synthetic-v1
+top_k: 10
+output_root: outputs/_fix06_run
