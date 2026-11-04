@@ -1,0 +1,194 @@
+# =====================================================================
+# SAH-RAG run_all master manifest
+# =====================================================================
+# This manifest drives orchestration/run_all.py, which executes:
+#   Stage 0: Preflight (env + models + datasets + workspace check)
+#   Stage 1: Optimal Operation   (subprocess to run_full_pipeline.py)
+#   Stage 2: Ablation Study       (subprocess to ablation/run_all.py)
+#   Stage 3: Controlled Adaptation (baselines x datasets)
+#   Stage 4: Native E2E           (baselines x datasets)
+#   Stage 5: Reporting            (aggregate metrics + closure)
+#
+# Usage:
+#   python -m orchestration.run_all --manifest configs/run_manifest_full.yaml
+#   python -m orchestration.run_all --manifest configs/run_manifest_full.yaml --dry-run
+#   python -m orchestration.run_all --manifest configs/run_manifest_full.yaml --resume
+#   python -m orchestration.run_all --manifest configs/run_manifest_full.yaml --stage 3
+#
+# GPU requirements (from docs/fix08_verification.md):
+#   - 40 GB VRAM: works with 14B indoor (28GB) + 14B generation (28GB, sequential)
+#   - 80 GB VRAM: works with 14B indoor + 32B generation (sequential load)
+#   - No GPU: stages 0, 1 (skip-gpu mode), 5 run; stages 2-4 fail gracefully
+# =====================================================================
+
+version: "1.0"
+
+# =====================================================================
+# Global
+# =====================================================================
+global:
+  output_root: "outputs/run_all"
+  stop_on_fatal: true      # stop on first stage failure
+  allow_partial: true      # individual cell failures do not stop the run
+  log_level: INFO
+
+# =====================================================================
+# Stage 0: Preflight
+# =====================================================================
+preflight:
+  # Env vars that MUST be set
+  check_env:
+    - RAG_CANONICAL_ROOT
+    - RAG_INDOOR_LLM_ROOT
+    # - RAG_GENERATION_LLM_ROOT  # optional, defaults to INDOOR
+
+  # Models to check (paths via env vars)
+  check_models:
+    - Qwen/Qwen2.5-14B-Instruct     # via RAG_INDOOR_LLM_ROOT
+    # - Qwen/Qwen2.5-32B-Instruct   # via RAG_GENERATION_LLM_ROOT (optional)
+    - BAAI/bge-m3                    # via RAG_EMBEDDER_ROOT (default HF cache)
+
+  # Datasets that MUST exist under RAG_CANONICAL_ROOT
+  check_datasets:
+    required_ids:
+      - clerk
+      - cuad
+      - greek_bar_bench
+      - lara
+      - 2wiki
+      - frames
+      - hotpotqa
+      - long_bench_v2
+      - loong
+      - m3docvqa
+      - multifieldqa_en
+      - multihop_rag
+      - musique
+      - narrativeqa
+      - qasper
+      - quality
+      - ruler
+
+# =====================================================================
+# Stage 1: Optimal Operation
+# =====================================================================
+# Requires SAH_RAG_OPTIMAL_WORKSPACE env var pointing to the D: drive
+# workspace with run_full_pipeline.py. Gracefully skipped if not set.
+# =====================================================================
+optimal_operation:
+  enabled: true
+  skip_gpu: true    # use --skip-gpu flag (chunks pre-computed)
+  # To enable: set env SAH_RAG_OPTIMAL_WORKSPACE=D:/rag_work/sah_rag_optimal_operation
+
+# =====================================================================
+# Stage 2: Ablation Study
+# =====================================================================
+# Runs ablation/run_all.py with --tier flag.
+# Tier 1 = structural (A4, A7, A1, A6, A9), needs GPU
+# Tier 2 = re-rank (16 variants), CPU only, reuses A4 embeddings
+# Tier 3 = alt embedder (D3, D4), needs GPU
+# =====================================================================
+ablation:
+  enabled: true
+  tier: 1    # start with Tier 1 (structural)
+
+# =====================================================================
+# Stage 3: Controlled Adaptation
+# =====================================================================
+# Baselines with modes containing 'controlled' (excluding reported-only).
+# 10 baselines x 17 datasets = 170 cells.
+# All cells use injected BGE-M3 + Qwen 14B (indoor).
+# =====================================================================
+controlled_adaptation:
+  enabled: true
+  top_k: 10
+  baselines:
+    - disretrieval
+    - longrag
+    - lightrag
+    - hipporag2
+    - raptor
+    - metadata_rag
+    - memorag
+    - splade
+    - multi_meta_rag
+    - hikey_controlled
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+# =====================================================================
+# Stage 4: Native E2E
+# =====================================================================
+# Baselines with native mode + actual local/native components.
+# 10 baselines x 17 datasets = 170 cells.
+# Some baselines require specific env vars:
+#   - lightrag native: OPENAI_API_KEY (or GOOGLE_API_KEY) - WILL FAIL if missing
+#   - hipporag2 native: OPENAI_API_KEY - WILL FAIL if missing
+#   - longrag native: OPENAI_API_KEY or AZURE_OPENAI_* - WILL FAIL if missing
+#   - raptor native: no API needed (Qwen 1.5B local)
+#   - metadata_rag native: no API needed
+#   - memorag native: no API needed (Qwen 7B local)
+#   - bm25 native: no model needed (lexical)
+#   - splade native: naver/splade-v3 (deferred download, will fail if missing)
+#   - colbertv2 native: colbert-ir/colbertv2.0 (deferred download)
+#   - multi_meta_rag native: OPENAI_API_KEY + bge-large-en-v1.5 (will fail if missing)
+#
+# Failures are per-cell only (allow_partial=true in global).
+# =====================================================================
+native_e2e:
+  enabled: true
+  top_k: 10
+  baselines:
+    - longrag
+    - lightrag
+    - hipporag2
+    - raptor
+    - metadata_rag
+    - memorag
+    - bm25
+    - splade
+    - colbertv2
+    - multi_meta_rag
+  datasets:
+    - clerk
+    - cuad
+    - greek_bar_bench
+    - lara
+    - 2wiki
+    - frames
+    - hotpotqa
+    - long_bench_v2
+    - loong
+    - m3docvqa
+    - multifieldqa_en
+    - multihop_rag
+    - musique
+    - narrativeqa
+    - qasper
+    - quality
+    - ruler
+
+# =====================================================================
+# Stage 5: Reporting
+# =====================================================================
+reporting:
+  enabled: true
+  aggregate_metrics: true
+  generate_summary: true
+  generate_closure_manifest: true
