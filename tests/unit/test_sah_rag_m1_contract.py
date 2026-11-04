@@ -23,7 +23,6 @@ def _load():
     return m
 
 
-@_SKIP_NO_DATASETS
 def test_split_deterministic():
     m = _load()
     s1 = m.build_split("clerk", seed=0, dev_fraction=0.5)
@@ -33,7 +32,6 @@ def test_split_deterministic():
     assert s1["dev_doc_ids"] == s2["dev_doc_ids"]
 
 
-@_SKIP_NO_DATASETS
 def test_split_no_query_leakage():
     m = _load()
     for ds in ("clerk", "cuad", "greek_bar_bench", "lara"):
@@ -43,7 +41,6 @@ def test_split_no_query_leakage():
         assert dev.isdisjoint(test), f"{ds}: query leakage"
 
 
-@_SKIP_NO_DATASETS
 def test_split_no_doc_leakage():
     m = _load()
     for ds in ("clerk", "cuad", "greek_bar_bench", "lara"):
@@ -53,7 +50,6 @@ def test_split_no_doc_leakage():
         assert dev_docs.isdisjoint(test_docs), f"{ds}: doc leakage"
 
 
-@_SKIP_NO_DATASETS
 def test_split_full_coverage():
     m = _load()
     for ds in ("clerk", "cuad", "greek_bar_bench", "lara"):
