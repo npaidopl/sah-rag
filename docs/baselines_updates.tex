@@ -1,0 +1,447 @@
+% =====================================================================
+% SAH-RAG Baselines — Consolidated Status Report (v1.0)
+% Compile: xelatex baselines_updates.tex (twice for TOC)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{greek}
+\setotherlanguage{english}
+\setmainfont{DejaVu Serif}[Scale=0.95]
+\setsansfont{DejaVu Sans}[Scale=0.95]
+\setmonofont{DejaVu Sans Mono}[Scale=0.82]
+
+\usepackage[a4paper,margin=2.0cm]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={SAH-RAG Baselines Status},
+  pdfauthor={SAH-RAG Project}
+}
+
+\definecolor{codebg}{RGB}{247,247,247}
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, frame=single,
+  columns=fullflexible, keepspaces=true,
+  showstringspaces=false
+}
+
+\newtcolorbox{statusbox}[1]{
+  colback=gray!5, colframe=gray!60!black,
+  title={#1}, fonttitle=\bfseries, boxrule=0.4pt, arc=2pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt, breakable
+}
+\newtcolorbox{warnbox}[1]{
+  colback=red!4, colframe=red!60!black,
+  title={#1}, fonttitle=\bfseries, boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt, breakable
+}
+\newtcolorbox{okbox}[1]{
+  colback=green!4, colframe=green!55!black,
+  title={#1}, fonttitle=\bfseries, boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt, breakable
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SAH-RAG Baselines Status}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{0.5em}{}
+
+\begin{document}
+
+\begin{center}
+\vspace*{1.5cm}
+{\LARGE\bfseries SAH-RAG Baselines}\\[6pt]
+{\LARGE\bfseries Consolidated Status Report}\\[12pt]
+{\large Έκδοση 1.0 --- 4 Νοεμβρίου 2026}\\[4pt]
+{\normalsize 15 baselines, 4 experiment tracks}\\[20pt]
+\rule{\linewidth}{0.4pt}\\[12pt]
+{\large SAH-RAG Project --- PAIDOPOULOS NIKOLAOS}\\
+\vspace*{1.5cm}
+\end{center}
+
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Executive Summary}
+% =====================================================================
+
+Το πρόγραμμα συγκρίνει την \textbf{SAH-RAG} (Structure-Aware Hierarchical RAG)
+με \textbf{14 baselines} σε \textbf{4 ερευνητικά tracks}:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Optimal Operation} --- παράμετροι SAH-RAG
+  \item \textbf{Ablation Study} --- απομόνωση συστατικών SAH-RAG
+  \item \textbf{Controlled Adaptation} --- κοινό πρωτόκολλο (BGE-M3 + Qwen 14B)
+  \item \textbf{Native End-to-End} --- κάθε baseline με τα δικά του components
+\end{enumerate}
+
+\subsection*{Συνολική Κατάσταση}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Κατηγορία} & \textbf{Σύνολο} & \textbf{Executable} & \textbf{Reported} & \textbf{Blocked} \\
+\midrule
+Baselines (excluding SAH-RAG) & 14 & 10 & 4 & 0 \\
+SAH-RAG & 1 & 1 & 0 & 0 \\
+\midrule
+\textbf{Total} & \textbf{15} & \textbf{11} & \textbf{4} & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Readiness για GPU Execution}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}L{4.5cm} C{1.5cm} C{1.5cm} X@{}}
+\toprule
+\textbf{Track} & \textbf{Ready} & \textbf{Blocked} & \textbf{Blocker} \\
+\midrule
+Optimal Operation & ✅ & 0 & Needs GPU (embeddings) \\
+Ablation Study & ✅ & 0 & Needs GPU (Tier 1/3) \\
+Controlled Adaptation & 10/11 & 1 & PathRAG (no license) \\
+Native E2E & 5/10 & 5 & API keys + missing weights \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\section{Status Matrix — All 15 Baselines}
+% =====================================================================
+
+\begin{center}
+\small
+\begin{longtable}{@{}L{2.6cm} C{1.0cm} C{1.0cm} C{1.0cm} C{1.0cm} L{4.0cm}@{}}
+\toprule
+\textbf{Baseline} & \textbf{Code} & \textbf{Native} & \textbf{Ctrl} & \textbf{Rep} & \textbf{Blocker} \\
+\midrule
+\endhead
+BM25 & ✅ & ✅ & --- & --- & --- \\
+SPLADE-v3 & ✅ & 🟡 & ✅ & --- & Weights download (440MB) \\
+ColBERTv2 & ✅ & 🔴 & --- & --- & Linux ABI + weights \\
+DISRetrieval & ✅ & 🔴 & ✅ & --- & Missing backbone (external) \\
+HiKEY & ✅ & 🟡 & ✅ & ✅ & GPU + encoders (14GB) \\
+HippoRAG 2 & ✅ & 🟡 & ✅ & --- & OPENAI\_API\_KEY (native) \\
+KAG & ✅ & 🔴 & 🔴 & ✅ & GPU server migration \\
+LightRAG & ✅ & ✅ & ✅ & --- & API key (native paper-exact) \\
+LongRAG & ✅ & 🟡 & ✅ & --- & API key + paper datasets \\
+MemoRAG & ✅ & 🟡 & ✅ & --- & GPU + Qwen 7B download \\
+Metadata-RAG & ✅ & --- & ✅ & --- & Ablation condition only \\
+Multi-Meta-RAG & ✅ & 🟡 & ✅ & --- & API key + bge-large \\
+PathRAG & 🔴 & 🔴 & 🔴 & ✅ & No license + HF token leak \\
+RAPTOR & ✅ & ✅ & ✅ & --- & GPU for controlled \\
+\midrule
+\textbf{SAH-RAG} & ✅ & --- & ✅ & --- & Generation mock \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Υπόμνημα:} ✅ = ready · 🟡 = partial (external blocker) · 🔴 = blocked · --- = N/A
+
+% =====================================================================
+\section{Fully Ready Baselines}
+% =====================================================================
+
+\subsection{BM25}
+
+\begin{okbox}{Status: TOTALLY\_READY}
+\textbf{Native:} PAPER\_EXACT\_NATIVE (SciFact nDCG@10 = 0.678909, MS MARCO MRR@10 = 0.187486). \\
+\textbf{Controlled:} verified με real BGE-M3 (structural exception: BM25 δεν χρησιμοποιεί embedder). \\
+\textbf{Tests:} 3/3 pass. \\
+\textbf{Ready now:} ✅
+\end{okbox}
+
+\subsection{RAPTOR}
+
+\begin{okbox}{Status: TOTALLY\_READY (native) / INFRA\_READY (controlled)}
+\textbf{Native:} verified E2E με BGE-M3 + Qwen 2.5-1.5B (CPU, 102s για 10 docs). \\
+\textbf{Controlled:} adapter + runner dispatch + shared components (BGE-M3 + Qwen 14B) + weights on disk. \\
+\textbf{Tests:} 6/7 adapter + 3/3 runner. \\
+\textbf{Ready for:} native τώρα (CPU), controlled με GPU (28GB VRAM). \\
+\textbf{Limitation:} collapsed-tree (paper-preferred, +2-4.5pp vs traversal).
+\end{okbox}
+
+\subsection{LightRAG}
+
+\begin{okbox}{Status: TOTALLY\_READY (native) / INFRA\_READY (controlled)}
+\textbf{Native:} verified E2E (128.5s acceptance, 3/3 queries matched, Qwen 1.5B). \\
+\textbf{Controlled:} config + adapter ready, χρειάζεται GPU για Qwen 14B E2E. \\
+\textbf{Tests:} 15/15 pass. \\
+\textbf{Event loop fix:} persistent loop (0 errors, ~30min saved σε full runs).
+\end{okbox}
+
+\subsection{Metadata-RAG (Custom)}
+
+\begin{okbox}{Status: ABLATION CONDITION}
+\textbf{Classification:} PAPER\_DERIVED\_COMPARATOR (όχι native). \\
+\textbf{Role:} ablation condition (flat metadata-aware baseline). \\
+\textbf{Controlled:} ✅ ready (no LLM, CPU-safe). \\
+\textbf{Native:} NOT\_APPLICABLE (no single authoritative Metadata-RAG).
+\end{okbox}
+
+\subsection{Multi-Meta-RAG}
+
+\begin{okbox}{Status: TOTALLY\_READY (controlled) / PARTIAL (native)}
+\textbf{Controlled:} verified E2E (32s CPU, recall@10=1.0, 11/11 tests). \\
+\textbf{Native:} code complete, χρειάζεται OPENAI\_API\_KEY + bge-large (2.49GB). \\
+\textbf{Graduated:} commit ad03854, registry: executable.
+\end{okbox}
+
+% =====================================================================
+\section{Partial Baselines (External Blocker)}
+% =====================================================================
+
+\subsection{LongRAG}
+
+\begin{statusbox}{Status: CONTROLLED TOTALLY\_READY / NATIVE 4/6 CLOSED}
+\textbf{Controlled:} 4 datasets πλήρως (v1 L1-L7 pipeline). \\
+\textbf{Native fidelity:} 4/6 items CLOSED (pinned commit 778454e, retriever config, GPT-4o reader, byte-faithful prompts). \\
+\textbf{Two-step generation:} implemented (long → extract → short). \\
+\textbf{Real-BGE-M3 smoke:} pass (exit 0, EM=1 για 2/2 queries). \\
+\textbf{Pending:} paper datasets (NQ, HotpotQA) + OPENAI\_API\_KEY. \\
+\textbf{Scope note:} Qasper/MultiFieldQA not native-supportable (no official code).
+\end{statusbox}
+
+\subsection{HippoRAG 2}
+
+\begin{statusbox}{Status: 5-LEVEL VERIFICATION (4/5 passed)}
+\textbf{L1 (controlled pilot):} 6/6 recall@5, ~13min CPU. \\
+\textbf{L2 (native offline):} Qwen 1.5B pipeline runs. \\
+\textbf{L3 (native paper-exact):} gpt-4o-mini routing verified. \\
+\textbf{L4 (runner dry-run):} PASSED. \\
+\textbf{L5 (runner live E2E):} DEFERRED (Qwen 14B 27.52GB > 15.4GB RAM). \\
+\textbf{Pending:} GPU + OPENAI\_API\_KEY.
+\end{statusbox}
+
+\subsection{DISRetrieval}
+
+\begin{statusbox}{Status: CONTROLLED TOTALLY\_READY / NATIVE BLOCKED}
+\textbf{Controlled:} verified E2E (2 docs, 3 queries, scores 0.75/0.58/0.55, 12 tests passing). \\
+\textbf{Native:} code complete (paper-exact), BLOCKED on missing \texttt{xlm\_rst\_tuned} backbone (445MB, not distributed by authors). \\
+\textbf{Native API key:} NOT required (vLLM config is free). \\
+\textbf{Action:} (optional) contact authors for backbone. \\
+\textbf{Controlled ready:} τρέχει όταν έρθει GPU + datasets.
+\end{statusbox}
+
+\subsection{SPLADE-v3}
+
+\begin{statusbox}{Status: AUTHOR\_SUPPORTED\_NATIVE (needs weights)}
+\textbf{Native:} code ready, χρειάζεται \texttt{naver/splade-v3} weights (~440MB). \\
+\textbf{Controlled:} verified E2E (50 docs, 5 queries, TRUE SPARSE path). \\
+\textbf{Tests:} 9/9 pass. \\
+\textbf{License:} CC BY-NC-SA 4.0 (academic OK, commercial not allowed). \\
+\textbf{Action:} download weights (5-10 min) πριν GPU.
+\end{statusbox}
+
+\subsection{MemoRAG}
+
+\begin{statusbox}{Status: INFRA\_READY (GPU-blocked)}
+\textbf{Adapter:} 4/4 tests, manifests fully pinned. \\
+\textbf{Checkpoint:} downloaded (16.16GB, 4/4 shards, 508 tensors, 8.08B params). \\
+\textbf{CPU probe:} verified tokenizer + config load. \\
+\textbf{Blocker:} 28GB VRAM required (Qwen 7B memory model). \\
+\textbf{Pending:} GPU server + Qwen 7B download (14GB) + 3 pilots.
+\end{statusbox}
+
+\subsection{HiKEY}
+
+\begin{statusbox}{Status: 4 ARTIFACTS DELIVERED}
+\textbf{Reported:} TOTALLY\_READY (paper metrics in reported\_metrics.yaml). \\
+\textbf{Controlled:} TOTALLY\_READY (registered as hikey\_controlled). \\
+\textbf{Native:} READY\_FOR\_GPU (standalone pipeline, smoke-tested on FRAMES-PDF: 2,521 PDFs, 76/77 gold PDFs matched, 89 chunks, 0 noise). \\
+\textbf{Blocker:} gte-Qwen2-7B (~14GB) + SigLIP (~1GB) + GPU. \\
+\textbf{Note:} native pipeline ΔΕΝ είναι BaseBaseline (standalone), δεν συμμετέχει στο orchestration. Θα τρέξει ξεχωριστά.
+\end{statusbox}
+
+% =====================================================================
+\section{Reported-Only Baselines}
+% =====================================================================
+
+\subsection{PathRAG}
+
+\begin{warnbox}{Status: REPORTED (reclassified 2026-11-04)}
+\textbf{Reason:} (1) no LICENSE in official repo, (2) 0 edges with local LLMs, (3) mock LLM violated controlled contract. \\
+\textbf{Security:} HF token leak --- \textbf{REVOKED} 2026-11-04 (see security\_incident\_2026-11-04.md). \\
+\textbf{Metrics source:} \texttt{baselines/pathrag/reported\_metrics.yaml} (pending paper extraction). \\
+\textbf{Future:} GPU validation (Qwen 7B+ → edges > 0) → possible reclassify.
+\end{warnbox}
+
+\subsection{KAG}
+
+\begin{warnbox}{Status: REPORTED}
+\textbf{Code:} complete (18/18 tests, real bug fixed in \_extract\_evidence). \\
+\textbf{Blocker:} GPU server migration (local hardware Kernel-Power crashes). \\
+\textbf{Migration:} documented in \texttt{MIGRATION.md} (10 sections, 27KB). \\
+\textbf{Future:} deploy on GPU → reclassify to executable.
+\end{warnbox}
+
+\subsection{HiKEY (Reported)}
+
+Βλ. HiKEY section --- reported + controlled ready + native GPU-deferred.
+
+\subsection{ColBERTv2}
+
+\begin{warnbox}{Status: CODE READY / PLATFORM BLOCKED}
+\textbf{Code:} 12/12 tests, native index build verified (129 chunks από SciFact). \\
+\textbf{Blocker:} Windows ABI incompatibility (\texttt{DLL load failed}). \\
+\textbf{Platform:} Linux GPU server required (5-10min setup). \\
+\textbf{Controlled:} EXCLUDED (architectural --- BGE-M3 incompatible).
+\end{warnbox}
+
+% =====================================================================
+\section{Hardware/API Blockers — Αναλυτικά}
+% =====================================================================
+
+\subsection{API Keys Required (Native mode)}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}L{3cm} L{4cm} X@{}}
+\toprule
+\textbf{Baseline} & \textbf{API Required} & \textbf{Cost estimate (CLERC, 2756 docs)} \\
+\midrule
+HippoRAG 2 & OPENAI\_API\_KEY (gpt-4o-mini OpenIE) & $\sim$\$1--5 \\
+LongRAG & OPENAI\_API\_KEY or Azure (gpt-4o reader) & $\sim$\$1--5 \\
+Multi-Meta-RAG & OPENAI\_API\_KEY (gpt-3.5 extraction) & $\sim$\$1--5 \\
+\midrule
+\textbf{Total (all 3)} & --- & $\sim$\$5--15 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Model Weights Required}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Weight} & \textbf{Size} & \textbf{Status} \\
+\midrule
+Qwen 14B (controlled) & 27.5 GB & ✅ Cached \\
+Qwen 32B (generation) & 61.0 GB & ✅ Cached \\
+BGE-M3 (embedder) & 4.3 GB & ✅ Cached \\
+Qwen 1.5B (raptor/lightrag native) & 2.9 GB & ✅ Cached \\
+Qwen 7B (memorag native) & ~14 GB & ❌ Download \\
+BGE-large-en-v1.5 (multi-meta native) & 2.5 GB & ❌ Download \\
+SPLADE-v3 (native) & 0.44 GB & ❌ Download \\
+ColBERTv2 (native) & 0.44 GB & ❌ Download \\
+multi-qa-mpnet (DISRetrieval) & 0.4 GB & ❌ Download (optional) \\
+KAG-Thinker (KAG native) & ~14 GB & ❌ Download \\
+gte-Qwen2-7B (HiKEY native) & ~14 GB & ❌ Download \\
+SigLIP-large (HiKEY native) & ~1 GB & ❌ Download \\
+\midrule
+\textbf{Total missing} & $\sim$47 GB & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{GPU Requirements}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Component} & \textbf{VRAM} & \textbf{Notes} \\
+\midrule
+Qwen 14B (INT8) & ~14 GB & Quantization feasible \\
+Qwen 14B (FP16) & ~28 GB & Standard \\
+Qwen 32B (INT8) & ~32 GB & Generation \\
+Qwen 32B (FP16) & ~64 GB & Generation preferred \\
+BGE-M3 & ~4 GB & Embedder \\
+\midrule
+\textbf{Minimum GPU} & 40 GB & A100 40GB, L40S, 2x RTX 4090 \\
+\textbf{Recommended GPU} & 80 GB & A100 80GB, H100 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{v1 vs v2 Evaluation Boundary}
+% =====================================================================
+
+\begin{warnbox}{Critical note για SAH-RAG numbers}
+Τα v1 SAH-RAG νούμερα (macro Recall@10 = 0.4049, +28.79\% vs LongRAG) είναι \textbf{v1 semantics}:
+\begin{itemize}[nosep]
+  \item CUTOFFS = (1, 5, 10, 20, 50)
+  \item No metric\_version field
+  \item Artifact type: my\_rag\_m0\_evaluation\_report
+\end{itemize}
+
+\textbf{NOT directly comparable} to v2 baselines (CUTOFFS = [1, 5, 10], metric\_version = "v2", hit@k field).
+
+\textbf{Preserved artifacts:} \texttt{outputs/external\_sah\_rag/} (39.4 GB, SHA-256 verified).
+
+\textbf{For v2-compatible numbers:} re-run v1 retrieval results through v2 evaluator. See \texttt{docs/evaluation\_boundary\_v1\_v2.md}.
+\end{warnbox}
+
+% =====================================================================
+\section{Fairness Policy (Finalized)}
+% =====================================================================
+
+\begin{okbox}{LLM Fairness}
+\textbf{Native mode:} κάθε baseline με το δικό του native LLM. Αν χρειάζεται paid API → εξαίρεση (μόνο controlled). \\
+\textbf{Controlled mode:} κοινό \texttt{Qwen2.5-14B-Instruct} (indoor) + \texttt{Qwen2.5-32B-Instruct} (generation). \\
+\textbf{Fallback:} αν το 32B δεν είναι διαθέσιμο → Qwen 14B για generation (documented). \\
+\textbf{Enforcement:} \texttt{QwenLLM.strict\_fairness=True} (mandatory, guards against non-14B substitution). \\
+\textbf{Documented:} \texttt{docs/llm\_fairness\_policy.md} + \texttt{baseline\_audit/llm\_fairness\_policy.yaml}.
+\end{okbox}
+
+% =====================================================================
+\section{Next Steps}
+% =====================================================================
+
+\subsection*{Immediate (χωρίς GPU)}
+\begin{enumerate}[nosep]
+  \item Download missing weights: SPLADE (440MB), BGE-large (2.5GB), Qwen 7B (14GB)
+  \item Extract PathRAG paper metrics into \texttt{reported\_metrics.yaml}
+  \item Run full CPU-safe experiments (102 cells) → baseline sanity check
+\end{enumerate}
+
+\subsection*{When GPU Arrives}
+\begin{enumerate}[nosep]
+  \item Run controlled adaptation (221 cells, 9 baselines × 17 datasets)
+  \item Run optimal operation (M2-M8, 3-6h)
+  \item Run ablation study (26 variants, 3-6h)
+  \item Run native E2E (4 baselines with local LLMs)
+\end{enumerate}
+
+\subsection*{When API Keys Available (+ GPU)}
+\begin{enumerate}[nosep]
+  \item Run native E2E for API-required baselines (HippoRAG 2, LongRAG, Multi-Meta-RAG)
+  \item Full comparison: all 9 native baselines × 17 datasets
+\end{enumerate}
+
+\vspace{1em}
+\begin{center}
+\rule{0.5\linewidth}{0.4pt}\\[4pt]
+\textbf{ΤΕΛΟΣ ΑΝΑΦΟΡΑΣ}
+\end{center}
+
+\end{document}
