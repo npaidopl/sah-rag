@@ -1,4 +1,22 @@
-﻿# PathRAG (Reported Baseline)
+﻿# PathRAG Baseline - STATUS: REPORTED
+
+> This baseline is classified as REPORTED (not executable).
+>
+> The original controlled wrapper at workspace/pathrag_wrapper_future/ is
+> blocked on:
+> 1. No LICENSE in official repo (BUPT-GAMMA/PathRAG) - default copyright.
+> 2. 0 edges produced with local LLMs during controlled mode attempt.
+> 3. Mock LLM violated the controlled contract (fairness protocol).
+>
+> PathRAG participates only via paper-reported metrics (LLM-based win-rates).
+> See reported_metrics.yaml for the extraction template.
+>
+> For paper reporting: label as 'PathRAG (reported)' and NEVER place in
+> the same leaderboard row as executable baselines.
+
+---
+
+# PathRAG (Reported Baseline)
 
 **Status:** REPORTED  
 **Mode:** paper numbers only (no executable code)  
@@ -82,3 +100,4 @@ Usage example (Python):
 - Paper: arXiv non-exclusive distribution license.
 - Official code: no LICENSE file -> all rights reserved.
 - This baseline: no code copied from the official repo. Original shell only.
+
