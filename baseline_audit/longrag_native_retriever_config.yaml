@@ -1,0 +1,123 @@
+# =====================================================================
+# LongRAG Native Fidelity --- Retriever Configuration
+# =====================================================================
+# Written by: RAG Architecture Readiness Program
+# Phase:      Native Fidelity, Phase 1, Item 2
+# =====================================================================
+
+schema_version: 1
+created_utc: "2026-11-01T13:50:45Z"
+pinned_at: 778454e2986c39f2630fd8832abb44a5c9bc124f
+
+purpose: |
+  Capture the exact retriever configuration used by the pinned commit
+  of TIGER-AI-Lab/LongRAG, extracted from:
+    - scripts/run_retrieve_tevatron.sh (retrieval parameters)
+    - requirements.txt                 (dependency pins)
+  This YAML is the authoritative source for what "native LongRAG
+  retrieval" means. It is used by:
+    - Phase 2 prompt verification (context length budgets)
+    - Phase 3 CLI defaults validation
+    - any future audit of a native Stage B run
+
+source_files:
+  - path: scripts/run_retrieve_tevatron.sh
+    sha256_ref: see files[] in baseline_audit/longrag_native_commit_pin.yaml
+  - path: requirements.txt
+    sha256_ref: see files[] in baseline_audit/longrag_native_commit_pin.yaml
+
+embedder:
+  model_name_or_path: BAAI/bge-large-en-v1.5
+  pooling: CLS
+  normalize: true
+  fp16: true
+  notes: |
+    The paper does not pin a HuggingFace revision hash. This is a known
+    gap (see baseline_audit/longrag_native_commit_pin.yaml rationale
+    and the v3 status report, "What is missing even from
+    author-supported native", item 1). Anyone running Stage B should
+    resolve BAAI/bge-large-en-v1.5 to a specific HF revision and record
+    it locally at run time.
+
+corpus_encoding:
+  per_device_eval_batch_size: 128
+  passage_max_len: 512
+  dataset_number_of_shards: 4
+  cuda_devices: "0,1,2,3,4"
+  anomaly_noted_in_official_script: |
+    The official run_retrieve_tevatron.sh uses:
+        for s in $(seq -f "%02g" 0 4)
+        ...  --dataset_number_of_shards 4  --dataset_shard_index ${s}
+    With seq 0..4 there are FIVE shards (00,01,02,03,04) but the script
+    declares four. Shard 04 is out-of-range under Tevatron's
+    index < num_shards assumption. This is preserved as-is (faithful
+    reproduction) rather than fixed. Reproducers should expect to
+    adjust to seq 0..3 (four shards) if Tevatron rejects shard 04, and
+    record that adjustment as an explicit deviation in the run manifest.
+
+query_encoding:
+  per_device_eval_batch_size: 256
+  query_max_len: 32
+  query_prefix: "Represent this sentence for searching relevant passages: "
+  encode_is_query: true
+
+search:
+  depth: 200
+  batch_size: -1
+  save_text: true
+  save_ranking_to: hqa_rank_200_new.txt
+  anomaly_depth_vs_paper: |
+    The paper reports k1=100 initial chunks and k2=4-8 final units
+    (7 optimal), while the script uses --depth 200. depth=200 is the
+    size of the candidate pool returned by Tevatron; the LongRAG
+    pipeline then applies its own truncation to k1=100. If a
+    reproducer skips the pipeline's k1 truncation step, they will
+    inadvertently retrieve with k1=200. The CLI defaults in
+    baselines/longrag_v2/adapter.py use k1=100, matching the paper.
+
+similarity_and_index:
+  similarity: cosine
+  index_backend_at_HEAD: FAISS (Tevatron)
+  index_backend_in_sah_rag_v2: numpy in-memory
+  architectural_note: |
+    Index backend is not architecture-defining for LongRAG. The
+    architecture is defined by the long-unit grouping, top-k1
+    unit retrieval, and MaxP expansion. Backend choice (FAISS vs
+    Qdrant vs numpy) is a storage decision and does not affect
+    native fidelity, as long as retrieval scores and rankings
+    match.
+
+tevatron_version:
+  status: NOT_PINNED
+  reason: |
+    requirements.txt at 778454e2986c39f2630fd8832abb44a5c9bc124f does NOT pin Tevatron. The
+    package is required for the official scripts to run but its
+    version is not declared. This is a genuine reproducibility
+    gap in the official repository. See the note in the v3 status
+    report, "What is missing even from author-supported native",
+    item 2.
+  mitigation_options:
+    - pin tevatron to the version resolved at Stage B run time
+    - record the full pip freeze of the environment used
+    - prefer the author-supported pre-processed corpus
+      (HuggingFace TIGER-Lab/LongRAG) to minimize exposure to
+      Tevatron-version drift
+
+pinned_dependencies_from_requirements_txt:
+  anthropic: "0.28.1"
+  datasets: "2.19.1"
+  google-generativeai: "0.5.4"
+  huggingface-hub: "0.23.0"
+  openai: "1.14.2"
+  tiktoken: "0.6.0"
+  transformers: "4.38.1"
+  notes: |
+    These are transcribed verbatim from requirements.txt at the
+    pinned commit. Only openai and google-generativeai matter for
+    the reader; transformers matters for the embedder. anthropic
+    is not used in any paper-faithful path.
+
+used_by:
+  - baseline_audit/longrag_native_reader_config.yaml
+  - baselines/longrag_v2/config_native.yaml
+  - baselines/longrag_v2/native_e2e/cli.py (validation)

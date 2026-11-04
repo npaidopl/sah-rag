@@ -65,3 +65,45 @@ def test_local_reader_smoke() -> None:
     out = r.generate("Answer in one word: the capital of France is")
     assert isinstance(out, str)
     assert len(out) > 0
+def test_gpt4o_post_process_extracts_after_answer() -> None:
+    # Verbatim behavior from utils/gpt_inference.py at pinned commit.
+    assert GPT4oReader.post_process(
+        "The Eiffel Tower is in Paris. Answer: Paris"
+    ) == "Paris"
+    assert GPT4oReader.post_process("Answer: 42") == "42"
+    # Note: the official regex uses \s (single whitespace) in the
+    # lookbehind, so "answer:  seven" (two spaces) yields " seven"
+    # (leading space preserved) -- this is verbatim native-faithful
+    # behavior from utils/gpt_inference.py at pinned commit.
+    assert GPT4oReader.post_process("answer:  seven") == " seven"
+    # No "answer:" in text -> returns raw unchanged.
+    assert GPT4oReader.post_process("Paris") == "Paris"
+    # Empty string -> returns empty.
+    assert GPT4oReader.post_process("") == ""
+
+
+def test_gpt4o_reader_defaults_match_paper() -> None:
+    # Defaults must match baseline_audit/longrag_native_reader_config.yaml.
+    r = GPT4oReader()
+    assert r._temperature == 0.0
+    assert r._seed == 12345
+    assert r._max_tokens == 1000
+    assert r._retry == 3
+    assert r._delay_seconds == 5.0
+    assert r._azure_endpoint is None
+    assert r._azure_api_version is None
+
+
+def test_gemini_reader_defaults_match_paper() -> None:
+    r = GeminiReader()
+    assert r._temperature == 0.0
+    assert r._max_output_tokens == 1000
+
+
+def test_gpt4o_reader_accepts_azure_params() -> None:
+    r = GPT4oReader(
+        azure_endpoint="https://test.openai.azure.com",
+        azure_api_version="2024-02-01",
+    )
+    assert r._azure_endpoint == "https://test.openai.azure.com"
+    assert r._azure_api_version == "2024-02-01"

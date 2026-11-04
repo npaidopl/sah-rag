@@ -1,7 +1,11 @@
-"""Gemini-1.5-Pro reader (paper-supported reader for LongRAG).
+"""Gemini-1.5-Pro reader (paper-supported alternative reader).
 
-Requires ``GOOGLE_API_KEY`` in the environment. Author-supported but not the
-paper default; GPT-4o achieves the highest EM in the paper comparison.
+Paper alignment (from baseline_audit/longrag_native_reader_config.yaml):
+    model                = gemini-1.5-pro
+    temperature          = 0
+    max_output_tokens    = 1000
+
+Requires ``GOOGLE_API_KEY`` in the environment.
 """
 
 from __future__ import annotations
@@ -20,7 +24,7 @@ class GeminiReader:
         self,
         model: str = "gemini-1.5-pro",
         temperature: float = 0.0,
-        max_output_tokens: int = 1024,
+        max_output_tokens: int = 1000,
     ) -> None:
         self._model = model
         self._temperature = temperature

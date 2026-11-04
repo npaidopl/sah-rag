@@ -46,7 +46,14 @@ import yaml
 
 from baselines.base import BaselineConfig, RunMode
 from baselines.longrag_v2.adapter import LongRAGBaseline
-from baselines.longrag_v2.native_e2e.prompt_loader import load_prompt
+from baselines.longrag_v2.native_e2e.eval_util import (
+    has_correct_answer,
+    single_ans_em,
+)
+from baselines.longrag_v2.native_e2e.prompt_loader import (
+    load_demo_examples,
+    load_prompt,
+)
 from baselines.longrag_v2.native_e2e.reader import (
     GPT4oReader,
     GeminiReader,
@@ -147,14 +154,18 @@ def build_reader(path: str | Path) -> Reader:
         return GPT4oReader(
             model=str(cfg.get("model", "gpt-4o")),
             temperature=float(cfg.get("temperature", 0.0)),
-            seed=int(cfg.get("seed", 42)),
-            max_tokens=int(cfg.get("max_tokens", 1024)),
+            seed=int(cfg.get("seed", 12345)),
+            max_tokens=int(cfg.get("max_tokens", 1000)),
+            retry=int(cfg.get("retry", 3)),
+            delay_seconds=float(cfg.get("delay_seconds", 5.0)),
+            azure_endpoint=cfg.get("azure_endpoint"),
+            azure_api_version=cfg.get("azure_api_version"),
         )
     if rtype == "gemini":
         return GeminiReader(
             model=str(cfg.get("model", "gemini-1.5-pro")),
             temperature=float(cfg.get("temperature", 0.0)),
-            max_output_tokens=int(cfg.get("max_output_tokens", 1024)),
+            max_output_tokens=int(cfg.get("max_output_tokens", 1000)),
         )
     if rtype == "local":
         return LocalReader(
@@ -193,7 +204,28 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--prompt",
         required=False,
-        help="Prompt template name (nq, hotpotqa, qasper, multifieldqa) or .txt path",
+        help="Main prompt template name (nq or hotpotqa) or explicit .txt path. "
+        "Qasper and MultiFieldQA-en are NOT supported as native; they have no "
+        "official prompts in the LongRAG repository.",
+    )
+    p.add_argument(
+        "--extraction-prompt",
+        dest="extraction_prompt",
+        default="answer_extraction",
+        help="Extraction prompt template name (default: answer_extraction).",
+    )
+    p.add_argument(
+        "--dataset-name",
+        dest="dataset_name",
+        default=None,
+        help="Dataset identifier for the manifest (e.g. 'nq', 'hotpotqa'). "
+        "Defaults to the value of --prompt.",
+    )
+    p.add_argument(
+        "--demos",
+        default=None,
+        help="Path to a demo examples file (default: use HF cache at "
+        "native_e2e/prompts/answer_extraction_demos.txt).",
     )
     p.add_argument(
         "--out",
@@ -246,7 +278,13 @@ def main(argv: list[str] | None = None) -> int:
             args.baseline_config, top_k_override=args.top_k
         )
         reader = build_reader(args.reader_config)
-        prompt = load_prompt(args.prompt)
+        main_prompt = load_prompt(args.prompt)
+        extraction_prompt = load_prompt(args.extraction_prompt)
+        if args.demos:
+            demos = Path(args.demos).read_text(encoding="utf-8")
+        else:
+            demos = load_demo_examples()
+        dataset_name = args.dataset_name or main_prompt.name
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -264,6 +302,7 @@ def main(argv: list[str] | None = None) -> int:
             "status": "dry_run",
             "num_documents": len(docs),
             "num_queries": len(queries),
+            "dataset_name": dataset_name,
             "baseline": {
                 "name": baseline_cfg.name,
                 "mode": baseline_cfg.mode.value,
@@ -271,7 +310,15 @@ def main(argv: list[str] | None = None) -> int:
                 "grouping_policy": baseline_cfg.extra.get("grouping_policy"),
             },
             "reader": {"name": reader.name},
-            "prompt": {"name": prompt.name, "sha256": prompt.sha256},
+            "main_prompt": {
+                "name": main_prompt.name,
+                "sha256": main_prompt.sha256,
+            },
+            "extraction_prompt": {
+                "name": extraction_prompt.name,
+                "sha256": extraction_prompt.sha256,
+            },
+            "demos_length_chars": len(demos),
             "out_dir": str(out_dir),
         }
         print(json.dumps(summary, indent=2))
@@ -283,8 +330,11 @@ def main(argv: list[str] | None = None) -> int:
     runner = E2ERunner(
         baseline=baseline,
         reader=reader,
-        prompt=prompt,
+        main_prompt=main_prompt,
+        extraction_prompt=extraction_prompt,
+        demos=demos,
         max_context_chars=args.max_context_chars,
+        dataset_name=dataset_name,
     )
     results = runner.run_batch(queries)
 
@@ -297,7 +347,9 @@ def main(argv: list[str] | None = None) -> int:
             "queries_path": str(Path(args.queries).resolve()),
             "baseline_config_path": str(Path(args.baseline_config).resolve()),
             "reader_config_path": str(Path(args.reader_config).resolve()),
-            "prompt_name": prompt.name,
+            "main_prompt_name": main_prompt.name,
+            "extraction_prompt_name": extraction_prompt.name,
+            "dataset_name": dataset_name,
             "seed": args.seed,
             "num_documents": len(docs),
         },
@@ -310,7 +362,9 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps(
                     {
                         "query_id": r.query_id,
-                        "answer": r.answer,
+                        "query": r.query,
+                        "long_answer": r.long_answer,
+                        "short_answer": r.short_answer,
                         "duration_ms": r.duration_ms,
                     },
                     ensure_ascii=False,

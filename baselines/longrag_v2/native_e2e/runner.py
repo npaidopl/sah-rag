@@ -1,39 +1,80 @@
-"""Native end-to-end runner for LongRAG (retrieval + reader)."""
+"""Native end-to-end runner for LongRAG (retrieval + two-step reader).
+
+Two-step flow (matching utils/gpt_inference.py at pinned commit):
+
+    Step 1 (main prompt):
+        prompt = render(main_prompt, titles=titles, context=context, question=q)
+        long_answer = reader.generate(prompt)
+        # reader.generate() applies post_process (extract after "answer:")
+
+    Step 2 (extraction prompt):
+        extract_prompt = render(extraction_prompt,
+                                demos=demos,
+                                question=q,
+                                long_answer=long_answer)
+        short_answer = reader.generate(extract_prompt)
+        # reader.generate() applies post_process again
+
+    The short_answer is the quantity scored against ground truth
+    (exact-match per utils/eval_util.py).
+
+The runner does not build the index. Callers invoke ``baseline.build_index``
+themselves so index construction can be cached across runs.
+"""
 
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from baselines.base import BaseBaseline, RetrievedChunk
 from baselines.longrag_v2.native_e2e.context_builder import build_context
-from baselines.longrag_v2.native_e2e.prompt_loader import PromptTemplate, render
+from baselines.longrag_v2.native_e2e.prompt_loader import (
+    PromptTemplate,
+    load_demo_examples,
+    render,
+)
 from baselines.longrag_v2.native_e2e.reader.base import Reader
 
 if TYPE_CHECKING:
-    from sah_rag.canonical.models import CanonicalQuery
+    pass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class E2EResult:
-    """The full record of one end-to-end run for a single query."""
+    """Full record of one end-to-end run for a single query.
+
+    Includes both intermediate artifacts (long_answer, prompts) and
+    the scored output (short_answer).
+    """
 
     query_id: str
     query: str
-    answer: str
+    # Two-step outputs:
+    long_answer: str
+    short_answer: str
+    # Artifacts:
     context: str
-    prompt: str
+    titles: list[str]
+    main_prompt: str
+    extraction_prompt: str
     retrieved: list[RetrievedChunk]
+    # Provenance:
     reader_name: str
+    main_prompt_sha256: str
+    extraction_prompt_sha256: str
     context_sha256: str
-    prompt_sha256: str
     duration_ms: float
     num_unique_units: int
+    extra: dict[str, Any] = field(default_factory=dict)
 
 
 def _normalize_query(q: Any) -> tuple[str, str]:
@@ -50,11 +91,24 @@ def _normalize_query(q: Any) -> tuple[str, str]:
 
 
 class E2ERunner:
-    """Compose retrieval + context construction + reader into an end-to-end run.
+    """Compose retrieval + context building + two-step reader.
 
-    The runner does not build the index. Callers invoke ``baseline.build_index``
-    themselves before running, so index construction can be cached across
-    multiple runs.
+    Parameters
+    ----------
+    baseline
+        A built BaseBaseline (``build_index`` already called).
+    reader
+        A Reader instance.
+    main_prompt
+        PromptTemplate for step 1 (must contain {context}, {question}, {titles}).
+    extraction_prompt
+        PromptTemplate for step 2 (must contain {demos}, {question}, {long_answer}).
+    demos
+        Few-shot demo block. When None, ``load_demo_examples()`` is used.
+    max_context_chars
+        Context truncation budget.
+    dataset_name
+        Free-form identifier (e.g. "nq", "hotpotqa"). Stored in manifests.
     """
 
     def __init__(
@@ -62,13 +116,19 @@ class E2ERunner:
         *,
         baseline: BaseBaseline,
         reader: Reader,
-        prompt: PromptTemplate,
+        main_prompt: PromptTemplate,
+        extraction_prompt: PromptTemplate,
+        demos: str | None = None,
         max_context_chars: int = 120_000,
+        dataset_name: str = "unknown",
     ) -> None:
         self._baseline = baseline
         self._reader = reader
-        self._prompt = prompt
+        self._main_prompt = main_prompt
+        self._extraction_prompt = extraction_prompt
+        self._demos = demos if demos is not None else load_demo_examples()
         self._max_context_chars = max_context_chars
+        self._dataset_name = dataset_name
 
     def run_query(
         self,
@@ -78,27 +138,54 @@ class E2ERunner:
     ) -> E2EResult:
         t0 = time.perf_counter()
 
+        # --- Retrieve ---
         retrieved = self._baseline.retrieve(query, top_k=top_k)
-        context, n_units = build_context(
-            retrieved, max_chars=self._max_context_chars
+
+        # --- Build context + titles ---
+        built = build_context(retrieved, max_chars=self._max_context_chars)
+
+        # --- Step 1: main prompt ---
+        main_prompt_text = render(
+            self._main_prompt,
+            titles=built.titles,
+            context=built.context,
+            question=query,
         )
-        prompt = render(self._prompt, context=context, question=query)
-        answer = self._reader.generate(prompt)
+        long_answer = self._reader.generate(main_prompt_text)
+
+        # --- Step 2: extraction prompt ---
+        extraction_prompt_text = render(
+            self._extraction_prompt,
+            demos=self._demos,
+            question=query,
+            long_answer=long_answer,
+        )
+        short_answer = self._reader.generate(extraction_prompt_text)
 
         duration_ms = (time.perf_counter() - t0) * 1000.0
 
         return E2EResult(
             query_id=str(query_id),
             query=str(query),
-            answer=answer,
-            context=context,
-            prompt=prompt,
+            long_answer=long_answer,
+            short_answer=short_answer,
+            context=built.context,
+            titles=list(built.titles),
+            main_prompt=main_prompt_text,
+            extraction_prompt=extraction_prompt_text,
             retrieved=retrieved,
             reader_name=self._reader.name,
-            context_sha256=hashlib.sha256(context.encode("utf-8")).hexdigest(),
-            prompt_sha256=hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            main_prompt_sha256=hashlib.sha256(
+                main_prompt_text.encode("utf-8")
+            ).hexdigest(),
+            extraction_prompt_sha256=hashlib.sha256(
+                extraction_prompt_text.encode("utf-8")
+            ).hexdigest(),
+            context_sha256=hashlib.sha256(
+                built.context.encode("utf-8")
+            ).hexdigest(),
             duration_ms=duration_ms,
-            num_unique_units=n_units,
+            num_unique_units=built.num_unique_units,
         )
 
     def run_batch(
@@ -127,13 +214,24 @@ class E2ERunner:
         baseline_version = getattr(self._baseline, "version", "unknown")
 
         manifest: dict[str, Any] = {
-            "schema_version": 1,
+            "schema_version": 2,
             "created_utc": datetime.now(timezone.utc).isoformat(),
+            "dataset_name": self._dataset_name,
             "baseline": {"name": baseline_name, "version": baseline_version},
             "reader": {"name": self._reader.name},
-            "prompt": {
-                "name": self._prompt.name,
-                "sha256": self._prompt.sha256,
+            "main_prompt": {
+                "name": self._main_prompt.name,
+                "sha256": self._main_prompt.sha256,
+            },
+            "extraction_prompt": {
+                "name": self._extraction_prompt.name,
+                "sha256": self._extraction_prompt.sha256,
+            },
+            "demos": {
+                "length_chars": len(self._demos),
+                "sha256": hashlib.sha256(
+                    self._demos.encode("utf-8")
+                ).hexdigest(),
             },
             "config": {
                 "max_context_chars": self._max_context_chars,
@@ -144,10 +242,13 @@ class E2ERunner:
                 {
                     "query_id": r.query_id,
                     "query": r.query,
-                    "answer": r.answer,
+                    "long_answer": r.long_answer,
+                    "short_answer": r.short_answer,
                     "context_sha256": r.context_sha256,
-                    "prompt_sha256": r.prompt_sha256,
+                    "main_prompt_sha256": r.main_prompt_sha256,
+                    "extraction_prompt_sha256": r.extraction_prompt_sha256,
                     "num_unique_units": r.num_unique_units,
+                    "num_titles": len(r.titles),
                     "duration_ms": r.duration_ms,
                     "retrieved_doc_ids": [c.doc_id for c in r.retrieved],
                     "retrieved_scores": [c.score for c in r.retrieved],

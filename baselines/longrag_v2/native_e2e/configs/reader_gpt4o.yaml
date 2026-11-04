@@ -2,5 +2,11 @@ reader:
   type: gpt4o
   model: gpt-4o
   temperature: 0.0
-  seed: 42
-  max_tokens: 1024
+  seed: 12345
+  max_tokens: 1000
+  retry: 3
+  delay_seconds: 5.0
+  # For paper-faithful Azure mode, set these (or rely on env vars
+  # AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_VERSION):
+  azure_endpoint: null
+  azure_api_version: null

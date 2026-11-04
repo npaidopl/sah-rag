@@ -1,7 +1,1 @@
-Write a high-quality answer for the given question using only the provided search results (some of which might be irrelevant). The question may require reasoning across multiple documents.
-
-{context}
-
-Question: {question}
-
-Answer:
+Go through the following context and then answer the question The context is a list of Wikipedia documents titled: {titles}. There are two types of questions: comparison questions, which require a yes or no answer or a selection from two candidates, and general questions, which demand a concise response. The context is: {context}. Find the useful documents from the context, then answer the question: {question}.For general questions, you should use the exact words from the context as the answer to avoid ambiguity. Answer the question directly and don't output other thing.  

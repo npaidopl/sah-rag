@@ -2,4 +2,4 @@ reader:
   type: gemini
   model: gemini-1.5-pro
   temperature: 0.0
-  max_output_tokens: 1024
+  max_output_tokens: 1000

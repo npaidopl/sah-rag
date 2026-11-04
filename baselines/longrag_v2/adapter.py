@@ -30,7 +30,7 @@ import json
 import logging
 import math
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -81,6 +81,7 @@ class _Unit:
     text: str
     doc_ids: tuple[str, ...]
     token_count: int
+    title_map: dict[str, str] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -90,6 +91,23 @@ class _Unit:
 def _doc_text(doc: CanonicalDocument) -> str:
     """Preferred text field with fallback."""
     return doc.text_normalized or doc.text_raw or ""
+
+
+def _doc_title(doc: CanonicalDocument) -> str:
+    """Preferred title with fallback to doc_id.
+
+    Resolution order:
+        1. doc.title (CanonicalDocument top-level field)
+        2. doc.metadata["title"] (canonical metadata)
+        3. doc.doc_id (always present)
+    """
+    if doc.title and doc.title.strip():
+        return doc.title.strip()
+    if isinstance(doc.metadata, dict):
+        t = doc.metadata.get("title")
+        if isinstance(t, str) and t.strip():
+            return t.strip()
+    return doc.doc_id
 
 
 def _group_one_document_per_unit(
@@ -108,6 +126,7 @@ def _group_one_document_per_unit(
                 text=text,
                 doc_ids=(doc.doc_id,),
                 token_count=_estimate_tokens(text),
+                title_map={doc.doc_id: _doc_title(doc)},
             )
         )
     return units
@@ -132,11 +151,12 @@ def _group_adjacent_segments(
     units: list[_Unit] = []
     cur_texts: list[str] = []
     cur_doc_ids: list[str] = []
+    cur_title_map: dict[str, str] = {}
     cur_tokens: int = 0
     seq: int = 0
 
     def flush() -> None:
-        nonlocal cur_texts, cur_doc_ids, cur_tokens, seq
+        nonlocal cur_texts, cur_doc_ids, cur_title_map, cur_tokens, seq
         if not cur_texts:
             return
         units.append(
@@ -145,11 +165,13 @@ def _group_adjacent_segments(
                 text="\n\n".join(cur_texts),
                 doc_ids=tuple(cur_doc_ids),
                 token_count=cur_tokens,
+                title_map=dict(cur_title_map),
             )
         )
         seq += 1
         cur_texts = []
         cur_doc_ids = []
+        cur_title_map = {}
         cur_tokens = 0
 
     for doc in documents:
@@ -159,6 +181,7 @@ def _group_adjacent_segments(
             flush()
         cur_texts.append(text)
         cur_doc_ids.append(doc.doc_id)
+        cur_title_map[doc.doc_id] = _doc_title(doc)
         cur_tokens += toks
 
     flush()
@@ -227,6 +250,7 @@ def _group_hyperlink_based(
             text=u.text,
             doc_ids=u.doc_ids,
             token_count=u.token_count,
+            title_map=u.title_map,
         )
         for i, u in enumerate(units)
     ]
@@ -427,6 +451,7 @@ class LongRAGBaseline(BaseBaseline):
                 "text": u.text,
                 "doc_ids": list(u.doc_ids),
                 "token_count": u.token_count,
+                "title_map": dict(u.title_map),
             }
             for u in units
         ]
@@ -512,18 +537,21 @@ class LongRAGBaseline(BaseBaseline):
         doc_best_score: dict[str, float] = {}
         doc_to_text: dict[str, str] = {}
         doc_to_unit: dict[str, str] = {}
+        doc_to_title: dict[str, str] = {}
         for ui in idx:
             ui_int = int(ui)
             unit_score = float(scores[ui_int])
             rec = self._unit_records[ui_int]
+            title_map = rec.get("title_map", {}) or {}
             for doc_id in rec["doc_ids"]:
                 prev = doc_best_score.get(doc_id)
                 if prev is None or unit_score > prev:
                     doc_best_score[doc_id] = unit_score
-                # First unit that mentions the doc provides its text.
+                # First unit that mentions the doc provides its text/title.
                 if doc_id not in doc_to_text:
                     doc_to_text[doc_id] = rec["text"]
                     doc_to_unit[doc_id] = rec["unit_id"]
+                    doc_to_title[doc_id] = title_map.get(doc_id, doc_id)
 
         # Step 3: rank documents (score desc, doc_id asc for determinism).
         ranked = sorted(
@@ -546,6 +574,7 @@ class LongRAGBaseline(BaseBaseline):
                         "unit_id": doc_to_unit.get(doc_id, ""),
                         "mode": self.config.mode.value,
                         "grouping_policy": self._grouping_policy,
+                        "title": doc_to_title.get(doc_id, doc_id),
                     },
                 )
             )

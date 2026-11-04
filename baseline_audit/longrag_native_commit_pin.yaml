@@ -1,0 +1,160 @@
+# =====================================================================
+# LongRAG Native Fidelity --- Pinned Commit
+# =====================================================================
+# Written by: RAG Architecture Readiness Program
+# Phase:      Native Fidelity, Phase 1, Item 1
+# =====================================================================
+
+schema_version: 1
+created_utc: "2026-11-01T13:47:11Z"
+
+purpose: |
+  Pin the exact commit of TIGER-AI-Lab/LongRAG used for the
+  Native End-to-End LongRAG claim (Stage B). Records the commit
+  SHA-1, the git blob SHA-1 of each architecture-defining file,
+  and the SHA-256 of each blob for independent verification.
+
+repository:
+  url: https://github.com/TIGER-AI-Lab/LongRAG
+  license: MIT
+  local_clone_path: C:\\Users\\USER1\\Documents\\SAH-RAG\\external\\baselines\\longrag
+
+pin:
+  commit_sha1: 778454e2986c39f2630fd8832abb44a5c9bc124f
+  commit_date: "2024-06-24 04:22:08 -0700"
+  commit_author: "Ziyan Jiang"
+  commit_author_email: "ziyjiang@amazon.com"
+  commit_subject: "Update requirements"
+  branch: main
+  commits_after_pin: 7
+  head_at_time_of_pinning: ba92f957f4e39b98f9c79c42f751228b95ee086f
+
+rationale: |
+  This commit was chosen over HEAD (ba92f95) for the following reasons.
+
+  (a) All paper-faithful files are frozen at or before this commit:
+        - utils/gpt_inference.py            last changed at edecd38 (before pin)
+        - utils/gemini_inference.py         last changed at edecd38 (before pin)
+        - scripts/run_retrieve_tevatron.sh  last changed at ef3af5d (before pin)
+        - scripts/run_eval_qa.sh            last changed at 778454e (this commit)
+        - requirements.txt                  last changed at 778454e (this commit)
+        - LICENSE                           last changed at 82759a6 (before pin)
+      None of these files were modified after this commit (verified with
+      `git log 778454e..HEAD -- <path>` returning empty for each).
+
+  (b) This commit precedes the last two Claude-related changes:
+        - ca0c208 (2024-06-24 04:40) "update claude eval"
+            modifies utils/claude_inference.py (+21/-7)
+        - 9a8a08d (2024-06-25 11:52) "add claude sonnet samples"
+            adds exp/nq_claude_3.5_sonnet.json
+      Note: utils/claude_inference.py was created earlier, at 07023c9
+      ("reader api utils"); it was NOT created after this pin. The paper
+      reports only GPT-4o and Gemini-1.5-Pro; the pre-existing Claude
+      file is not used by any paper-faithful code path. The two post-pin
+      Claude commits are excluded to keep the pin as close as possible
+      to the configuration the authors reported in the paper.
+
+  (c) This commit precedes "update the preprocess" (89c0c89, 2024-07-08),
+      which modifies scripts/process_wiki_page.sh. The preprocessing
+      path is not used when the author-supported pre-processed corpus
+      (HuggingFace TIGER-Lab/LongRAG) is used, which is the recommended
+      path for Stage B (avoids re-running the full Wikipedia dump
+      extraction).
+
+  (d) This commit precedes two README-only edits at the tail of the
+      repository (38d741c and ba92f95). Those edits do not affect any
+      executable code.
+
+  Summary: 778454e is the last commit at which every file needed for a
+  native LongRAG run (retrieval, reader, prompt, requirements) is in
+  its final paper-era form, before any post-paper additions.
+what_is_NOT_in_this_pin:
+  - utils/claude_inference.py    (added after pin; not in paper)
+  - exp/nq_claude_3.5_sonnet.json (added after pin; not in paper)
+  - post-pin README edits (38d741c, ba92f95) --- documentation only
+
+files:
+  - path: LICENSE
+    blob_sha1: d1cb56f11bee3548a2b94e0db8fd9f65bbfb212c
+    sha256: 00708cd66c2af9e9d39d5a19d315f45888545f644ad6e950d7c4356f52b804c7
+  - path: README.md
+    blob_sha1: b9a4cdbcf175a816fceac6890e02e4c6990dcddf
+    sha256: 44e6d276e4b950932599078ea290c6d2e1660eb6fbfe01f47c139024c86623c6
+  - path: requirements.txt
+    blob_sha1: cd9090ca691c56ce0a12ebdb39118a9abbe4a516
+    sha256: d3497cb138abdb4e8d2c081ce34e9d06d49819ef4d72686932abf180446f9d94
+  - path: scripts/extract_and_clean_wiki_dump.sh
+    blob_sha1: f723e989e0d2b06b3c713766c8888922930bf5fa
+    sha256: 6132306923a0d1ce143dcb8f7cd9e1efd0c3b13541e9c2125d8b0e0c754a30cb
+  - path: scripts/group_documents.sh
+    blob_sha1: 94fd1af0ce68b5ebc1f6d0c7b50c41c0d10af274
+    sha256: 5905022a783930ca46da6a6c81263fcbbad599cd9eb74f36ae4658f07075dc9b
+  - path: scripts/process_wiki_page.sh
+    blob_sha1: f916488a3b8cbefa3a459b545359252685ef78cb
+    sha256: 8dd32f527e56e32ebf33b874835b832d22254f55e121750eee786a7a9ea7b58e
+  - path: scripts/run_eval_qa.sh
+    blob_sha1: 7c4362f841b2055ee4544d571f93d114906500ee
+    sha256: 67243cbab3d4e824e960ee5abdeac77e6052cb0188f7373375a6b36a0f83847e
+  - path: scripts/run_retrieve_tevatron.sh
+    blob_sha1: 4df81d4ccbcf05a0d9266bf17401a6411a4ee02f
+    sha256: 38d2474c85927ffabd66b77a34ad2267adaa0a7b07ed1d5a798a37a2a1033e97
+  - path: utils/claude_inference.py
+    blob_sha1: 562537bf50295c55c032753d982b6a655ba14526
+    sha256: ff9dcb3695480f7e699372e2d4b7b6c973403f5ef5b16495072245413940acab
+  - path: utils/eval_util.py
+    blob_sha1: 2cd2c583c15ff923b8eba3677013dbfe593e26cc
+    sha256: 1acc3b560e652b67f94286cc7c62c2f50dd2378a85d22400f37caa4d2b30c76c
+  - path: utils/gemini_inference.py
+    blob_sha1: 0a12aa2e93403ebb5a719d8dee325dc6e29bb671
+    sha256: c52c703ff037c591896554d0f913d15e71c67c1f21b578615f57d09d1a57af92
+  - path: utils/gpt_inference.py
+    blob_sha1: ed20fba1bc60bb7c1e7ef2015643cb681f5d68bd
+    sha256: 357a4752049f02fa2982a653a33dd8e2f6f80914b0e194313d0d5b745dd83d11
+  - path: utils/load_data_util.py
+    blob_sha1: 4415f14c40209a123606ccbd8bbd7afa02ddb4dc
+    sha256: 3cf866d147e6b40cc26119a727460e051e28e2ff00e3811a1e34c9724a4b1f14
+  - path: utils/mp_util.py
+    blob_sha1: 7de6ca601907d5926ed5d7c8e51eef752ed1a732
+    sha256: 2f0eb12bd5078a767a32ae630d257fe98294319fe3053e841d8886c0f530814a
+  - path: utils/tokenizers.py
+    blob_sha1: 128472c4d43868c790feec078b2b941ae9b57f8f
+    sha256: d5d092deae109c9b433ab6c24bf87de8a610f79ef4452930ea0d2730c60162c4
+  - path: utils/wiki_util.py
+    blob_sha1: d60c6b56d026b20f93806b77b9cb6dcdd000c911
+    sha256: d3acf6f9a4af28019d4e24e1a155313486f77e3d18d51781ee33c29ff9191464
+
+verification:
+  blob_sha1: |
+    From any clone of the repository:
+      git cat-file -p <blob_sha1>   # prints raw blob content
+  sha256: |
+    Compute SHA-256 of the blob content:
+      git cat-file -p <blob_sha1> | sha256sum
+    Expected value matches the 'sha256' field above.
+  alternate: |
+    Checkout to a clean worktree and hash the working file:
+      git checkout 778454e2986c39f2630fd8832abb44a5c9bc124f -- <path>
+      sha256sum <path>
+
+cross_reference:
+  v1_controlled_tree: |
+    C:\\Users\\USER1\\Documents\\RAG Architecture\\baseline_audit\\
+    (contains the v1 L1-L7 contracts and the v1 clone;
+     the v1 clone HEAD is also 778454e2986c39f2630fd8832abb44a5c9bc124f via ba92f95's history,
+     but the v1 work was done at HEAD, not at the pinned commit;
+     this YAML is the authoritative pin for native fidelity claims.)
+
+used_by:
+  - baseline_audit/longrag_native_retriever_config.yaml  (item 2)
+  - baseline_audit/longrag_native_reader_config.yaml     (item 3)
+  - baseline_audit/longrag_native_prompts.yaml           (item 4, Phase 2)
+  - baselines/longrag_v2/native_e2e/prompts/README.md    (byte-verify)
+
+# =====================================================================
+# NOTE ON created_utc FIELD
+# =====================================================================
+# The created_utc field above was produced by the local system clock,
+# which currently reports a date in 2026. This is a system-clock issue,
+# not a data error. The pinned commit date (2024-06-24) and all blob
+# hashes are independent of this and are correct.
+# =====================================================================

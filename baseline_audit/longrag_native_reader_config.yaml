@@ -1,0 +1,115 @@
+# =====================================================================
+# LongRAG Native Fidelity --- Reader Configuration
+# =====================================================================
+# Written by: RAG Architecture Readiness Program
+# Phase:      Native Fidelity, Phase 1 Item 3 + Phase 2 Item 4 (updated)
+# =====================================================================
+
+schema_version: 2
+created_utc: "2026-11-01T14:02:40Z"
+pinned_at: 778454e2986c39f2630fd8832abb44a5c9bc124f
+
+purpose: |
+  Capture the exact reader configuration used by the pinned commit of
+  TIGER-AI-Lab/LongRAG, extracted from utils/gpt_inference.py and
+  utils/gemini_inference.py. This YAML is the authoritative source
+  for what "native LongRAG reader" means.
+
+source_files:
+  - path: utils/gpt_inference.py
+    sha256_ref: see files[] in baseline_audit/longrag_native_commit_pin.yaml
+  - path: utils/gemini_inference.py
+    sha256_ref: see files[] in baseline_audit/longrag_native_commit_pin.yaml
+
+reader_selection:
+  primary: gpt-4o
+  alternative: gemini-1.5-pro
+  rationale: |
+    GPT-4o achieves the highest EM in the paper's reported comparison
+    on NQ and HotpotQA. It is adopted as the paper-default reader.
+    Gemini-1.5-Pro is a paper-supported alternative.
+
+native_dataset_support:
+  supported:
+    - nq
+    - hotpotqa
+  not_supported:
+    - qasper           # no predict_qasper in official repo
+    - multifieldqa     # no predict_multifieldqa in official repo
+  rationale: |
+    The official eval/eval_qa.py dispatches only for nq and hotpot_qa.
+    No Qasper or MultiFieldQA-en support exists in the pinned commit.
+    The paper evaluated those datasets via an external LongBench
+    harness that is not part of the TIGER-AI-Lab/LongRAG repository.
+    Any Qasper/MultiFieldQA run through this module is a controlled
+    adaptation, not a native claim.
+
+gpt4o:
+  endpoint_type: AzureOpenAI_preferred_standard_fallback
+  model: gpt-4o
+  temperature: 0
+  max_tokens: 1000
+  seed: 12345
+  retry: 3
+  delay_seconds: 5
+  post_processing: |
+    Regex on "answer:" prefix, implemented as a static method on
+    GPT4oReader (post_process). Applied to both step 1 (long_answer)
+    and step 2 (short_answer) results, matching the official flow
+    where GPTInference.predict calls self.post_process.
+
+gemini:
+  endpoint_type: google-generativeai
+  model: gemini-1.5-pro
+  generation_config:
+    temperature: 0
+    max_output_tokens: 1000
+
+two_step_generation:
+  required_for_native_fidelity: true
+  status_in_native_e2e: IMPLEMENTED
+  step_1:
+    name: long_answer
+    prompt: native_e2e/prompts/{dataset}.txt   # nq.txt or hotpotqa.txt
+    placeholders: [titles, context, question]
+  step_2:
+    name: short_answer
+    prompt: native_e2e/prompts/answer_extraction.txt
+    placeholders: [demos, question, long_answer]
+    demos_source: HuggingFace TIGER-Lab/LongRAG subset answer_extract_example
+    demos_cache: native_e2e/prompts/answer_extraction_demos.txt
+  implementation_notes: |
+    The E2ERunner invokes the reader twice per query. Both invocations
+    apply post_process. The short_answer is the quantity scored against
+    ground truth via eval_util.single_ans_em.
+
+context_budget:
+  target_tokens: 30000
+  approximate_chars: 120000
+  rationale: |
+    The paper's reader consumes approximately 30K tokens. Default
+    max_context_chars=120000 corresponds to ~30K tokens for English.
+    Faithful match; no change required.
+
+prompts:
+  status: VERIFIED
+  verified_at: Phase 2 Item 4
+  verification_method: |
+    Byte-level extraction from utils/gpt_inference.py at pinned commit.
+    Whitespace quirks preserved (see native_e2e/prompts/README.md).
+  per_dataset:
+    nq: native_e2e/prompts/nq.txt
+    hotpotqa: native_e2e/prompts/hotpotqa.txt
+  extraction:
+    prompt: native_e2e/prompts/answer_extraction.txt
+    demos: native_e2e/prompts/answer_extraction_demos.txt
+  deleted_non_native:
+    - native_e2e/prompts/qasper.txt      # deleted in Phase 2
+    - native_e2e/prompts/multifieldqa.txt # deleted in Phase 2
+
+used_by:
+  - baselines/longrag_v2/native_e2e/reader/gpt4o_reader.py
+  - baselines/longrag_v2/native_e2e/reader/gemini_reader.py
+  - baselines/longrag_v2/native_e2e/configs/reader_gpt4o.yaml
+  - baselines/longrag_v2/native_e2e/configs/reader_gemini.yaml
+  - baselines/longrag_v2/native_e2e/runner.py (two-step composition)

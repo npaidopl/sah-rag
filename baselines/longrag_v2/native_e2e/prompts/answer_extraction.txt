@@ -1,0 +1,5 @@
+As an AI assistant, you have been provided with a question and its long answer. Your task is to derive a very concise short answer, extracting a substring from the given long answer. Short answer is typically an entity without any other redundant words.It's important to ensure that the output short answer remains as simple as possible.
+
+{demos}Question: {question}
+Long Answer: {long_answer}
+Short Answer: 
