@@ -1,0 +1,152 @@
+# Static end-to-end inspection of the SAH-RAG pipeline.
+# Last updated: 2026-11-04 (FIX-03 / F2)
+
+pipeline:
+  ownership: PROJECT_OWNED
+  verification_level: STATIC_CODE_INSPECTION
+  root: "sah_rag/"
+  description: >-
+    SAH-RAG is a project-owned, structure-aware hierarchical RAG pipeline.
+    This inspection captures the static architecture of both stages.
+
+source_counts:
+  total_files: 47
+  python_files: 47
+  schemas: 55
+
+stages:
+  offline:
+    - stage_id: canonical_input_validation
+      executable: true
+      module: sah_rag.canonical.loaders
+    - stage_id: derived_preprocessing
+      executable: partial
+      module: sah_rag.cleaning
+    - stage_id: structural_parsing
+      executable: true
+      module: sah_rag.parsing.deterministic
+    - stage_id: semantic_parent_construction
+      executable: true
+      module: sah_rag.parsing.deterministic
+    - stage_id: hierarchical_child_chunking
+      executable: true
+      module: sah_rag.chunking.hierarchical
+    - stage_id: dense_and_sparse_embedding
+      executable: true
+      module: scripts.colab_sah_rag_m0_embed_chunks
+    - stage_id: vector_store_ingestion
+      executable: true
+      module: sah_rag.storage.qdrant
+    - stage_id: parent_and_document_storage
+      executable: true
+      module: sah_rag.storage.qdrant
+  online:
+    - stage_id: canonical_query_loading
+      executable: true
+      module: sah_rag.canonical.loaders
+    - stage_id: dense_query_embedding
+      executable: true
+      module: scripts.colab_sah_rag_m0_embed_queries
+    - stage_id: sparse_query_embedding
+      executable: true
+      module: scripts.colab_sah_rag_m0_embed_queries
+    - stage_id: dense_retrieval
+      executable: true
+      module: sah_rag.retrieval.qdrant
+    - stage_id: sparse_retrieval
+      executable: true
+      module: sah_rag.retrieval.qdrant
+    - stage_id: rank_fusion
+      executable: true
+      module: sah_rag.retrieval.qdrant
+    - stage_id: top_k_child_retrieval
+      executable: true
+      module: sah_rag.retrieval.qdrant
+    - stage_id: semantic_parent_resolution
+      executable: true
+      module: sah_rag.retrieval.aggregation
+    - stage_id: canonical_document_resolution
+      executable: true
+      module: sah_rag.resolution
+    - stage_id: evaluation
+      executable: true
+      module: evaluation
+
+chunking:
+  chunk_size_tokens: 256
+  chunk_overlap_tokens: 32
+  deterministic: true
+  parent_boundaries_preserved: true
+  chunker_id: hierarchical_token_chunker
+  chunker_version: "0.3.0"
+
+embedding:
+  provider: local
+  dense_model_id: "BAAI/bge-m3"
+  dense_dimension: 1024
+  local_or_hosted: local
+  precision: FP16
+  reproducibility_status: PINNED
+  model_revision: "5617a9f61b028005a4858fdac845db406aefb181"
+
+storage:
+  backend: Qdrant
+  unsafe_serialization: false
+  collection_type: hybrid
+  vector_names: [dense, sparse]
+
+retrieval:
+  score_direction: higher_is_better
+  canonical_doc_ids_exposed: true
+  rank_fusion_method: RRF
+  rrf_k: 60
+  candidate_limit: 200
+  parent_limit: 100
+  document_limit: 100
+
+generation_boundary:
+  retrieval_callable_independently: true
+  final_generation_enabled_for_pilot: false
+  generation_module: sah_rag.generation
+  note: >-
+    Generation is implemented in sah_rag/generation/ but is NOT part of
+    the pilot evaluation. Controlled-adaptation baselines are IR-only.
+
+canonical_compatibility:
+  status: DIRECT
+  adapter_required: false
+  adapter_scope: null
+  note: >-
+    SAH-RAG consumes CanonicalDocument / CanonicalExample directly.
+    No adapter layer needed.
+
+host_feasibility:
+  current_host_status: REQUIRES_REMOTE_GPU
+  cpu_only_supported: false
+  gpu_required_for_embedding: true
+  gpu_required_for_retrieval: false
+  note: >-
+    Embedding requires GPU (BGE-M3 FP16). Retrieval is CPU-feasible
+    for small corpora but Qdrant retrieval prefers CUDA-accelerated
+    host for production.
+
+pilot_recommendation:
+  eligible: false
+  required_changes:
+    - "Provision Qwen2.5-14B-Instruct weights (28GB) for controlled-mode LLM"
+    - "Migrate 17 canonical datasets to data/processed/canonical/"
+    - "Provision GPU host with >=40GB VRAM"
+  prohibited_stages:
+    - "final_answer_generation"
+    - "multi_hop_reasoning"
+    - "agent_orchestration"
+
+blocked_claims:
+  - claim: "SAH-RAG beats LongRAG on all datasets"
+    reason: "Requires full 17-dataset migration + GPU execution"
+  - claim: "SAH-RAG produces end-to-end answers"
+    reason: "Generation stage exists but only dry-run tested; Qwen 14B needed"
+  - claim: "SAH-RAG is controlled-comparable to 13 baselines"
+    reason: "Requires multi_meta_rag controlled runner + 4 missing baselines"
+  - claim: "SAH-RAG ablation confirms hierarchical chunking is essential"
+    reason: "Ablation requires GPU embedding pipeline (49 chunk sets)"

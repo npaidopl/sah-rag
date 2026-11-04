@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-AUDIT = Path("baseline_audit/my_rag_end_to_end_inspection.yaml")
+AUDIT = Path("baseline_audit/sah_rag_end_to_end_inspection.yaml")
 
 REQUIRED_OFFLINE_STAGES = {
     "canonical_input_validation",
